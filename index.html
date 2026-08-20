@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0d6b67" />
-  <meta name="description" content="A location-aware family holiday decision helper for Florida." />
+  <meta name="description" content="A family-aware vacation decision helper for Florida." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Florida Planner" />
+  <meta name="apple-mobile-web-app-title" content="Family Planner" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -15,10 +15,44 @@
   <title>Florida Family Vacation Planner</title>
 </head>
 <body>
+  <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
+    <div class="onboarding-card">
+      <div class="eyebrow">FIRST THINGS FIRST</div>
+      <h2>Who are we planning for?</h2>
+      <p>Set up the family once and the app can stop suggesting things that only suit somebody else's holiday.</p>
+      <form id="onboardingForm" class="setup-form">
+        <label>Family / trip name
+          <input id="setupFamilyName" type="text" maxlength="40" placeholder="The Jones family" />
+        </label>
+        <label>Home base
+          <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort name" />
+          <small>Used as a reference point. Exact address is optional.</small>
+        </label>
+        <div class="setup-grid">
+          <label>Usual max drive
+            <select id="setupMaxDrive">
+              <option value="15">15 miles</option><option value="30" selected>30 miles</option><option value="60">60 miles</option><option value="100">100 miles</option>
+            </select>
+          </label>
+          <label>Budget
+            <select id="setupBudget"><option value="low">Keep costs down</option><option value="medium" selected>Reasonable</option><option value="high">Holiday mode</option></select>
+          </label>
+        </div>
+        <div class="setup-heading"><b>Family members</b><button id="addSetupMember" class="text-btn" type="button">+ Add person</button></div>
+        <div id="setupMembers" class="member-list"></div>
+        <label>Dietary / access notes
+          <input id="setupNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" />
+        </label>
+        <button class="primary-btn full" type="submit">Save family & start planning</button>
+        <button id="skipSetup" class="text-btn full" type="button">Skip for now</button>
+      </form>
+    </div>
+  </div>
+
   <div id="app" class="app-shell">
     <header class="topbar">
       <div>
-        <div class="eyebrow">FAMILY TRIP BETA</div>
+        <div class="eyebrow">FLORIDA BETA · V1.1</div>
         <h1>Florida Family<br/>Vacation Planner</h1>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -33,150 +67,92 @@
         </div>
 
         <section id="weatherCard" class="hero-card weather-card loading-card">
-          <div class="skeleton wide"></div>
-          <div class="skeleton medium"></div>
-          <div class="skeleton short"></div>
+          <div class="skeleton wide"></div><div class="skeleton medium"></div><div class="skeleton short"></div>
         </section>
 
         <section class="decision-card">
           <div>
             <div class="eyebrow light">DECISION ENGINE</div>
             <h2>What should we do now?</h2>
-            <p>I’ll weigh up weather, distance, family preferences and the time of day.</p>
+            <p>I’ll weigh up weather, distance, budget, energy and who is actually in your family.</p>
           </div>
           <button id="whatNowBtn" class="primary-btn">What Now?</button>
         </section>
 
         <section id="recommendations" class="section-block hidden">
-          <div class="section-title-row">
-            <div>
-              <div class="eyebrow">BEST RIGHT NOW</div>
-              <h2>Your shortlist</h2>
-            </div>
-            <button id="rerunBtn" class="text-btn">Re-run</button>
-          </div>
+          <div class="section-title-row"><div><div class="eyebrow">BEST RIGHT NOW</div><h2>Your shortlist</h2></div><button id="rerunBtn" class="text-btn">Re-run</button></div>
           <div id="recommendationList" class="card-list"></div>
         </section>
 
         <section class="section-block">
-          <div class="section-title-row">
-            <div>
-              <div class="eyebrow">QUICK START</div>
-              <h2>What kind of day?</h2>
-            </div>
-          </div>
+          <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2>What kind of day?</h2></div></div>
           <div class="quick-grid">
-            <button class="quick-card" data-quick="indoor"><span>☂</span><b>Stay indoors</b><small>Heat or rain escape</small></button>
-            <button class="quick-card" data-quick="park"><span>🎢</span><b>Theme park</b><small>Check live waits</small></button>
-            <button class="quick-card" data-quick="food"><span>🍽</span><b>Food & chill</b><small>Easy-going options</small></button>
-            <button class="quick-card" data-quick="beach"><span>🌊</span><b>Beach day</b><small>Worth the drive?</small></button>
+            <button class="quick-card" data-quick="stayin"><span>🏠</span><b>Stay in</b><small>Villa / hotel reset day</small></button>
+            <button class="quick-card" data-quick="indoor"><span>☂</span><b>Indoor attractions</b><small>Get out, stay cool & dry</small></button>
+            <button class="quick-card" data-quick="food"><span>🍽</span><b>Food</b><small>With family budget estimates</small></button>
+            <button class="quick-card" data-quick="essentials"><span>🛒</span><b>Essentials</b><small>Groceries, pharmacy, fuel & help</small></button>
+            <button class="quick-card" data-quick="park"><span>🎢</span><b>Theme parks</b><small>Live waits + family fit</small></button>
+            <button class="quick-card" data-quick="shopping"><span>🛍</span><b>Shopping</b><small>Malls, outlets & retail</small></button>
+            <button class="quick-card" data-quick="beach"><span>🌊</span><b>Beach / outdoors</b><small>Worth it in this weather?</small></button>
+            <button class="quick-card" data-quick="family"><span>👨‍👩‍👧‍👦</span><b>Family setup</b><small>Ages, heights & preferences</small></button>
           </div>
         </section>
       </section>
 
       <section class="view" data-view="explore">
-        <div class="page-heading">
-          <div class="eyebrow">EXPLORE</div>
-          <h2>Things to do</h2>
-          <p>Useful Florida family options, ranked by what makes sense from where you are.</p>
-        </div>
+        <div class="page-heading"><div class="eyebrow">EXPLORE</div><h2>Things to do</h2><p>Florida family options ranked by distance and family fit.</p></div>
         <div id="exploreFilters" class="chip-row">
-          <button class="chip active" data-filter="all">All</button>
-          <button class="chip" data-filter="indoor">Indoor</button>
-          <button class="chip" data-filter="park">Parks</button>
-          <button class="chip" data-filter="shopping">Shopping</button>
-          <button class="chip" data-filter="beach">Beach</button>
-          <button class="chip" data-filter="lowcost">Low cost</button>
+          <button class="chip active" data-filter="all">All</button><button class="chip" data-filter="indoor">Indoor</button><button class="chip" data-filter="park">Parks</button><button class="chip" data-filter="food">Food</button><button class="chip" data-filter="shopping">Shopping</button><button class="chip" data-filter="beach">Outdoors</button><button class="chip" data-filter="lowcost">Low cost</button>
         </div>
         <div id="exploreList" class="card-list"></div>
       </section>
 
+      <section class="view" data-view="essentials">
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">ESSENTIALS</div><h2>Useful stuff near you</h2><p>One-tap searches for the things families suddenly discover they need on holiday.</p></div>
+        <div id="essentialsList" class="essentials-grid"></div>
+        <div class="notice"><b>Emergencies:</b> this beta opens map searches; it does not replace emergency services. In the US, call 911 for an emergency.</div>
+      </section>
+
+      <section class="view" data-view="stayin">
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">STAY IN</div><h2>A day without going anywhere</h2><p>Because sometimes the best family plan is to stop planning for a few hours.</p></div>
+        <div id="stayInList" class="card-list"></div>
+      </section>
+
       <section class="view" data-view="parks">
-        <div class="page-heading">
-          <div class="eyebrow">LIVE PARKS</div>
-          <h2>Wait-time pulse</h2>
-          <p>Live attraction status from supported Orlando parks. Pull to refresh or tap refresh below.</p>
-        </div>
+        <div class="page-heading"><div class="eyebrow">LIVE PARKS</div><h2>Wait-time pulse</h2><p>Live attraction status plus a simple family-fit steer from your setup.</p></div>
+        <div class="notice"><b>Family-fit note:</b> this is a planning heuristic, not ride eligibility. Always check each attraction's official height, age and accessibility requirements.</div>
         <div class="notice"><b>Beta data:</b> live park information is supplied by ThemeParks.wiki. Provider/licensing review is required before a paid public launch.</div>
-        <button id="refreshParks" class="secondary-btn full">Refresh live waits</button>
-        <div id="parksList" class="park-grid"></div>
+        <button id="refreshParks" class="secondary-btn full">Refresh live waits</button><div id="parksList" class="park-grid"></div>
       </section>
 
       <section class="view" data-view="saved">
-        <div class="page-heading">
-          <div class="eyebrow">YOUR TRIP</div>
-          <h2>Saved places</h2>
-          <p>Keep the family shortlist in one place. Saved on this device for the beta.</p>
-        </div>
+        <div class="page-heading"><div class="eyebrow">YOUR TRIP</div><h2>Saved places</h2><p>Keep the family shortlist in one place. Saved on this device for the beta.</p></div>
         <div id="savedList" class="card-list"></div>
       </section>
 
       <section class="view" data-view="family">
-        <div class="page-heading">
-          <div class="eyebrow">MY FAMILY</div>
-          <h2>Make recommendations personal</h2>
-          <p>These settings stay on your phone in this prototype.</p>
-        </div>
+        <div class="page-heading"><div class="eyebrow">MY FAMILY</div><h2>Plan for your actual crew</h2><p>Ages and heights help us avoid over-rating thrill-heavy days for younger or smaller visitors.</p></div>
         <form id="familyForm" class="form-card">
-          <label>Adults
-            <input id="adults" type="number" min="1" max="10" value="2" />
-          </label>
-          <label>Children
-            <input id="children" type="number" min="0" max="10" value="2" />
-          </label>
-          <label>How far are you prepared to travel?
-            <select id="maxDrive">
-              <option value="15">About 15 miles</option>
-              <option value="30" selected>About 30 miles</option>
-              <option value="60">About 60 miles</option>
-              <option value="100">Up to 100 miles</option>
-            </select>
-          </label>
-          <label>Budget mood
-            <select id="budget">
-              <option value="low">Keep costs down</option>
-              <option value="medium" selected>Reasonable</option>
-              <option value="high">Holiday mode</option>
-            </select>
-          </label>
-          <label>Energy level
-            <select id="energy">
-              <option value="low">Easy day</option>
-              <option value="medium" selected>Balanced</option>
-              <option value="high">Full-on day</option>
-            </select>
-          </label>
-          <fieldset>
-            <legend>Family interests</legend>
-            <div class="check-grid">
-              <label class="check"><input type="checkbox" name="interests" value="rides" checked /> Rides</label>
-              <label class="check"><input type="checkbox" name="interests" value="food" checked /> Food</label>
-              <label class="check"><input type="checkbox" name="interests" value="shopping" checked /> Shopping</label>
-              <label class="check"><input type="checkbox" name="interests" value="beach" checked /> Beaches</label>
-              <label class="check"><input type="checkbox" name="interests" value="indoor" checked /> Indoor</label>
-              <label class="check"><input type="checkbox" name="interests" value="nature" /> Nature</label>
-            </div>
-          </fieldset>
-          <label class="toggle-row"><span>Prefer indoor options in extreme heat</span><input id="heatAware" type="checkbox" checked /></label>
-          <button class="primary-btn full" type="submit">Save family profile</button>
-          <div id="saveProfileMsg" class="save-msg hidden">Saved ✓</div>
+          <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
+          <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
+          <div class="setup-heading"><b>Family members</b><button id="addMember" class="text-btn" type="button">+ Add person</button></div>
+          <div id="familyMembers" class="member-list"></div>
+          <label>How far are you prepared to travel?<select id="maxDrive"><option value="15">About 15 miles</option><option value="30">About 30 miles</option><option value="60">About 60 miles</option><option value="100">Up to 100 miles</option></select></label>
+          <label>Budget mood<select id="budget"><option value="low">Keep costs down</option><option value="medium">Reasonable</option><option value="high">Holiday mode</option></select></label>
+          <label>Energy level<select id="energy"><option value="low">Easy day</option><option value="medium">Balanced</option><option value="high">Full-on day</option></select></label>
+          <label>Dietary / access notes<input id="familyNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" /></label>
+          <fieldset><legend>Family interests</legend><div class="check-grid">
+            <label class="check"><input type="checkbox" name="interests" value="rides" /> Rides</label><label class="check"><input type="checkbox" name="interests" value="food" /> Food</label><label class="check"><input type="checkbox" name="interests" value="shopping" /> Shopping</label><label class="check"><input type="checkbox" name="interests" value="beach" /> Beaches</label><label class="check"><input type="checkbox" name="interests" value="indoor" /> Indoor</label><label class="check"><input type="checkbox" name="interests" value="nature" /> Nature</label>
+          </div></fieldset>
+          <label class="toggle-row"><span>Prefer indoor options in extreme heat</span><input id="heatAware" type="checkbox" /></label>
+          <button class="primary-btn full" type="submit">Save family profile</button><div id="saveProfileMsg" class="save-msg hidden">Saved ✓</div>
         </form>
-
-        <section class="section-block compact">
-          <div class="setting-row">
-            <div><b>Temperature</b><small>Used throughout the app</small></div>
-            <div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div>
-          </div>
-        </section>
+        <section class="section-block compact"><div class="setting-row"><div><b>Temperature</b><small>Used throughout the app</small></div><div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div></div></section>
       </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button>
-      <button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button>
-      <button class="nav-item" data-target="parks"><span>◉</span><small>Parks</small></button>
-      <button class="nav-item" data-target="saved"><span>♡</span><small>Saved</small></button>
-      <button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
+      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small>Parks</small></button><button class="nav-item" data-target="saved"><span>♡</span><small>Saved</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
     </nav>
   </div>
   <div id="toast" class="toast hidden"></div>
