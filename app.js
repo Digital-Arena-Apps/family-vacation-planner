@@ -194,21 +194,35 @@ function essentialResultCard(x,e){
   const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
   return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${e.cost} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><a class="small-btn primary-small direction-link" href="${directionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
 }
+function fetchOverpassJsonp(base,query){
+  return new Promise((resolve,reject)=>{
+    const cb=`ffvp_overpass_${Date.now()}_${Math.random().toString(36).slice(2).replace(/[^a-z0-9_]/gi,'')}`;
+    const script=document.createElement('script');
+    let settled=false;
+    const cleanup=()=>{
+      if(settled)return; settled=true;
+      clearTimeout(timer);
+      try{delete window[cb];}catch{window[cb]=undefined;}
+      script.remove();
+    };
+    const fail=(msg)=>{cleanup();reject(new Error(msg));};
+    const timer=setTimeout(()=>fail('Nearby lookup timed out'),11000);
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.async=true;
+    script.onerror=()=>fail('Nearby lookup failed');
+    script.src=`${base}?data=${encodeURIComponent(query)}&jsonp=${encodeURIComponent(cb)}`;
+    document.head.appendChild(script);
+  });
+}
 async function fetchOverpass(query){
   const endpoints=[
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter'
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass-api.de/api/interpreter'
   ];
   let lastError;
   for(const base of endpoints){
-    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
-    try{
-      const url=`${base}?data=${encodeURIComponent(query)}`;
-      const r=await fetch(url,{method:'GET',signal:ctrl.signal,headers:{'Accept':'application/json'}});
-      clearTimeout(timer);
-      if(!r.ok)throw new Error(`Overpass ${r.status}`);
-      return await r.json();
-    }catch(err){clearTimeout(timer);lastError=err;}
+    try{return await fetchOverpassJsonp(base,query);}
+    catch(err){lastError=err;}
   }
   throw lastError||new Error('Nearby lookup unavailable');
 }

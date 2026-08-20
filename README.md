@@ -1,10 +1,10 @@
-# Family Vacation Planner — Florida Beta V1.3
+# Family Vacation Planner — Florida Beta V1.4
 
 A mobile-first Progressive Web App prototype for the question:
 
 > Given where our family is right now, what are the best options for the next few hours?
 
-## V1.3 fix
+## V1.4 fix
 
 - Essentials now open into a dedicated in-app results screen instead of placing results below the full category list.
 - Nearby lookup uses two Overpass endpoints with timeout/fallback handling.
@@ -32,3 +32,8 @@ Food spend figures are planning estimates based on broad meal tiers and group co
 ## V1.2 beta data note
 
 Nearby essentials use OpenStreetMap data through the public Overpass API for prototyping. Before commercial launch, move this behind a production places provider or appropriately hosted/licensed infrastructure with defined availability and usage terms. Cost labels are broad category guides, not live prices.
+
+
+## V1.4 nearby lookup hotfix
+
+Essentials nearby lookups now use JSONP with current public Overpass instances to avoid brittle cross-origin browser fetch behaviour during beta testing. This is a temporary beta transport; production should use an app-owned backend and a commercially suitable places provider.
