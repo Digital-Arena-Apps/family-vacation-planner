@@ -63,15 +63,52 @@ const stayInIdeas = [
 ];
 
 const parks = [
-  {name:'Magic Kingdom',id:'75ea578a-adc8-4116-a54d-dccb60765ef9',style:'broad'},
-  {name:'EPCOT',id:'47f90d2c-e191-4239-a466-5892ef59a88b',style:'broad'},
-  {name:'Hollywood Studios',id:'288747d1-8b4f-4a64-867e-ea7c9b27bad8',style:'thrill'},
-  {name:'Animal Kingdom',id:'1c84a229-8862-4648-9c71-378ddd2c7693',style:'broad'},
-  {name:'Universal Studios',id:'eb3f4560-2383-4a36-9152-6b3e5ed6bc57',style:'thrill'},
-  {name:'Islands of Adventure',id:'267615cc-8943-4c2a-ae2c-5da728ca591f',style:'thrill'},
-  {name:'Epic Universe',id:'12dbb85b-265f-44e6-bccf-f1faa17211fc',style:'thrill'},
-  {name:'SeaWorld Orlando',id:'27d64dee-d85e-48dc-ad6d-8077445cd946',style:'thrill'}
+  {name:'Magic Kingdom',id:'75ea578a-adc8-4116-a54d-dccb60765ef9',style:'broad',pressureBias:1},
+  {name:'EPCOT',id:'47f90d2c-e191-4239-a466-5892ef59a88b',style:'broad',pressureBias:4},
+  {name:'Hollywood Studios',id:'288747d1-8b4f-4a64-867e-ea7c9b27bad8',style:'thrill',pressureBias:7},
+  {name:'Animal Kingdom',id:'1c84a229-8862-4648-9c71-378ddd2c7693',style:'broad',pressureBias:-2},
+  {name:'Universal Studios',id:'eb3f4560-2383-4a36-9152-6b3e5ed6bc57',style:'thrill',pressureBias:4},
+  {name:'Islands of Adventure',id:'267615cc-8943-4c2a-ae2c-5da728ca591f',style:'thrill',pressureBias:6},
+  {name:'Epic Universe',id:'12dbb85b-265f-44e6-bccf-f1faa17211fc',style:'thrill',pressureBias:10},
+  {name:'SeaWorld Orlando',id:'27d64dee-d85e-48dc-ad6d-8077445cd946',style:'thrill',pressureBias:-3}
 ];
+
+// V1.5 crowd outlook is deliberately a transparent beta heuristic.
+// It uses season, day-of-week, weather and a small park-specific pressure bias.
+// It is NOT official attendance/capacity. The architecture is ready for a licensed
+// historical provider or our own recorded-history model later.
+const seasonPressure=[62,66,72,64,50,46,39,24,22,34,49,70]; // Jan-Dec beta seasonal pattern
+const weekdayPressure=[-5,7,3,0,-3,3,6]; // Sun-Sat
+function crowdOutlook(p,date=new Date()){
+  const month=date.getMonth(),day=date.getDay();
+  let score=seasonPressure[month]+weekdayPressure[day]+(p.pressureBias||0);
+  if(state.weather && date.toDateString()===new Date().toDateString()){
+    const rain=state.weather.daily?.precipitation_probability_max?.[0]||0;
+    const feels=state.weather.current?.apparent_temperature||0;
+    if(rain>=70)score-=7;
+    if(feels>=36)score-=4;
+  }
+  score=Math.max(5,Math.min(90,Math.round(score)));
+  const band=score<=25?'Low':score<=50?'Moderate':score<=70?'Busy':'Very busy';
+  const tone=score<=25?'green':score<=50?'amber':score<=70?'orange':'red';
+  return {score,band,tone};
+}
+function waitHeat(avg){
+  if(avg==null)return {band:'No data',tone:'neutral'};
+  if(avg<=20)return {band:'Light',tone:'green'};
+  if(avg<=35)return {band:'Moderate',tone:'amber'};
+  if(avg<=50)return {band:'Heavy',tone:'orange'};
+  return {band:'Very heavy',tone:'red'};
+}
+function parkValueSignal(p){
+  if(p.avg==null)return {label:'Not enough live data',tone:'neutral',copy:'Wait-time pressure cannot be compared yet.'};
+  const expected=12+(p.outlook.score*.43)+(p.pressureBias||0);
+  const delta=p.avg-expected;
+  if(delta>=15)return {label:'Poor value right now',tone:'red',copy:`Live waits are about ${Math.round(delta)} min above the beta expectation for this crowd outlook. An alternative park may give you more for the same time.`};
+  if(delta>=7)return {label:'Watch the waits',tone:'orange',copy:`Queues are running above what this crowd outlook would normally suggest.`};
+  if(delta<=-9)return {label:'Better than expected',tone:'green',copy:`Live waits are running below the beta expectation for this crowd outlook.`};
+  return {label:'About as expected',tone:'amber',copy:'Live waits are broadly in line with the beta crowd outlook.'};
+}
 
 const weatherCode = code => {
   if(code===0)return ['Clear','☀️']; if([1,2].includes(code))return ['Partly cloudy','🌤']; if(code===3)return ['Cloudy','☁️'];
@@ -87,6 +124,13 @@ const childMembers=()=>memberSummary().filter(m=>(+m.age||0)<18);
 const smallerVisitors=()=>childMembers().filter(m=>(+m.age||0)<8 || (+m.height||999)<48);
 const lowThrill=()=>memberSummary().filter(m=>m.thrill==='low').length;
 function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1900);}
+function updateGreeting(){
+  const h=new Date().getHours(),part=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const family=state.profile.familyName?.trim();
+  const title=$('#todayGreeting'),copy=$('#todayGreetingCopy');
+  if(title)title.textContent=family?`${part}, ${family}`:part;
+  if(copy)copy.textContent='Here’s what looks smartest for your crew right now.';
+}
 function mapsSearch(q){window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`,'_blank','noopener');}
 
 function setView(name){
@@ -194,38 +238,6 @@ function essentialResultCard(x,e){
   const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
   return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${e.cost} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><a class="small-btn primary-small direction-link" href="${directionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
 }
-function fetchOverpassJsonp(base,query){
-  return new Promise((resolve,reject)=>{
-    const cb=`ffvp_overpass_${Date.now()}_${Math.random().toString(36).slice(2).replace(/[^a-z0-9_]/gi,'')}`;
-    const script=document.createElement('script');
-    let settled=false;
-    const cleanup=()=>{
-      if(settled)return; settled=true;
-      clearTimeout(timer);
-      try{delete window[cb];}catch{window[cb]=undefined;}
-      script.remove();
-    };
-    const fail=(msg)=>{cleanup();reject(new Error(msg));};
-    const timer=setTimeout(()=>fail('Nearby lookup timed out'),11000);
-    window[cb]=(data)=>{cleanup();resolve(data);};
-    script.async=true;
-    script.onerror=()=>fail('Nearby lookup failed');
-    script.src=`${base}?data=${encodeURIComponent(query)}&jsonp=${encodeURIComponent(cb)}`;
-    document.head.appendChild(script);
-  });
-}
-async function fetchOverpass(query){
-  const endpoints=[
-    'https://overpass.private.coffee/api/interpreter',
-    'https://overpass-api.de/api/interpreter'
-  ];
-  let lastError;
-  for(const base of endpoints){
-    try{return await fetchOverpassJsonp(base,query);}
-    catch(err){lastError=err;}
-  }
-  throw lastError||new Error('Nearby lookup unavailable');
-}
 async function loadNearbyEssential(id){
   const e=essentials.find(x=>x.id===id);if(!e)return;
   if(!state.coords){
@@ -234,25 +246,19 @@ async function loadNearbyEssential(id){
     $('.retry-essential').addEventListener('click',async()=>{await requestLocation();loadNearbyEssential(id);});
     return;
   }
-  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Closest useful options first.</small></div>`;
+  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Our server is checking nearby options so you can stay inside the app.</small></div>`;
   $('#essentialResults').innerHTML='';
-  const {lat,lon}=state.coords,radius=16000;
-  const clauses=e.osm.map(f=>`nwr(around:${radius},${lat},${lon})${f};`).join('');
-  const query=`[out:json][timeout:18];(${clauses});out center tags;`;
+  const {lat,lon}=state.coords;
   try{
-    const data=await fetchOverpass(query),seen=new Set();
-    const results=(data.elements||[]).map(el=>{
-      const c=essentialCoords(el);if(!Number.isFinite(c.lat)||!Number.isFinite(c.lon))return null;
-      const name=essentialName(el,e),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;
-      if(seen.has(key))return null;seen.add(key);
-      return{name,lat:c.lat,lon:c.lon,address:essentialAddress(el),distance:miles(haversine(lat,lon,c.lat,c.lon))};
-    }).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,5);
+    const r=await fetch(`/api/nearby?category=${encodeURIComponent(id)}&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,{headers:{'Accept':'application/json'}});
+    if(!r.ok)throw new Error(`Nearby ${r.status}`);
+    const data=await r.json(),results=Array.isArray(data.results)?data.results:[];
     if(!results.length)throw new Error('No nearby results');
-    $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · stay here until you choose Directions.</small></div>`;
+    $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · ${escapeHtml(data.source||'nearby data')}.</small></div>`;
     $('#essentialResults').innerHTML=results.map(x=>essentialResultCard(x,e)).join('');
   }catch(err){
-    $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby feed is taking a break</b><small>You are still in the app — use Maps only if you need a fallback right now.</small></div>`;
-    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">The beta nearby-place feed could not return ${e.name.toLowerCase()} just now.</div><div class="place-actions"><button type="button" class="small-btn retry-essential">Try again</button><a class="small-btn primary-small direction-link" href="${mapsSearchUrl(e.query)}" target="_blank" rel="noopener">Fallback Maps →</a></div></article>`;
+    $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby lookup is temporarily unavailable</b><small>Try again in a moment. Maps is only the emergency fallback.</small></div>`;
+    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">Our nearby service could not return ${e.name.toLowerCase()} just now.</div><div class="place-actions"><button type="button" class="small-btn retry-essential">Try again</button><a class="small-btn direction-link" href="${mapsSearchUrl(e.query)}" target="_blank" rel="noopener">Fallback Maps →</a></div></article>`;
     $('.retry-essential').addEventListener('click',()=>loadNearbyEssential(id));
   }
 }
@@ -262,10 +268,57 @@ function renderStayIn(){
   $$('.stay-search').forEach(b=>b.addEventListener('click',()=>mapsSearch(b.dataset.search)));
 }
 
-async function loadPark(p){const r=await fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/live`);if(!r.ok)throw new Error();const data=await r.json(),raw=data.liveData||data.children||data,rows=(Array.isArray(raw)?raw:[]).map(x=>{const standby=x.queue?.STANDBY?.waitTime??x.queue?.standby?.waitTime??x.waitTime??null;return{name:x.name||x.entity?.name||'Attraction',wait:Number.isFinite(standby)?standby:null,status:x.status||''};}).filter(x=>x.wait!==null),open=rows.filter(x=>x.wait>=0),avg=open.length?Math.round(open.reduce((s,x)=>s+x.wait,0)/open.length):null,top=[...open].sort((a,b)=>b.wait-a.wait).slice(0,3);return{...p,avg,top,count:open.length};}
+async function loadPark(p){
+  const r=await fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/live`);
+  if(!r.ok)throw new Error();
+  const data=await r.json(),raw=data.liveData||data.children||data;
+  const rows=(Array.isArray(raw)?raw:[]).map(x=>{
+    const standby=x.queue?.STANDBY?.waitTime??x.queue?.standby?.waitTime??x.waitTime??null;
+    return {name:x.name||x.entity?.name||'Attraction',wait:Number.isFinite(standby)?standby:null,status:x.status||'',lastUpdated:x.lastUpdated||null};
+  }).filter(x=>x.wait!==null);
+  const open=rows.filter(x=>x.wait>=0),avg=open.length?Math.round(open.reduce((s,x)=>s+x.wait,0)/open.length):null;
+  const top=[...open].sort((a,b)=>b.wait-a.wait).slice(0,3);
+  const sorted=open.map(x=>x.wait).sort((a,b)=>a-b);
+  const median=sorted.length?sorted[Math.floor(sorted.length/2)]:null;
+  const outlook=crowdOutlook(p,new Date());
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowOutlook=crowdOutlook(p,tomorrow);
+  const result={...p,avg,median,top,count:open.length,outlook,tomorrowOutlook};
+  result.heat=waitHeat(avg);
+  result.value=parkValueSignal(result);
+  return result;
+}
 function parkFit(p){if(p.style==='thrill'&&(smallerVisitors().length||lowThrill()))return 'Mixed fit for your family';return 'Broad family fit';}
-function parkCard(p){if(p.error)return `<article class="park-card"><div class="park-head"><div class="park-name">${p.name}</div><span class="park-status closed">Unavailable</span></div><p style="font-size:12px;margin-top:10px">Live data couldn't be loaded right now.</p></article>`;return `<article class="park-card"><div class="park-head"><div><div class="park-name">${p.name}</div><div class="park-fit">${parkFit(p)}</div></div><span class="park-status">LIVE</span></div><div class="park-waits"><div class="wait-stat"><small>Avg wait</small><b>${p.avg==null?'—':p.avg+' min'}</b></div><div class="wait-stat"><small>Rides reporting</small><b>${p.count}</b></div></div><div class="ride-list">${p.top.length?p.top.map(r=>`<div class="ride-row"><span>${r.name}</span><span>${r.wait} min</span></div>`).join(''):'<div class="ride-row"><span>No standby waits reporting</span></div>'}</div></article>`;}
-async function loadParks(){$('#parksList').innerHTML=parks.map(()=>'<article class="park-card loading-card"><div class="skeleton medium"></div><div class="skeleton wide"></div></article>').join('');const results=await Promise.all(parks.map(async p=>{try{return await loadPark(p)}catch(e){return{...p,error:true}}}));$('#parksList').innerHTML=results.map(parkCard).join('');}
+function tempPill(label,tone){return `<span class="pressure-pill ${tone}"><span class="pressure-dot"></span>${label}</span>`;}
+function parkCard(p){
+  if(p.error)return `<article class="park-card"><div class="park-head"><div class="park-name">${p.name}</div><span class="park-status closed">Unavailable</span></div><p class="park-error">Live data couldn't be loaded right now.</p></article>`;
+  return `<article class="park-card pressure-card">
+    <div class="park-head">
+      <div><div class="park-name">${p.name}</div><div class="park-fit">${parkFit(p)}</div></div>
+      <span class="park-status">LIVE</span>
+    </div>
+    <div class="pressure-strip">
+      <div class="pressure-block"><small>Crowd outlook</small>${tempPill(`${p.outlook.band} · ${p.outlook.score}/100`,p.outlook.tone)}</div>
+      <div class="pressure-block"><small>Live wait heat</small>${tempPill(`${p.heat.band}`,p.heat.tone)}</div>
+    </div>
+    <div class="park-waits triple">
+      <div class="wait-stat"><small>Avg wait</small><b>${p.avg==null?'—':p.avg+' min'}</b></div>
+      <div class="wait-stat"><small>Median</small><b>${p.median==null?'—':p.median+' min'}</b></div>
+      <div class="wait-stat"><small>Rides live</small><b>${p.count}</b></div>
+    </div>
+    <div class="value-signal ${p.value.tone}">
+      <div class="value-title">${p.value.label}</div>
+      <div class="value-copy">${p.value.copy}</div>
+    </div>
+    <div class="tomorrow-outlook"><span>Tomorrow outlook</span>${tempPill(`${p.tomorrowOutlook.band} · ${p.tomorrowOutlook.score}/100`,p.tomorrowOutlook.tone)}</div>
+    <div class="ride-list">${p.top.length?p.top.map(r=>`<div class="ride-row"><span>${r.name}</span><span>${r.wait} min</span></div>`).join(''):'<div class="ride-row"><span>No standby waits reporting</span></div>'}</div>
+  </article>`;
+}
+async function loadParks(){
+  $('#parksList').innerHTML=parks.map(()=>'<article class="park-card loading-card"><div class="skeleton medium"></div><div class="skeleton wide"></div></article>').join('');
+  const results=await Promise.all(parks.map(async p=>{try{return await loadPark(p)}catch(e){return{...p,error:true}}}));
+  $('#parksList').innerHTML=results.map(parkCard).join('');
+}
 $('#refreshParks').addEventListener('click',loadParks);
 
 function newMember(seed={}){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name||'',age:seed.age??'',height:seed.height??'',thrill:seed.thrill||'medium'};}
@@ -278,7 +331,7 @@ $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));$('#
 
 function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#homeBase').value=p.homeBase||'';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
 $('#familyForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#familyName').value.trim(),homeBase:$('#homeBase').value.trim(),members:collectMembers('#familyMembers'),maxDrive:+$('#maxDrive').value,budget:$('#budget').value,energy:$('#energy').value,interests:$$('input[name=interests]:checked').map(x=>x.value),heatAware:$('#heatAware').checked,notes:$('#familyNotes').value.trim()};saveProfile();$('#saveProfileMsg').classList.remove('hidden');setTimeout(()=>$('#saveProfileMsg').classList.add('hidden'),1600);renderExplore();});
-function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));}
+function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));updateGreeting();}
 function updateUnits(){$('#unitC').classList.toggle('active',state.unit==='c');$('#unitF').classList.toggle('active',state.unit==='f');if(state.weather)renderWeather();}
 $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.dataset.unit;localStorage.setItem('ffvp_unit',state.unit);updateUnits();}));
 
@@ -295,4 +348,4 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.defer
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-loadProfileForm();renderExplore();renderSaved();renderEssentials();requestLocation();if(!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+loadProfileForm();updateGreeting();renderExplore();renderSaved();renderEssentials();requestLocation();if(!localStorage.getItem('ffvp_onboarded'))showOnboarding();

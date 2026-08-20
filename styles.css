@@ -59,3 +59,161 @@ p{color:var(--muted);line-height:1.45;margin:0}
 .essential-detail-hero h2{font-size:27px;margin:2px 0 2px}
 .essential-detail-hero p{margin:0;color:var(--muted);font-size:13px}
 .direction-link{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+
+
+/* V1.5 — Design system refresh + park pressure */
+:root{
+  --ink:#0F172A;
+  --muted:#64748B;
+  --paper:#F8F9FA;
+  --card:#FFFFFF;
+  --slate:#0F172A;
+  --slate-2:#1E293B;
+  --coral:#FF6B6B;
+  --sun:#F59E0B;
+  --relax:#10B981;
+  --food:#E07A5F;
+  --travel:#0EA5E9;
+  --teal:#0F766E;
+  --teal-dark:#115E59;
+  --line:rgba(15,23,42,.09);
+  --shadow:0 4px 12px rgba(15,23,42,.06);
+}
+html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper)}
+body{background:var(--paper);color:var(--ink)}
+h1,h2,h3,.park-name,.place-title,.brand-kicker,.eyebrow{font-family:"Plus Jakarta Sans",Inter,ui-sans-serif,system-ui,sans-serif}
+button,a.small-btn,input,select{min-height:48px}
+.topbar.topbar-v15{
+  position:sticky;top:0;z-index:30;
+  padding:14px 18px;
+  background:rgba(15,23,42,.97);
+  color:#fff;
+  backdrop-filter:blur(14px);
+  box-shadow:0 8px 24px rgba(15,23,42,.14);
+  align-items:center;
+}
+.brand-lockup{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-badge{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#F59E0B,#FF6B6B);font-size:21px;box-shadow:0 5px 15px rgba(245,158,11,.2)}
+.brand-kicker{font-size:9px;letter-spacing:.14em;font-weight:800;color:#CBD5E1;margin-bottom:3px}
+.topbar-v15 h1{font-size:17px;line-height:1.08;letter-spacing:-.02em;margin:0;color:#fff;font-weight:800}
+.topbar-v15 .icon-btn{width:48px;height:48px;min-height:48px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;box-shadow:none}
+.main-content{padding-top:16px}
+.today-intro{padding:4px 4px 14px}
+.today-intro h2{font-size:30px;margin:4px 0 4px;color:var(--ink)}
+.today-intro p{font-size:14px}
+.eyebrow{color:#0F766E;font-size:10px;letter-spacing:.14em}
+.location-strip{min-height:48px;background:#fff;border-radius:15px;padding:8px 10px;margin:0 0 12px;box-shadow:var(--shadow)}
+.text-btn{min-height:44px;padding:10px;color:#0F766E}
+.hero-card{border-radius:22px;background:linear-gradient(135deg,#0F172A,#1E3A46);box-shadow:0 8px 22px rgba(15,23,42,.12)}
+.weather-alert{border:0;background:rgba(14,165,233,.16)}
+.decision-card{
+  background:linear-gradient(135deg,#FFF1F2,#FFF7ED);
+  color:var(--ink);
+  border:1px solid rgba(255,107,107,.16);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+}
+.decision-card .eyebrow.light{color:#BE123C}
+.decision-card p{color:#475569}
+.decision-card h2{color:var(--ink)}
+.primary-btn{
+  background:var(--coral);
+  color:#fff;
+  min-height:50px;
+  border-radius:14px;
+  box-shadow:0 7px 18px rgba(255,107,107,.24);
+}
+.primary-btn:active{transform:translateY(1px)}
+.secondary-btn{background:#E2E8F0;color:#0F172A;min-height:50px}
+.quick-grid{gap:11px}
+.quick-card{
+  position:relative;
+  overflow:hidden;
+  border:0;
+  min-height:142px;
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+.quick-card:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#CBD5E1}
+.quick-card span{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#F1F5F9;font-size:21px;margin-bottom:15px}
+.quick-card b{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:14px}
+.quick-card small{font-size:11px;line-height:1.35}
+.quick-relax:before{background:var(--relax)}.quick-relax span{background:#ECFDF5}
+.quick-indoor:before{background:#8B5CF6}.quick-indoor span{background:#F5F3FF}
+.quick-food:before{background:var(--food)}.quick-food span{background:#FFF1ED}
+.quick-logistics:before{background:var(--travel)}.quick-logistics span{background:#EFF6FF}
+.quick-park:before{background:var(--sun)}.quick-park span{background:#FFFBEB}
+.quick-shopping:before{background:#EC4899}.quick-shopping span{background:#FDF2F8}
+.quick-outdoor:before{background:#06B6D4}.quick-outdoor span{background:#ECFEFF}
+.quick-family:before{background:#64748B}.quick-family span{background:#F1F5F9}
+.page-heading h2{color:var(--ink);font-size:30px}
+.place-card,.park-card,.form-card,.essential-card,.setting-row{border:0;box-shadow:var(--shadow);background:#fff}
+.place-card,.park-card{border-radius:18px}
+.place-icon,.essential-card>span{border-radius:12px}
+.small-btn{min-height:48px;display:inline-flex;align-items:center;justify-content:center;padding:10px 14px}
+.small-btn.primary-small{background:#0F766E;border-color:#0F766E}
+.notice{border:0;background:#FFF7E6;color:#6B4C19;border-radius:14px}
+.insight-note{padding:14px 15px;background:#EFF6FF;color:#1E3A8A;border-radius:16px;font-size:12px;line-height:1.5;margin-bottom:12px}
+.data-credit{font-size:10px;color:#94A3B8;line-height:1.45;padding:10px 4px 0}
+.bottom-nav{background:rgba(255,255,255,.97);border-top:0;box-shadow:0 -6px 22px rgba(15,23,42,.08)}
+.nav-item{min-height:58px}
+.nav-item.active{color:#0F766E}
+.nav-item span{font-size:22px}
+.onboarding{background:rgba(15,23,42,.76)}
+.adventure-onboarding{border-radius:26px}
+.onboarding-hero{background:linear-gradient(135deg,#0F172A 0%,#123E4A 62%,#0F766E 100%)}
+.setup-progress span.active{background:var(--coral)}
+.adventure-form label{background:#F8FAFC;border:0;box-shadow:inset 0 0 0 1px rgba(15,23,42,.07)}
+.step-kicker{color:var(--coral)}
+.add-person-btn{min-height:44px;background:#ECFDF5;color:#047857}
+.crew-card{border:0;background:#fff;box-shadow:var(--shadow)}
+.view[data-view="family"] .page-heading{background:linear-gradient(135deg,#EFF6FF,#FFF1F2);border-radius:20px}
+.view[data-view="family"] .form-card{border-top:0}
+.essential-detail-hero{border:0;background:linear-gradient(135deg,#EFF6FF,#FFF7ED);box-shadow:var(--shadow)}
+.essentials-status{background:linear-gradient(135deg,#0F172A,#155E75)}
+.essential-card.selected{border:0;background:#F0FDFA;box-shadow:0 0 0 2px rgba(15,118,110,.15),var(--shadow)}
+
+/* Park pressure */
+.parks-heading{padding-bottom:10px}
+.pressure-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}
+.pressure-legend>div{background:#fff;border-radius:14px;padding:10px;box-shadow:var(--shadow)}
+.pressure-legend b,.pressure-legend small{display:block}
+.pressure-legend b{font-size:12px;margin-top:4px}
+.pressure-legend small{font-size:9px;color:var(--muted);margin-top:2px}
+.legend-dot,.pressure-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.legend-dot.green,.pressure-pill.green .pressure-dot{background:#10B981}
+.legend-dot.amber,.pressure-pill.amber .pressure-dot{background:#F59E0B}
+.legend-dot.orange,.pressure-pill.orange .pressure-dot{background:#F97316}
+.legend-dot.red,.pressure-pill.red .pressure-dot{background:#EF4444}
+.pressure-pill.neutral .pressure-dot{background:#94A3B8}
+.pressure-card{padding:16px}
+.pressure-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.pressure-block{background:#F8FAFC;border-radius:13px;padding:10px}
+.pressure-block small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.pressure-pill{display:inline-flex;align-items:center;min-height:30px;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800;background:#F1F5F9;color:#334155}
+.pressure-pill.green{background:#ECFDF5;color:#047857}
+.pressure-pill.amber{background:#FFFBEB;color:#92400E}
+.pressure-pill.orange{background:#FFF7ED;color:#C2410C}
+.pressure-pill.red{background:#FEF2F2;color:#B91C1C}
+.park-waits.triple{grid-template-columns:repeat(3,1fr)}
+.park-waits.triple .wait-stat{background:#F8FAFC}
+.park-waits.triple .wait-stat b{font-size:17px}
+.value-signal{margin-top:10px;padding:12px;border-radius:14px}
+.value-signal.green{background:#ECFDF5;color:#065F46}
+.value-signal.amber{background:#FFFBEB;color:#78350F}
+.value-signal.orange{background:#FFF7ED;color:#9A3412}
+.value-signal.red{background:#FEF2F2;color:#991B1B}
+.value-signal.neutral{background:#F1F5F9;color:#475569}
+.value-title{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-weight:800;font-size:12px}
+.value-copy{font-size:11px;line-height:1.4;margin-top:3px}
+.tomorrow-outlook{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding:9px 0 0;color:var(--muted);font-size:10px;font-weight:700}
+.park-error{font-size:12px;margin-top:10px}
+.park-status{background:#ECFDF5;color:#047857}
+.ride-list{border-top:1px solid #E2E8F0}
+@media(max-width:390px){
+  .pressure-strip{grid-template-columns:1fr}
+  .park-waits.triple{grid-template-columns:1fr 1fr}
+  .park-waits.triple .wait-stat:last-child{grid-column:1/-1}
+}

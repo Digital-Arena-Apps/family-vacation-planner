@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d6b67" />
+  <meta name="theme-color" content="#0F172A" />
   <meta name="description" content="A family-aware vacation decision helper for Florida." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -11,6 +11,9 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <title>Florida Family Vacation Planner</title>
 </head>
@@ -72,16 +75,24 @@
   </div>
 
   <div id="app" class="app-shell">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">FLORIDA BETA · V1.4</div>
-        <h1>Florida Family<br/>Vacation Planner</h1>
+    <header class="topbar topbar-v15">
+      <div class="brand-lockup">
+        <div class="brand-badge" aria-hidden="true">☀</div>
+        <div>
+          <div class="brand-kicker">FLORIDA BETA · V1.5</div>
+          <h1>Family Vacation Planner</h1>
+        </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
     </header>
 
     <main id="main" class="main-content">
       <section class="view active" data-view="today">
+        <section class="today-intro">
+          <div class="eyebrow">TODAY IN FLORIDA</div>
+          <h2 id="todayGreeting">Good evening</h2>
+          <p id="todayGreetingCopy">Here’s what looks smartest for your crew right now.</p>
+        </section>
         <div id="locationStrip" class="location-strip">
           <span class="pulse-dot"></span>
           <span id="locationLabel">Finding your location…</span>
@@ -109,14 +120,14 @@
         <section class="section-block">
           <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2>What kind of day?</h2></div></div>
           <div class="quick-grid">
-            <button class="quick-card" data-quick="stayin"><span>🏠</span><b>Stay in</b><small>Villa / hotel reset day</small></button>
-            <button class="quick-card" data-quick="indoor"><span>☂</span><b>Indoor attractions</b><small>Get out, stay cool & dry</small></button>
-            <button class="quick-card" data-quick="food"><span>🍽</span><b>Food</b><small>With family budget estimates</small></button>
-            <button class="quick-card" data-quick="essentials"><span>🛒</span><b>Essentials</b><small>Groceries, pharmacy, fuel & help</small></button>
-            <button class="quick-card" data-quick="park"><span>🎢</span><b>Theme parks</b><small>Live waits + family fit</small></button>
-            <button class="quick-card" data-quick="shopping"><span>🛍</span><b>Shopping</b><small>Malls, outlets & retail</small></button>
-            <button class="quick-card" data-quick="beach"><span>🌊</span><b>Beach / outdoors</b><small>Worth it in this weather?</small></button>
-            <button class="quick-card" data-quick="family"><span>👨‍👩‍👧‍👦</span><b>Build your crew</b><small>Make recommendations yours</small></button>
+            <button class="quick-card quick-relax" data-quick="stayin"><span>🏠</span><b>Stay in</b><small>Villa / hotel reset day</small></button>
+            <button class="quick-card quick-indoor" data-quick="indoor"><span>☂</span><b>Indoor attractions</b><small>Get out, stay cool & dry</small></button>
+            <button class="quick-card quick-food" data-quick="food"><span>🍽</span><b>Food</b><small>With family budget estimates</small></button>
+            <button class="quick-card quick-logistics" data-quick="essentials"><span>🛒</span><b>Essentials</b><small>Groceries, pharmacy, fuel & help</small></button>
+            <button class="quick-card quick-park" data-quick="park"><span>🎢</span><b>Theme parks</b><small>Live waits + family fit</small></button>
+            <button class="quick-card quick-shopping" data-quick="shopping"><span>🛍</span><b>Shopping</b><small>Malls, outlets & retail</small></button>
+            <button class="quick-card quick-outdoor" data-quick="beach"><span>🌊</span><b>Beach / outdoors</b><small>Worth it in this weather?</small></button>
+            <button class="quick-card quick-family" data-quick="family"><span>👨‍👩‍👧‍👦</span><b>Build your crew</b><small>Make recommendations yours</small></button>
           </div>
         </section>
       </section>
@@ -130,7 +141,7 @@
       </section>
 
       <section class="view" data-view="essentials">
-        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>Pick a category. We’ll open the nearest options inside the app, then Maps only when you choose Directions.</p></div>
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>Pick a category. Our server checks nearby places and keeps the shortlist here; Maps only opens when you choose Directions.</p></div>
         <div id="essentialsList" class="essentials-grid"></div>
         <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
         <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. In the US, call 911 for an emergency.</div>
@@ -159,10 +170,21 @@
       </section>
 
       <section class="view" data-view="parks">
-        <div class="page-heading"><div class="eyebrow">LIVE PARKS</div><h2>Wait-time pulse</h2><p>Live attraction status plus a simple family-fit steer from your setup.</p></div>
-        <div class="notice"><b>Family-fit note:</b> this is a planning heuristic, not ride eligibility. Always check each attraction's official height, age and accessibility requirements.</div>
-        <div class="notice"><b>Beta data:</b> live park information is supplied by ThemeParks.wiki. Provider/licensing review is required before a paid public launch.</div>
-        <button id="refreshParks" class="secondary-btn full">Refresh live waits</button><div id="parksList" class="park-grid"></div>
+        <div class="page-heading parks-heading">
+          <div class="eyebrow">PARK INTELLIGENCE</div>
+          <h2>Park pressure</h2>
+          <p>Don’t just ask “how long are the waits?” Compare live queues with how busy the day should feel.</p>
+        </div>
+        <div class="pressure-legend">
+          <div><span class="legend-dot green"></span><b>Low</b><small>lighter pressure</small></div>
+          <div><span class="legend-dot amber"></span><b>Moderate</b><small>watch the value</small></div>
+          <div><span class="legend-dot red"></span><b>High</b><small>consider alternatives</small></div>
+        </div>
+        <div class="insight-note"><b>How to read it:</b> Crowd outlook is a transparent beta season/day/weather model — not official park capacity. Live wait heat uses current standby waits. The value signal highlights when queues are unusually high or low for the expected crowd pressure.</div>
+        <div class="notice"><b>Family-fit note:</b> this is planning guidance, not ride eligibility. Always check each attraction's official height, age and accessibility requirements.</div>
+        <button id="refreshParks" class="secondary-btn full">Refresh park pressure</button>
+        <div id="parksList" class="park-grid"></div>
+        <div class="data-credit">Live waits: ThemeParks.wiki · V1.5 beta crowd model will be replaced by licensed or first-party historical data before commercial launch.</div>
       </section>
 
       <section class="view" data-view="saved">

@@ -1,39 +1,64 @@
-# Family Vacation Planner — Florida Beta V1.4
+# Family Vacation Planner — Florida Beta V1.5
 
-A mobile-first Progressive Web App prototype for the question:
+Mobile-first PWA prototype for family vacation decision support.
 
-> Given where our family is right now, what are the best options for the next few hours?
+## What changed in V1.5
 
-## V1.4 fix
+### Nearby essentials: server-backed
+The browser no longer calls public map infrastructure directly.
 
-- Essentials now open into a dedicated in-app results screen instead of placing results below the full category list.
-- Nearby lookup uses two Overpass endpoints with timeout/fallback handling.
-- Directions are real links, improving reliability inside installed PWAs.
-- Service-worker cache bumped so the fix replaces V1.2 cleanly.
+`/api/nearby` is now a small Vercel Node function that:
+- accepts the user's current coordinates and an essentials category
+- checks OpenStreetMap / Overpass server-side
+- falls back to a bounded OpenStreetMap Nominatim lookup
+- normalises and distance-sorts results before sending a small shortlist back to the app
+- keeps Google Maps as a directions/fallback action rather than the discovery experience
 
-## V1.2 additions
+This is a more appropriate beta architecture and avoids the browser-side CORS/reliability problem seen in V1.2–V1.4.
 
-- First-run family setup / onboarding
-- Per-person age, height and thrill preference
-- Family/trip name, home base, budget, drive tolerance and dietary/access notes
-- Theme-park family-fit heuristics (clearly separated from official ride eligibility)
-- Separate **Stay in** and **Indoor attractions** experiences
-- Food categories with dynamic family budget estimates
-- **Essentials** hub that keeps nearby discovery in-app, using OpenStreetMap/Overpass data for the beta and opening Maps only for directions
-- Vacation-first, three-step onboarding instead of a traditional settings form
-- One-tap Google Maps searches / directions
-- Existing weather-aware **What Now?** decision engine, saved places and live park wait-time pulse
+For commercial launch, replace the public OSM fallback stack with a contracted places provider or another production-grade data source with suitable terms/SLA.
 
-## Data note
+### Park Pressure
+The Parks screen now combines:
+- live average and median standby waits
+- a colour-coded live wait temperature
+- a beta crowd outlook
+- a “better / worse than expected” value signal
+- tomorrow's crowd outlook
+- the existing family-fit steer
 
-Food spend figures are planning estimates based on broad meal tiers and group composition. They are not live menu prices. Live nearby place discovery currently hands off to Google Maps. Commercial launch should use licensed place/price/opening-hours data and a reviewed commercial weather/park-data stack.
+Important: the crowd outlook is **not official park attendance or capacity**. V1.5 uses a transparent beta heuristic based on season, day-of-week, weather and a small park-specific pressure modifier. This is intentionally separated from the live wait feed so a licensed historical source or our own recorded history can replace it later without redesigning the feature.
 
+ThemeParks.wiki live data is suitable for wait-time products under its current public API terms, and its terms allow derived analysis and recording your own history. Its maintained historical archive is moving toward paid access, so a commercial launch should use licensed history or a first-party history store rather than scrape third-party crowd calendars.
 
-## V1.2 beta data note
+### Design-system refresh
+V1.5 applies the supplied Family Vacation Planner design guidance:
+- warm `#F8F9FA` canvas
+- deep slate `#0F172A`
+- coral `#FF6B6B` primary CTA
+- semantic colours for parks, rest, food and logistics
+- Plus Jakarta Sans headings + Inter UI text
+- larger outdoor-friendly tap targets
+- softer card elevation
+- stronger “Today” hierarchy
+- traffic-light park-pressure components
 
-Nearby essentials use OpenStreetMap data through the public Overpass API for prototyping. Before commercial launch, move this behind a production places provider or appropriately hosted/licensed infrastructure with defined availability and usage terms. Cost labels are broad category guides, not live prices.
+## Deployment
 
+The project remains deployable directly from the GitHub repo to Vercel.
 
-## V1.4 nearby lookup hotfix
+V1.5 adds one new root file:
 
-Essentials nearby lookups now use JSONP with current public Overpass instances to avoid brittle cross-origin browser fetch behaviour during beta testing. This is a temporary beta transport; production should use an app-owned backend and a commercially suitable places provider.
+- `nearby.js`
+
+`vercel.json` uses Vercel's legacy `builds` routing for this beta so the function can stay at the repository root, which makes mobile GitHub uploads easier. `/api/nearby` routes to that function.
+
+Upload the V1.5 files to the existing repository and commit to `main`; the connected Vercel project should redeploy automatically.
+
+## Data/product notes
+
+- Live theme-park waits: ThemeParks.wiki.
+- Weather: Open-Meteo in the prototype; commercial usage terms/provider should be formalised before launch.
+- Nearby places: OpenStreetMap public infrastructure for beta only.
+- Crowd outlook: our own transparent beta heuristic, not official capacity.
+- Maps: used only for final directions/fallback.
