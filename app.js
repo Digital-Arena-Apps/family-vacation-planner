@@ -171,37 +171,75 @@ $$('#exploreFilters .chip').forEach(c=>c.addEventListener('click',()=>{state.fil
 function renderSaved(){const list=activities.filter(a=>state.saved.includes(a.id)).map(a=>({...a,...recommendationScore(a)}));$('#savedList').innerHTML=list.length?list.map(a=>placeCard(a,false)).join(''):'<div class="error-card"><b>Nothing saved yet.</b><br/>Use the heart button while exploring to build the family shortlist.</div>';wirePlaceActions($('#savedList'));}
 
 function renderEssentials(){
-  $('#essentialsList').innerHTML=essentials.map(e=>`<button class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i>See nearby →</i></button>`).join('');
-  $$('.essential-card').forEach(b=>b.addEventListener('click',()=>loadNearbyEssential(b.dataset.essential)));
+  $('#essentialsList').innerHTML=essentials.map(e=>`<button type="button" class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i>See nearby →</i></button>`).join('');
+  $$('.essential-card',$('#essentialsList')).forEach(b=>b.addEventListener('click',()=>openEssential(b.dataset.essential)));
+}
+function openEssential(id){
+  const e=essentials.find(x=>x.id===id);if(!e)return;
+  $('#essentialDetailIcon').textContent=e.icon;
+  $('#essentialDetailTitle').textContent=e.name;
+  $('#essentialDetailCopy').textContent=`${e.sub} · ${e.cost} cost guide`;
+  setView('essential-detail');
+  loadNearbyEssential(id);
 }
 function essentialName(el,e){const t=el.tags||{};return t.name||t.brand||t.operator||`${e.name} nearby`;}
 function essentialCoords(el){return {lat:el.lat??el.center?.lat,lon:el.lon??el.center?.lon};}
-function essentialAddress(el){const t=el.tags||{},parts=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean);return parts.join(' ')||t['addr:full']||'';}
+function essentialAddress(el){
+  const t=el.tags||{},line1=[t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),line2=[t['addr:city'],t['addr:state']].filter(Boolean).join(', ');
+  return [line1,line2].filter(Boolean).join(' · ')||t['addr:full']||'';
+}
+function directionsUrl(x){return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${x.lat},${x.lon}`)}&travelmode=driving`;}
+function mapsSearchUrl(q){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`;}
 function essentialResultCard(x,e){
   const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
-  return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${e.cost} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><button class="small-btn primary-small essential-directions" data-lat="${x.lat}" data-lon="${x.lon}" data-name="${escapeHtml(x.name)}">Directions</button></div></article>`;
+  return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${e.cost} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><a class="small-btn primary-small direction-link" href="${directionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+}
+async function fetchOverpass(query){
+  const endpoints=[
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
+  ];
+  let lastError;
+  for(const base of endpoints){
+    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+    try{
+      const url=`${base}?data=${encodeURIComponent(query)}`;
+      const r=await fetch(url,{method:'GET',signal:ctrl.signal,headers:{'Accept':'application/json'}});
+      clearTimeout(timer);
+      if(!r.ok)throw new Error(`Overpass ${r.status}`);
+      return await r.json();
+    }catch(err){clearTimeout(timer);lastError=err;}
+  }
+  throw lastError||new Error('Nearby lookup unavailable');
 }
 async function loadNearbyEssential(id){
   const e=essentials.find(x=>x.id===id);if(!e)return;
-  $$('.essential-card').forEach(b=>b.classList.toggle('selected',b.dataset.essential===id));
-  if(!state.coords){$('#essentialsStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Turn on location and try again.</small></div>';return;}
-  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Keeping the results right here in the app.</small></div>`;
+  if(!state.coords){
+    $('#essentialsStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Turn on location, then tap Try again.</small></div>';
+    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">We need your location to rank nearby ${e.name.toLowerCase()}.</div><div class="place-actions"><button type="button" class="small-btn primary-small retry-essential">Try again</button></div></article>`;
+    $('.retry-essential').addEventListener('click',async()=>{await requestLocation();loadNearbyEssential(id);});
+    return;
+  }
+  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Closest useful options first.</small></div>`;
   $('#essentialResults').innerHTML='';
   const {lat,lon}=state.coords,radius=16000;
   const clauses=e.osm.map(f=>`nwr(around:${radius},${lat},${lon})${f};`).join('');
   const query=`[out:json][timeout:18];(${clauses});out center tags;`;
   try{
-    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(!r.ok)throw new Error();
-    const data=await r.json(),seen=new Set();
-    const results=(data.elements||[]).map(el=>{const c=essentialCoords(el);if(!c.lat||!c.lon)return null;const name=essentialName(el,e),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;if(seen.has(key))return null;seen.add(key);return{name,lat:c.lat,lon:c.lon,address:essentialAddress(el),distance:miles(haversine(lat,lon,c.lat,c.lon))};}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,5);
-    if(!results.length)throw new Error();
-    $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · tap Directions only when you want Maps.</small></div>`;
+    const data=await fetchOverpass(query),seen=new Set();
+    const results=(data.elements||[]).map(el=>{
+      const c=essentialCoords(el);if(!Number.isFinite(c.lat)||!Number.isFinite(c.lon))return null;
+      const name=essentialName(el,e),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;
+      if(seen.has(key))return null;seen.add(key);
+      return{name,lat:c.lat,lon:c.lon,address:essentialAddress(el),distance:miles(haversine(lat,lon,c.lat,c.lon))};
+    }).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,5);
+    if(!results.length)throw new Error('No nearby results');
+    $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · stay here until you choose Directions.</small></div>`;
     $('#essentialResults').innerHTML=results.map(x=>essentialResultCard(x,e)).join('');
-    $$('.essential-directions').forEach(b=>b.addEventListener('click',()=>window.open(`https://www.google.com/maps/dir/?api=1&destination=${b.dataset.lat},${b.dataset.lon}&destination_place_id=&travelmode=driving`,'_blank','noopener')));
   }catch(err){
-    $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby results are taking a break</b><small>Use the fallback search if you need ${e.name.toLowerCase()} right now.</small></div>`;
-    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">The beta nearby-place feed could not return results. We can still hand off to Maps as a fallback.</div><div class="place-actions"><button class="small-btn primary-small fallback-essential">Search Maps</button></div></article>`;
-    $('.fallback-essential').addEventListener('click',()=>mapsSearch(e.query));
+    $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby feed is taking a break</b><small>You are still in the app — use Maps only if you need a fallback right now.</small></div>`;
+    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">The beta nearby-place feed could not return ${e.name.toLowerCase()} just now.</div><div class="place-actions"><button type="button" class="small-btn retry-essential">Try again</button><a class="small-btn primary-small direction-link" href="${mapsSearchUrl(e.query)}" target="_blank" rel="noopener">Fallback Maps →</a></div></article>`;
+    $('.retry-essential').addEventListener('click',()=>loadNearbyEssential(id));
   }
 }
 function renderStayIn(){

@@ -74,7 +74,7 @@
   <div id="app" class="app-shell">
     <header class="topbar">
       <div>
-        <div class="eyebrow">FLORIDA BETA · V1.2</div>
+        <div class="eyebrow">FLORIDA BETA · V1.3</div>
         <h1>Florida Family<br/>Vacation Planner</h1>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -130,12 +130,27 @@
       </section>
 
       <section class="view" data-view="essentials">
-        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>Find what you need — without leaving the app</h2><p>Choose a category and we’ll show the closest useful options first. Maps only opens when you actually want directions.</p></div>
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>Pick a category. We’ll open the nearest options inside the app, then Maps only when you choose Directions.</p></div>
         <div id="essentialsList" class="essentials-grid"></div>
-        <div id="essentialsStatus" class="essentials-status"><span>📍</span><div><b>Pick what you need</b><small>We’ll search around your current location.</small></div></div>
-        <div id="essentialResults" class="card-list essentials-results"></div>
         <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
         <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. In the US, call 911 for an emergency.</div>
+      </section>
+
+      <section class="view" data-view="essential-detail">
+        <div class="page-heading essential-detail-heading">
+          <button class="text-btn inline-back" data-back="essentials">← Essentials</button>
+          <div class="essential-detail-hero">
+            <div id="essentialDetailIcon" class="essential-detail-icon">📍</div>
+            <div>
+              <div class="eyebrow">NEAREST OPTIONS</div>
+              <h2 id="essentialDetailTitle">Nearby essentials</h2>
+              <p id="essentialDetailCopy">Finding useful places around you.</p>
+            </div>
+          </div>
+        </div>
+        <div id="essentialsStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Getting things ready…</b><small>Using your current location.</small></div></div>
+        <div id="essentialResults" class="card-list essentials-results"></div>
+        <div class="notice"><b>Price note:</b> these are category-level spend guides, not live shelf, fuel or medical prices.</div>
       </section>
 
       <section class="view" data-view="stayin">

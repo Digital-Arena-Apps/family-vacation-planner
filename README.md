@@ -1,8 +1,15 @@
-# Family Vacation Planner — Florida Beta V1.2
+# Family Vacation Planner — Florida Beta V1.3
 
 A mobile-first Progressive Web App prototype for the question:
 
 > Given where our family is right now, what are the best options for the next few hours?
+
+## V1.3 fix
+
+- Essentials now open into a dedicated in-app results screen instead of placing results below the full category list.
+- Nearby lookup uses two Overpass endpoints with timeout/fallback handling.
+- Directions are real links, improving reliability inside installed PWAs.
+- Service-worker cache bumped so the fix replaces V1.2 cleanly.
 
 ## V1.2 additions
 
