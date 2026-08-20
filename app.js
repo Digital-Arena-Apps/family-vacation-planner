@@ -44,14 +44,14 @@ const activities = [
 ];
 
 const essentials = [
-  {icon:'🛒',name:'Groceries',sub:'Supermarkets & food shops',query:'grocery store'},
-  {icon:'💊',name:'Pharmacy',sub:'Medication & everyday health supplies',query:'pharmacy'},
-  {icon:'⛽',name:'Fuel',sub:'Petrol / gas stations nearby',query:'gas station'},
-  {icon:'🏪',name:'Convenience store',sub:'Snacks, drinks & forgotten bits',query:'convenience store'},
-  {icon:'🧺',name:'Laundry',sub:'Laundromats & wash services',query:'laundromat'},
-  {icon:'🔧',name:'Car help',sub:'Tyres, battery, repair & roadside shops',query:'auto repair'},
-  {icon:'🩺',name:'Urgent care',sub:'Non-emergency walk-in medical care',query:'urgent care'},
-  {icon:'🏥',name:'Hospital / ER',sub:'Emergency departments nearby',query:'hospital emergency room'}
+  {id:'groceries',icon:'🛒',name:'Groceries',sub:'Supermarkets & food shops',query:'grocery store',cost:'$–$$',costNote:'Basket cost varies',osm:['["shop"="supermarket"]','["shop"="grocery"]']},
+  {id:'pharmacy',icon:'💊',name:'Pharmacy',sub:'Medication & everyday health supplies',query:'pharmacy',cost:'$',costNote:'Everyday items usually low-cost',osm:['["amenity"="pharmacy"]']},
+  {id:'fuel',icon:'⛽',name:'Fuel',sub:'Gas stations nearby',query:'gas station',cost:'$$',costNote:'Pump prices vary by station',osm:['["amenity"="fuel"]']},
+  {id:'convenience',icon:'🏪',name:'Convenience store',sub:'Snacks, drinks & forgotten bits',query:'convenience store',cost:'$$',costNote:'Usually pricier than supermarkets',osm:['["shop"="convenience"]']},
+  {id:'laundry',icon:'🧺',name:'Laundry',sub:'Laundromats & wash services',query:'laundromat',cost:'$–$$',costNote:'Often around $5–15 per load/service',osm:['["shop"="laundry"]','["amenity"="laundry"]']},
+  {id:'car',icon:'🔧',name:'Car help',sub:'Tyres, battery & repair shops',query:'auto repair',cost:'$$–$$$',costNote:'Depends heavily on the repair',osm:['["shop"="car_repair"]','["shop"="tyres"]']},
+  {id:'clinic',icon:'🩺',name:'Urgent care / clinic',sub:'Non-emergency medical care',query:'urgent care',cost:'$$–$$$',costNote:'Cash / insurance rates vary',osm:['["amenity"="clinic"]','["healthcare"="clinic"]']},
+  {id:'hospital',icon:'🏥',name:'Hospital / ER',sub:'Emergency departments nearby',query:'hospital emergency room',cost:'$$$',costNote:'Emergency care can be expensive',osm:['["amenity"="hospital"]']}
 ];
 const stayInIdeas = [
   {icon:'🛋',name:'Proper reset day',note:'Drop the agenda. Films, games, naps, snacks and nobody putting shoes on.'},
@@ -155,7 +155,7 @@ function runRecommendations(forcedTag=null){
   $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#whatNowBtn').addEventListener('click',()=>runRecommendations());$('#rerunBtn').addEventListener('click',()=>runRecommendations());
-$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='essentials'||q==='stayin'||q==='family'){setView(q);return;}runRecommendations(q);}));
+$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='family'){showOnboarding();return;}if(q==='essentials'||q==='stayin'){setView(q);return;}runRecommendations(q);}));
 
 function placeCard(a,withScore=false,hero=false){
   const d=distMiles(a),saved=state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),meta=[d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi away`:null,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a);
@@ -171,8 +171,38 @@ $$('#exploreFilters .chip').forEach(c=>c.addEventListener('click',()=>{state.fil
 function renderSaved(){const list=activities.filter(a=>state.saved.includes(a.id)).map(a=>({...a,...recommendationScore(a)}));$('#savedList').innerHTML=list.length?list.map(a=>placeCard(a,false)).join(''):'<div class="error-card"><b>Nothing saved yet.</b><br/>Use the heart button while exploring to build the family shortlist.</div>';wirePlaceActions($('#savedList'));}
 
 function renderEssentials(){
-  $('#essentialsList').innerHTML=essentials.map(e=>`<button class="essential-card" data-query="${e.query}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small></div><i>Directions →</i></button>`).join('');
-  $$('.essential-card').forEach(b=>b.addEventListener('click',()=>mapsSearch(b.dataset.query)));
+  $('#essentialsList').innerHTML=essentials.map(e=>`<button class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i>See nearby →</i></button>`).join('');
+  $$('.essential-card').forEach(b=>b.addEventListener('click',()=>loadNearbyEssential(b.dataset.essential)));
+}
+function essentialName(el,e){const t=el.tags||{};return t.name||t.brand||t.operator||`${e.name} nearby`;}
+function essentialCoords(el){return {lat:el.lat??el.center?.lat,lon:el.lon??el.center?.lon};}
+function essentialAddress(el){const t=el.tags||{},parts=[t['addr:housenumber'],t['addr:street'],t['addr:city']].filter(Boolean);return parts.join(' ')||t['addr:full']||'';}
+function essentialResultCard(x,e){
+  const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
+  return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${e.cost} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><button class="small-btn primary-small essential-directions" data-lat="${x.lat}" data-lon="${x.lon}" data-name="${escapeHtml(x.name)}">Directions</button></div></article>`;
+}
+async function loadNearbyEssential(id){
+  const e=essentials.find(x=>x.id===id);if(!e)return;
+  $$('.essential-card').forEach(b=>b.classList.toggle('selected',b.dataset.essential===id));
+  if(!state.coords){$('#essentialsStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Turn on location and try again.</small></div>';return;}
+  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Keeping the results right here in the app.</small></div>`;
+  $('#essentialResults').innerHTML='';
+  const {lat,lon}=state.coords,radius=16000;
+  const clauses=e.osm.map(f=>`nwr(around:${radius},${lat},${lon})${f};`).join('');
+  const query=`[out:json][timeout:18];(${clauses});out center tags;`;
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:'data='+encodeURIComponent(query)});if(!r.ok)throw new Error();
+    const data=await r.json(),seen=new Set();
+    const results=(data.elements||[]).map(el=>{const c=essentialCoords(el);if(!c.lat||!c.lon)return null;const name=essentialName(el,e),key=`${name}|${c.lat.toFixed(4)}|${c.lon.toFixed(4)}`;if(seen.has(key))return null;seen.add(key);return{name,lat:c.lat,lon:c.lon,address:essentialAddress(el),distance:miles(haversine(lat,lon,c.lat,c.lon))};}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,5);
+    if(!results.length)throw new Error();
+    $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · tap Directions only when you want Maps.</small></div>`;
+    $('#essentialResults').innerHTML=results.map(x=>essentialResultCard(x,e)).join('');
+    $$('.essential-directions').forEach(b=>b.addEventListener('click',()=>window.open(`https://www.google.com/maps/dir/?api=1&destination=${b.dataset.lat},${b.dataset.lon}&destination_place_id=&travelmode=driving`,'_blank','noopener')));
+  }catch(err){
+    $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby results are taking a break</b><small>Use the fallback search if you need ${e.name.toLowerCase()} right now.</small></div>`;
+    $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">The beta nearby-place feed could not return results. We can still hand off to Maps as a fallback.</div><div class="place-actions"><button class="small-btn primary-small fallback-essential">Search Maps</button></div></article>`;
+    $('.fallback-essential').addEventListener('click',()=>mapsSearch(e.query));
+  }
 }
 function renderStayIn(){
   const storm=state.weather&&[95,96,99].includes(state.weather.current.weather_code),rain=state.weather?.daily?.precipitation_probability_max?.[0]||0;
@@ -187,7 +217,7 @@ async function loadParks(){$('#parksList').innerHTML=parks.map(()=>'<article cla
 $('#refreshParks').addEventListener('click',loadParks);
 
 function newMember(seed={}){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name||'',age:seed.age??'',height:seed.height??'',thrill:seed.thrill||'medium'};}
-function memberRow(m,scope){return `<div class="member-row" data-id="${m.id}"><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/><button class="member-remove" type="button" aria-label="Remove">×</button></div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" value="${m.age}"></label><label>Height (in)<input class="member-height" type="number" min="20" max="90" value="${m.height}"></label><label>Thrills<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Low</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Medium</option><option value="high" ${m.thrill==='high'?'selected':''}>High</option></select></label></div></div>`;}
+function memberRow(m,scope){return `<div class="member-row crew-card" data-id="${m.id}"><div class="crew-avatar">${(+m.age||0)<13?'🧒':'😎'}</div><div class="crew-fields"><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/><button class="member-remove" type="button" aria-label="Remove">×</button></div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" value="${m.age}"></label><label>Height (in)<input class="member-height" type="number" min="20" max="90" value="${m.height}"></label><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>🙂 Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>🎢 Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>🚀 Bring it on</option></select></label></div></div></div>`;}
 function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function renderMemberEditor(rootId,members){const root=$(rootId);root.innerHTML=members.map(m=>memberRow(m)).join('');$$('.member-remove',root).forEach(b=>b.addEventListener('click',()=>{if(root.children.length<=1){showToast('Keep at least one family member');return;}b.closest('.member-row').remove();}));}
 function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>({id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:+$('.member-height',r).value||0,thrill:$('.member-thrill',r).value}));}
@@ -200,10 +230,13 @@ function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.
 function updateUnits(){$('#unitC').classList.toggle('active',state.unit==='c');$('#unitF').classList.toggle('active',state.unit==='f');if(state.weather)renderWeather();}
 $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.dataset.unit;localStorage.setItem('ffvp_unit',state.unit);updateUnits();}));
 
+let setupStep=0;
+function showSetupStep(n){setupStep=Math.max(0,Math.min(2,n));$$('.setup-step').forEach((x,i)=>x.classList.toggle('active',i===setupStep));$$('.setup-progress span').forEach((x,i)=>x.classList.toggle('active',i<=setupStep));$('.skip-setup').classList.toggle('hidden',setupStep>0);}
 function showOnboarding(){
-  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupHomeBase').value=p.homeBase||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());$('#onboarding').classList.remove('hidden');
+  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupHomeBase').value=p.homeBase||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
 }
-$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),homeBase:$('#setupHomeBase').value.trim(),maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Family setup saved');});
+$$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep+1)));$$('.setup-back').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep-1)));
+$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),homeBase:$('#setupHomeBase').value.trim(),maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstall=e;$('#installBtn').classList.remove('hidden');});

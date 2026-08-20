@@ -16,35 +16,57 @@
 </head>
 <body>
   <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
-    <div class="onboarding-card">
-      <div class="eyebrow">FIRST THINGS FIRST</div>
-      <h2>Who are we planning for?</h2>
-      <p>Set up the family once and the app can stop suggesting things that only suit somebody else's holiday.</p>
-      <form id="onboardingForm" class="setup-form">
-        <label>Family / trip name
-          <input id="setupFamilyName" type="text" maxlength="40" placeholder="The Jones family" />
-        </label>
-        <label>Home base
-          <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort name" />
-          <small>Used as a reference point. Exact address is optional.</small>
-        </label>
-        <div class="setup-grid">
-          <label>Usual max drive
-            <select id="setupMaxDrive">
-              <option value="15">15 miles</option><option value="30" selected>30 miles</option><option value="60">60 miles</option><option value="100">100 miles</option>
-            </select>
+    <div class="onboarding-card adventure-onboarding">
+      <div class="onboarding-hero">
+        <div class="holiday-orbit" aria-hidden="true"><span>☀️</span><span>🌴</span><span>🎢</span><span>🍦</span></div>
+        <div class="eyebrow light">YOUR HOLIDAY STARTS HERE</div>
+        <h2>Build your vacation crew</h2>
+        <p>A few fun details now means fewer “what are we doing today?” debates later.</p>
+        <div class="setup-progress" aria-label="Setup progress"><span class="active"></span><span></span><span></span></div>
+      </div>
+      <form id="onboardingForm" class="setup-form adventure-form">
+        <section class="setup-step active" data-setup-step="0">
+          <div class="step-kicker">01 · THE ADVENTURE</div>
+          <h3>Give this trip a name</h3>
+          <p class="step-copy">Make it yours — family name, holiday nickname, whatever feels right.</p>
+          <label>Trip / family name
+            <input id="setupFamilyName" type="text" maxlength="40" placeholder="The Jones Florida Adventure" />
           </label>
-          <label>Budget
-            <select id="setupBudget"><option value="low">Keep costs down</option><option value="medium" selected>Reasonable</option><option value="high">Holiday mode</option></select>
+          <label>Your holiday base
+            <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" />
+            <small>Handy later when we compare “from here” with “from home base”.</small>
           </label>
-        </div>
-        <div class="setup-heading"><b>Family members</b><button id="addSetupMember" class="text-btn" type="button">+ Add person</button></div>
-        <div id="setupMembers" class="member-list"></div>
-        <label>Dietary / access notes
-          <input id="setupNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" />
-        </label>
-        <button class="primary-btn full" type="submit">Save family & start planning</button>
-        <button id="skipSetup" class="text-btn full" type="button">Skip for now</button>
+          <button class="primary-btn full setup-next" type="button">Meet the crew →</button>
+        </section>
+
+        <section class="setup-step" data-setup-step="1">
+          <div class="step-kicker">02 · YOUR CREW</div>
+          <div class="setup-heading adventure-heading"><div><h3>Who’s coming along?</h3><p class="step-copy">Age, height and ride vibe help us suggest days everyone can actually enjoy.</p></div><button id="addSetupMember" class="add-person-btn" type="button">＋ Add person</button></div>
+          <div id="setupMembers" class="member-list"></div>
+          <label>Anything useful to know?
+            <input id="setupNotes" type="text" maxlength="120" placeholder="Gluten-free, accessibility needs, hates coasters…" />
+          </label>
+          <div class="setup-actions"><button class="secondary-btn setup-back" type="button">← Back</button><button class="primary-btn setup-next" type="button">Vacation style →</button></div>
+        </section>
+
+        <section class="setup-step" data-setup-step="2">
+          <div class="step-kicker">03 · YOUR VACATION STYLE</div>
+          <h3>How do you like to holiday?</h3>
+          <p class="step-copy">No judgement. “Keep it cheap and nearby” and “we flew this far, let’s do it” are both legitimate strategies.</p>
+          <div class="setup-grid vacation-style-grid">
+            <label>How far will you roam?
+              <select id="setupMaxDrive">
+                <option value="15">Keep it local · 15 miles</option><option value="30" selected>Happy to explore · 30 miles</option><option value="60">Road-trip ready · 60 miles</option><option value="100">Anywhere worth it · 100 miles</option>
+              </select>
+            </label>
+            <label>Spending mood
+              <select id="setupBudget"><option value="low">💵 Keep costs down</option><option value="medium" selected>🌴 Comfortable holiday spend</option><option value="high">✨ We’re on vacation</option></select>
+            </label>
+          </div>
+          <div class="launch-card"><span>✨</span><div><b>That’s enough admin.</b><small>We’ll learn more from what you save and choose as the trip goes on.</small></div></div>
+          <div class="setup-actions"><button class="secondary-btn setup-back" type="button">← Back</button><button class="primary-btn" type="submit">Start the adventure ✨</button></div>
+        </section>
+        <button id="skipSetup" class="text-btn full skip-setup" type="button">I’ll set this up later</button>
       </form>
     </div>
   </div>
@@ -52,7 +74,7 @@
   <div id="app" class="app-shell">
     <header class="topbar">
       <div>
-        <div class="eyebrow">FLORIDA BETA · V1.1</div>
+        <div class="eyebrow">FLORIDA BETA · V1.2</div>
         <h1>Florida Family<br/>Vacation Planner</h1>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -94,7 +116,7 @@
             <button class="quick-card" data-quick="park"><span>🎢</span><b>Theme parks</b><small>Live waits + family fit</small></button>
             <button class="quick-card" data-quick="shopping"><span>🛍</span><b>Shopping</b><small>Malls, outlets & retail</small></button>
             <button class="quick-card" data-quick="beach"><span>🌊</span><b>Beach / outdoors</b><small>Worth it in this weather?</small></button>
-            <button class="quick-card" data-quick="family"><span>👨‍👩‍👧‍👦</span><b>Family setup</b><small>Ages, heights & preferences</small></button>
+            <button class="quick-card" data-quick="family"><span>👨‍👩‍👧‍👦</span><b>Build your crew</b><small>Make recommendations yours</small></button>
           </div>
         </section>
       </section>
@@ -108,9 +130,12 @@
       </section>
 
       <section class="view" data-view="essentials">
-        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">ESSENTIALS</div><h2>Useful stuff near you</h2><p>One-tap searches for the things families suddenly discover they need on holiday.</p></div>
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>Find what you need — without leaving the app</h2><p>Choose a category and we’ll show the closest useful options first. Maps only opens when you actually want directions.</p></div>
         <div id="essentialsList" class="essentials-grid"></div>
-        <div class="notice"><b>Emergencies:</b> this beta opens map searches; it does not replace emergency services. In the US, call 911 for an emergency.</div>
+        <div id="essentialsStatus" class="essentials-status"><span>📍</span><div><b>Pick what you need</b><small>We’ll search around your current location.</small></div></div>
+        <div id="essentialResults" class="card-list essentials-results"></div>
+        <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
+        <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. In the US, call 911 for an emergency.</div>
       </section>
 
       <section class="view" data-view="stayin">
@@ -131,7 +156,7 @@
       </section>
 
       <section class="view" data-view="family">
-        <div class="page-heading"><div class="eyebrow">MY FAMILY</div><h2>Plan for your actual crew</h2><p>Ages and heights help us avoid over-rating thrill-heavy days for younger or smaller visitors.</p></div>
+        <div class="page-heading"><div class="eyebrow">YOUR VACATION CREW</div><h2>Everyone gets a better holiday</h2><p>Tell us who loves coasters, who would rather not, and who is still waiting to hit those ride-height markers.</p></div>
         <form id="familyForm" class="form-card">
           <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
           <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
