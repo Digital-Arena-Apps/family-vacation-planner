@@ -173,3 +173,13 @@ Re-run now deliberately rotates to a different high-quality shortlist for the sa
 
 ## V2.2.7.2 landing composition
 The landing screen now follows the selected mobile mockup: the scenic family artwork fills the screen, the brand and tagline sit over the sky, and the coral primary action is anchored at the bottom rather than using separate logo/image/copy cards.
+
+
+## V2.2.7.3 — Landing polish
+
+- Uses the approved high-resolution welcome artwork as the landing hero.
+- Removes the mock phone status bar and baked-in CTA area from the image.
+- Keeps Start planning and Continue saved trip as real accessible app controls.
+- Removes the separate logo-card overlay and extra image zoom.
+- Uses top-anchored minimal cropping so the full scenic composition retains more sky, coastline and breathing room.
+- Bumps the service-worker cache to `ffvp-v2-2-7-3`.
