@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.19
+# Family Vacation Planner — Destination Beta V2.3.0
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -283,7 +283,7 @@ The destination finder is no longer seeded with the same three active priorities
 Scoring now rewards destinations that satisfy the whole selected brief and heavily penalises destinations that are weak against a chosen must-have. `Show me different ideas` rotates through further suitable matches rather than returning the same shortlist. This is still a curated beta destination intelligence layer; it is deliberately separated from the UI so it can later be replaced or augmented with a live destination data service without redesigning the flow.
 
 
-## V2.2.19 — Budget + trip-length guardrails
+## V2.3.0 — Budget + trip-length guardrails
 
 Destination Finder now treats **budget as total-trip affordability**, not just destination prices.
 
@@ -297,6 +297,20 @@ Destination Finder now treats **budget as total-trip affordability**, not just d
 The travel-cost model is deliberately a beta planning heuristic, not live airfare pricing.
 
 
-## V2.2.19 — Personal vacation buddy voice
+## V2.3.0 — Personal vacation buddy voice
 
 The user-facing copy has been rewritten to sound like a warm, practical holiday companion rather than an AI/system layer. Normal screens avoid terms such as provider, scoring, filtering, search centre and decision engine. Discovery summaries focus on what is useful to the family, re-run actions use “Mix it up”, destination matches use “Good match for”, and recommendation explanations use “Why it suits”. Technical provider details remain implementation concerns rather than everyday interface copy.
+
+
+## V2.3.0 — Commercial test environment
+
+This beta adds a local-only freemium simulator. No payment provider is connected and no money is taken.
+
+Working plans:
+- Explorer — Free: 1 vacation, 20 Fresh Ideas, sponsored-placement preview.
+- Traveller — £8.99 one-off: 3 vacations, 150 Fresh Ideas, no display ads.
+- Pro Family — £29.99/year: unlimited vacations and a 1,000-search beta fair-use allowance, no ads.
+
+A Fresh Idea is consumed only when the app makes a genuinely new external nearby-place request (discovery, food, essentials, or a new locally seeded recommendation pool). Reopening saved content, sorting, weather, park waits and re-reading existing results do not consume allowance.
+
+Family → Testing tools contains a commercial simulator for switching tier, setting usage, and jumping to the last Fresh Idea. The pricing screen is intentionally non-transactional; its buttons only change localStorage on the device.

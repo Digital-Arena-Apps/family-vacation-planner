@@ -64,6 +64,53 @@ const state = {
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
 
+// V2.3.0 — commercial test environment. No payment provider is connected yet.
+const COMMERCIAL_PLANS={
+  explorer:{key:'explorer',name:'Explorer',price:'Free',freshLimit:20,tripLimit:1,ads:true,copy:'A proper taste of the planner, with a sensible limit on fresh searches.'},
+  traveller:{key:'traveller',name:'Traveller',price:'£8.99',freshLimit:150,tripLimit:3,ads:false,copy:'More room to plan a few complete family holidays without display ads.'},
+  pro:{key:'pro',name:'Pro Family',price:'£29.99/year',freshLimit:1000,tripLimit:Infinity,ads:false,copy:'For families who travel often: unlimited vacations with generous fair-use planning.'}
+};
+function commercialTier(){const k=localStorage.getItem('ffvp_commercial_tier')||'explorer';return COMMERCIAL_PLANS[k]?k:'explorer';}
+function commercialPlan(){return COMMERCIAL_PLANS[commercialTier()];}
+function freshUsed(){return Math.max(0,+localStorage.getItem('ffvp_fresh_used')||0);}
+function tripUses(){const stored=localStorage.getItem('ffvp_trip_uses');if(stored!=null)return Math.max(0,+stored||0);const initial=localStorage.getItem('ffvp_onboarded')?1:0;localStorage.setItem('ffvp_trip_uses',String(initial));return initial;}
+function setCommercialTier(tier,{resetUsage=false}={}){if(!COMMERCIAL_PLANS[tier])tier='explorer';localStorage.setItem('ffvp_commercial_tier',tier);if(resetUsage)localStorage.setItem('ffvp_fresh_used','0');updateCommercialUI();}
+function setFreshUsed(n){localStorage.setItem('ffvp_fresh_used',String(Math.max(0,Math.round(+n||0))));updateCommercialUI();}
+function freshRemaining(){return Math.max(0,commercialPlan().freshLimit-freshUsed());}
+function refundFreshIdea(){if(freshUsed()>0)setFreshUsed(freshUsed()-1);}
+function commercialTripLimitReached(){const p=commercialPlan();return Number.isFinite(p.tripLimit)&&tripUses()>=p.tripLimit;}
+function openPricing(reason='choice'){
+  const d=$('#pricingDialog');if(!d)return;
+  const messages={fresh:'You’ve used the Fresh Ideas included with this plan. Everything you’ve already saved still works — upgrade only if you want another new search.',trip:'You’ve used the vacation allowance on this plan. Your current trip stays exactly as it is.',finder:'Want more destination inspiration? Traveller and Pro open up the fuller planning experience.',choice:'Explorer is genuinely useful for free. These are the bigger plans if you decide you want more.'};
+  $('#pricingReason').textContent=messages[reason]||messages.choice;
+  $$('.pricing-card').forEach(c=>c.classList.toggle('current',c.dataset.pricingTier===commercialTier()));
+  d.classList.remove('hidden');
+}
+function closePricing(){$('#pricingDialog')?.classList.add('hidden');}
+function consumeFreshIdea(reason='fresh search'){
+  const p=commercialPlan();
+  if(freshUsed()>=p.freshLimit){openPricing('fresh');showToast('You’re out of Fresh Ideas on this plan — saved plans still work.');return false;}
+  setFreshUsed(freshUsed()+1);
+  return true;
+}
+function countTripUse(){localStorage.setItem('ffvp_trip_uses',String(tripUses()+1));updateCommercialUI();}
+function updateCommercialUI(){
+  const p=commercialPlan(),used=freshUsed(),remaining=Math.max(0,p.freshLimit-used),pct=Math.max(0,Math.min(100,(remaining/p.freshLimit)*100));
+  if($('#commercialTierBadge'))$('#commercialTierBadge').textContent=p.name.toUpperCase();
+  if($('#commercialTierTitle'))$('#commercialTierTitle').textContent=`${p.name} · ${p.price}`;
+  if($('#commercialTierCopy'))$('#commercialTierCopy').textContent=p.copy;
+  if($('#freshIdeasLabel'))$('#freshIdeasLabel').textContent=p.key==='pro'?`${remaining.toLocaleString()} test allowance left`:`${remaining} of ${p.freshLimit} left`;
+  if($('#freshIdeasBar'))$('#freshIdeasBar').style.width=`${pct}%`;
+  if($('#freshIdeasCopy'))$('#freshIdeasCopy').textContent='Only a brand-new nearby search uses one. Reopening saved ideas costs nothing.';
+  if($('#tripAllowanceLabel'))$('#tripAllowanceLabel').textContent=Number.isFinite(p.tripLimit)?`${tripUses()} of ${p.tripLimit} used`:'Unlimited trips';
+  if($('#adsPlanLabel'))$('#adsPlanLabel').textContent=p.ads?'Sponsored placements':'Ad-free';
+  $('#freeAdSlot')?.classList.toggle('hidden',!p.ads||localStorage.getItem('ffvp_test_ad_hidden')==='1');
+  if($('#testCommercialPlan'))$('#testCommercialPlan').value=p.key;
+  if($('#testFreshUsed'))$('#testFreshUsed').value=used;
+  if($('#testTripUses'))$('#testTripUses').value=tripUses();
+}
+
+
 const quickIconSvg = {
   stayin:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
   indoor:'<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg>',
@@ -773,7 +820,8 @@ function recommendationScore(a,options={}){
 }
 async function seedLocalDiscovery(){
   if(isFloridaContext()||!state.coords)return;const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}:${appLanguage()}`;if(state.localSeedKey===key)return;
-  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){}
+  if(!consumeFreshIdea('local planning ideas'))return;
+  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();if(!(data.results||[]).length)throw new Error();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){refundFreshIdea();}
 }
 
 function tomorrowTargetDate(){return nextPlanningDate(new Date());}
@@ -896,7 +944,8 @@ async function seedMoodDiscovery(mood){
   const category=({chill:'chill',indoor:'indoor',outdoors:'outdoors',thrills:'thrills',shopping:'shopping'}[mood]||'sights');
   if(mood==='food')return;
   const key=`${category}:${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}:${appLanguage()}`;state.moodSeedKeys=state.moodSeedKeys||{};if(state.moodSeedKeys[key])return;
-  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,category)));state.moodSeedKeys[key]=true;}catch(e){}
+  if(!consumeFreshIdea('mood ideas'))return;
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();if(!(data.results||[]).length)throw new Error();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,category)));state.moodSeedKeys[key]=true;}catch(e){refundFreshIdea();}
 }
 function renderTomorrowPlannerContext(){
   const target=tomorrowTargetDate(),t=tripContext(target),wx=weatherForDate(target),plans=plansForDate(target),dest=destinationPreset();
@@ -1038,10 +1087,11 @@ async function loadDiscover(category='sights',opts={}){
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view==='discover'));$$('.nav-item').forEach(n=>n.classList.toggle('active',specialist?n.dataset.target==='specialist':n.dataset.target==='explore'));window.scrollTo({top:0,behavior:'smooth'});
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} We’re looking around ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
+  if(!consumeFreshIdea('nearby ideas')){$('#discoverStatus').innerHTML='<span>✨</span><div><b>Your saved ideas are still here</b><small>Explorer has used its Fresh Ideas. Upgrade only if you want another new nearby search.</small></div>';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Having a look around…</b><small>Keeping things within the distance you’re happy to travel.</small></div>';$('#discoverResults').innerHTML='';
   try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
     $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} ideas worth a look around ${escapeHtml(state.locationName||'your location')}</b><small>A good mix, so you’re not choosing between five versions of the same thing.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
-  }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Can’t get nearby places just now</b><small>Give it another go in a moment — everything you’ve already saved is still here.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">Nearby ideas aren’t loading properly right now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category,{specialist:!!state.discoverySpecialist}));}
+  }catch(e){refundFreshIdea();$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Can’t get nearby places just now</b><small>Give it another go in a moment — everything you’ve already saved is still here.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">Nearby ideas aren’t loading properly right now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category,{specialist:!!state.discoverySpecialist}));}
 }
 
 function placeCard(a,withScore=false,hero=false){
@@ -1113,7 +1163,8 @@ async function loadNearbyEssential(id){
     $('.retry-essential').addEventListener('click',async()=>{await requestLocation();loadNearbyEssential(id);});
     return;
   }
-  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Our server is checking nearby options so you can stay inside the app.</small></div>`;
+  if(!consumeFreshIdea('nearby essentials')){$('#essentialsStatus').innerHTML='<span>✨</span><div><b>Your free fresh searches are used</b><small>Everything already saved still works. See plans if you want another live nearby lookup.</small></div>';return;}
+  $('#essentialsStatus').innerHTML=`<span class="mini-spinner"></span><div><b>Finding ${e.name.toLowerCase()} near you…</b><small>Checking a few nearby options.</small></div>`;
   $('#essentialResults').innerHTML='';
   const {lat,lon}=state.coords;
   try{
@@ -1124,6 +1175,7 @@ async function loadNearbyEssential(id){
     $('#essentialsStatus').innerHTML=`<span>📍</span><div><b>Closest ${e.name.toLowerCase()}</b><small>${results.length} nearby options · ${escapeHtml(data.source||'nearby data')}.</small></div>`;
     $('#essentialResults').innerHTML=results.map(x=>essentialResultCard(x,e)).join('');
   }catch(err){
+    refundFreshIdea();
     $('#essentialsStatus').innerHTML=`<span>🧭</span><div><b>Nearby lookup is temporarily unavailable</b><small>Try again in a moment. Maps is only the emergency fallback.</small></div>`;
     $('#essentialResults').innerHTML=`<article class="place-card"><div class="reason">Our nearby service could not return ${e.name.toLowerCase()} just now.</div><div class="place-actions"><button type="button" class="small-btn retry-essential">Try again</button><a class="small-btn direction-link" href="${mapsSearchUrl(e.query)}" target="_blank" rel="noopener">Fallback Maps →</a></div></article>`;
     $('.retry-essential').addEventListener('click',()=>loadNearbyEssential(id));
@@ -1170,6 +1222,7 @@ function renderFoodResults(){
 async function loadFood(force=false){
   if(foodResultsCache.length&&!force){renderFoodResults();return;}
   if(!state.coords){$('#foodStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Turn on location and try again.</small></div>';return;}
+  if(!consumeFreshIdea('nearby food')){$('#foodStatus').innerHTML='<span>✨</span><div><b>You’ve used the Fresh Ideas on this plan</b><small>Your saved places and trip plan are still available.</small></div>';return;}
   $('#foodStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding nearby food…</b><small>Ratings and price guidance where available.</small></div>';
   $('#foodResults').innerHTML='';
   const {lat,lon}=state.coords;
@@ -1183,6 +1236,7 @@ async function loadFood(force=false){
     $('#foodSort').querySelector('[data-food-sort="rating"]').disabled=!foodResultsCache.some(x=>x.rating);
     renderFoodResults();
   }catch(err){
+    refundFreshIdea();
     $('#foodStatus').innerHTML='<span>🧭</span><div><b>Food lookup is temporarily unavailable</b><small>Try again in a moment.</small></div>';
     $('#foodResults').innerHTML='<article class="place-card"><div class="reason">We could not load nearby restaurants just now.</div><div class="place-actions"><button class="small-btn primary-small retry-food">Try again</button></div></article>';
     $('.retry-food').addEventListener('click',()=>loadFood(true));
@@ -1409,9 +1463,10 @@ function clearCurrentTripState(){
   ['ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done','ffvp_tomorrow_mood'].forEach(k=>localStorage.removeItem(k));
 }
 function startNewTrip(destinationKey='orlando'){
+  if(commercialTripLimitReached()){openPricing('trip');showToast('Explorer includes one vacation. Your current trip is safe.');return;}
   archiveCurrentTrip();const old=state.profile;clearCurrentTripState();
   state.profile={...defaultProfile,members:JSON.parse(JSON.stringify(old.members?.length?old.members:defaultMembers())),maxDrive:old.maxDrive||30,budget:old.budget||'medium',energy:old.energy||'medium',interests:[...(old.interests||defaultProfile.interests)],heatAware:old.heatAware!==false,notes:old.notes||'',quickNotes:[...(old.quickNotes||[])],walkingTolerance:old.walkingTolerance||'medium',destinationPreset:destinationKey};
-  localStorage.removeItem('ffvp_onboarded');saveProfile();closeNewTripDialog();loadProfileForm();showOnboarding();renderTripHub();
+  countTripUse();localStorage.removeItem('ffvp_onboarded');saveProfile();closeNewTripDialog();loadProfileForm();showOnboarding();renderTripHub();
 }
 let destinationFinderRun=0;
 function populateDestinationSelects(){
@@ -1501,7 +1556,7 @@ function renderDestinationFinder(forceDifferent=false){
   const qualityPool=all.filter((x,i)=>i<18 && x.score>=topScore-34 && x.weakest>=2);
   const pool=qualityPool.length?qualityPool:all.slice(0,8);
   if(forceDifferent)destinationFinderRun++;
-  const pageSize=5;let start=destinationFinderRun*pageSize;
+  const pageSize=commercialTier()==='explorer'?3:5;let start=destinationFinderRun*pageSize;
   if(start>=pool.length){destinationFinderRun=0;start=0;}
   let results=pool.slice(start,start+pageSize);if(!results.length)results=pool.slice(0,pageSize);
   const bottomScore=pool[Math.min(pool.length-1,10)]?.score ?? pool[pool.length-1]?.score ?? 0,range=Math.max(1,topScore-bottomScore);
@@ -1518,7 +1573,7 @@ function renderDestinationFinder(forceDifferent=false){
 }
 function renderPreviousTrips(){const root=$('#previousTripsList');if(!root)return;const list=state.archives||[];root.innerHTML=list.length?list.map(a=>{const p=a.profile||{},dest=presetFor(p.destinationPreset)?.name||p.destinationPreset||'Trip';const when=p.arrivalDate?new Date(`${p.arrivalDate}T12:00:00`).toLocaleDateString(appLocale(),{year:'numeric',month:'short',day:'numeric'}):new Date(a.archivedAt).toLocaleDateString(appLocale(),{year:'numeric',month:'short'});return `<article class="plan-row archive-row" data-id="${a.id}"><div><b>${escapeHtml(p.familyName||dest)}</b><small>${escapeHtml(dest)} · ${when}</small></div><button class="text-btn restore-trip" type="button">${t('restore')}</button></article>`;}).join(''):`<div class="trip-empty"><b>${t('previousTrips')}</b><small>Your completed or replaced trips will appear here.</small></div>`;$$('.restore-trip',root).forEach(b=>b.addEventListener('click',()=>restoreArchivedTrip(b.closest('.archive-row').dataset.id)));}
 function restoreArchivedTrip(id){const a=(state.archives||[]).find(x=>x.id===id);if(!a)return;if(!confirm('Replace the current trip with this saved vacation?'))return;archiveCurrentTrip();state.profile=a.profile;state.saved=a.saved||[];state.tripStatuses=a.tripStatuses||{};state.plans=a.plans||[];state.discovered=a.discovered||{};localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));localStorage.setItem('ffvp_trip_statuses',JSON.stringify(state.tripStatuses));localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));localStorage.setItem('ffvp_onboarded','1');loadProfileForm();renderTripHub();renderExplore();updateGreeting();showToast('Holiday restored');}
-$('#newTripBtn')?.addEventListener('click',openNewTripDialog);$('#newTripBtnFamily')?.addEventListener('click',openNewTripDialog);$('#closeNewTrip')?.addEventListener('click',closeNewTripDialog);$('#newTripDialog')?.addEventListener('click',e=>{if(e.target.id==='newTripDialog')closeNewTripDialog();});$('#startKnownTrip')?.addEventListener('click',()=>startNewTrip($('#newTripDestination')?.value||'orlando'));$('#openDestinationFinder')?.addEventListener('click',()=>{$('#newTripStartPanel').classList.add('hidden');$('#destinationFinderPanel').classList.remove('hidden');renderDestinationFinder();});$('#backNewTrip')?.addEventListener('click',()=>{$('#destinationFinderPanel').classList.add('hidden');$('#newTripStartPanel').classList.remove('hidden');});$$('.finder-chip').forEach(b=>b.addEventListener('click',()=>{const active=finderSelections();if(!b.classList.contains('active')&&active.length>=3){showToast('Pick up to 3 things that matter most');return;}b.classList.toggle('active');destinationFinderRun=0;renderDestinationFinder();}));['finderOrigin','finderBudget','finderLength','finderClimate','finderSetting'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{destinationFinderRun=0;renderDestinationFinder();}));$('#findDestinations')?.addEventListener('click',()=>renderDestinationFinder(true));
+$('#newTripBtn')?.addEventListener('click',openNewTripDialog);$('#newTripBtnFamily')?.addEventListener('click',openNewTripDialog);$('#closeNewTrip')?.addEventListener('click',closeNewTripDialog);$('#newTripDialog')?.addEventListener('click',e=>{if(e.target.id==='newTripDialog')closeNewTripDialog();});$('#startKnownTrip')?.addEventListener('click',()=>startNewTrip($('#newTripDestination')?.value||'orlando'));$('#openDestinationFinder')?.addEventListener('click',()=>{$('#newTripStartPanel').classList.add('hidden');$('#destinationFinderPanel').classList.remove('hidden');renderDestinationFinder();});$('#backNewTrip')?.addEventListener('click',()=>{$('#destinationFinderPanel').classList.add('hidden');$('#newTripStartPanel').classList.remove('hidden');});$$('.finder-chip').forEach(b=>b.addEventListener('click',()=>{const active=finderSelections();if(!b.classList.contains('active')&&active.length>=3){showToast('Pick up to 3 things that matter most');return;}b.classList.toggle('active');destinationFinderRun=0;renderDestinationFinder();}));['finderOrigin','finderBudget','finderLength','finderClimate','finderSetting'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{destinationFinderRun=0;renderDestinationFinder();}));$('#findDestinations')?.addEventListener('click',()=>{if(commercialTier()==='explorer'&&$('#destinationFinderResults .destination-result')){openPricing('finder');return;}renderDestinationFinder(true);});
 
 function clearTripLocalData(includeSettings=false){
   const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done'];
@@ -1532,8 +1587,16 @@ function initBetaTestingTools(){
   const force=$('#forceOnboarding');if(force){force.checked=betaForceOnboarding();force.addEventListener('change',()=>{localStorage.setItem('ffvp_force_onboarding',force.checked?'1':'0');showToast(force.checked?'Onboarding stays enabled for launch testing':'Onboarding launch test off');});}
   $('#showLanding')?.addEventListener('click',()=>showLanding());
   $('#restartOnboarding')?.addEventListener('click',()=>showOnboarding());
-  $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';const keepLanding=localStorage.getItem('ffvp_force_landing')??'1';clearTripLocalData(false);localStorage.setItem('ffvp_force_onboarding',keepForce);localStorage.setItem('ffvp_force_landing',keepLanding);location.reload();});
+  $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';const keepLanding=localStorage.getItem('ffvp_force_landing')??'1';clearTripLocalData(false);['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('ffvp_force_onboarding',keepForce);localStorage.setItem('ffvp_force_landing',keepLanding);location.reload();});
   $('#resetAppData')?.addEventListener('click',()=>{if(!confirm('Reset ALL Family Vacation Planner data and testing settings on this device?'))return;localStorage.clear();location.reload();});
+  $('#openPricingBtn')?.addEventListener('click',()=>openPricing('choice'));
+  $('#closePricing')?.addEventListener('click',closePricing);
+  $('#pricingDialog')?.addEventListener('click',e=>{if(e.target.id==='pricingDialog')closePricing();});
+  $$('.choose-test-plan').forEach(b=>b.addEventListener('click',()=>{setCommercialTier(b.dataset.plan,{resetUsage:true});closePricing();showToast(`${commercialPlan().name} enabled for beta testing — no payment taken.`);}));
+  $('#applyCommercialTest')?.addEventListener('click',()=>{setCommercialTier($('#testCommercialPlan').value);setFreshUsed(+$('#testFreshUsed').value||0);localStorage.setItem('ffvp_trip_uses',String(Math.max(0,+$('#testTripUses').value||0)));updateCommercialUI();showToast('Commercial test state applied');});
+  $('#exhaustFreshIdeas')?.addEventListener('click',()=>{const p=commercialPlan();setFreshUsed(Math.max(0,p.freshLimit-1));showToast('One Fresh Idea left — ready to test the limit');});
+  $('#resetCommercialTest')?.addEventListener('click',()=>{['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));updateCommercialUI();showToast('Commercial test reset to Explorer');});
+  $('#dismissTestAd')?.addEventListener('click',()=>{localStorage.setItem('ffvp_test_ad_hidden','1');updateCommercialUI();});
 }
 initBetaTestingTools();
 
@@ -1544,4 +1607,4 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.defer
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-populateDestinationSelects();applyTranslations();loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+populateDestinationSelects();applyTranslations();updateCommercialUI();loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();

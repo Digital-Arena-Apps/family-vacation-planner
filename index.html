@@ -155,7 +155,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.19</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.3.0</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -212,6 +212,11 @@
           <div id="recommendationList" class="card-list"></div>
         </section>
 
+
+        <aside id="freeAdSlot" class="sponsored-test hidden" aria-label="Sponsored test placement">
+          <div><span>SPONSORED · TEST PLACEMENT</span><b>Useful travel offer could live here</b><small>Explorer only. Recommendations above are never changed by sponsors.</small></div>
+          <button id="dismissTestAd" type="button" aria-label="Hide test advert">×</button>
+        </aside>
         <section class="section-block">
           <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2 id="quickStartTitle">What are you in the mood for?</h2><p id="quickStartCopy" class="quick-start-copy">These adapt to where you are.</p></div></div>
           <div class="quick-grid">
@@ -389,11 +394,28 @@
           <button id="newTripBtnFamily" class="secondary-btn full" type="button">＋ Start a new vacation</button>
         </section>
 
+        <section class="section-block compact commercial-plan-section">
+          <div class="section-title-row"><div><div class="eyebrow">YOUR PLAN</div><h2>Make the free version work for you</h2><p>Explorer is there to try properly. Upgrade only when you want more trips and more fresh ideas.</p></div></div>
+          <div class="commercial-status-card">
+            <div class="commercial-status-top"><div><span id="commercialTierBadge" class="tier-badge">EXPLORER</span><h3 id="commercialTierTitle">Explorer · Free</h3><p id="commercialTierCopy">A proper taste of the planner, with a sensible limit on fresh searches.</p></div><button id="openPricingBtn" class="secondary-btn" type="button">See plans</button></div>
+            <div class="allowance-row"><div><span>Fresh Ideas</span><b id="freshIdeasLabel">20 left</b></div><div class="allowance-track"><span id="freshIdeasBar"></span></div><small id="freshIdeasCopy">Only a brand-new nearby search uses one.</small></div>
+            <div class="commercial-mini-grid"><div><span>Vacations</span><b id="tripAllowanceLabel">1 trip</b></div><div><span>Ads</span><b id="adsPlanLabel">Explorer only</b></div></div>
+          </div>
+        </section>
+
         <section class="section-block compact beta-tools">
           <div class="section-title-row"><div><div class="eyebrow">BETA TESTING</div><h2>Testing tools</h2><p>Temporary controls — these disappear before launch.</p></div></div>
           <div class="testing-card">
             <label class="toggle-row"><span><b>Force landing screen on launch</b><small>Show the branded welcome screen every time the app is freshly opened.</small></span><input id="forceLanding" type="checkbox" /></label>
             <label class="toggle-row"><span><b>Force onboarding on launch</b><small>After the landing screen, keep onboarding available for repeated flow testing.</small></span><input id="forceOnboarding" type="checkbox" /></label>
+
+            <div class="commercial-test-box">
+              <div><b>Commercial test environment</b><small>Simulate a plan and allowance without taking payment.</small></div>
+              <label>Test plan<select id="testCommercialPlan"><option value="explorer">Explorer · Free</option><option value="traveller">Traveller · £8.99</option><option value="pro">Pro Family · £29.99/year</option></select></label>
+              <label>Fresh Ideas used<input id="testFreshUsed" type="number" min="0" step="1" value="0" /></label>
+              <label>Vacations used<input id="testTripUses" type="number" min="0" step="1" value="1" /></label>
+              <div class="commercial-test-actions"><button id="applyCommercialTest" class="secondary-btn" type="button">Apply test state</button><button id="exhaustFreshIdeas" class="secondary-btn" type="button">Set to last idea</button><button id="resetCommercialTest" class="secondary-btn" type="button">Reset commercial test</button></div>
+            </div>
             <div class="testing-actions">
               <button id="showLanding" class="secondary-btn" type="button">Show landing screen</button>
               <button id="restartOnboarding" class="secondary-btn" type="button">Restart onboarding</button>
@@ -442,6 +464,21 @@
         <button id="findDestinations" class="primary-btn full" type="button">Find me a few ideas</button>
         <div id="destinationFinderResults" class="destination-results"><div class="finder-empty">Choose at least one priority to get started.</div></div>
       </div>
+    </div>
+  </div>
+
+  <div id="pricingDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pricingTitle">
+    <div class="modal-card pricing-modal">
+      <button id="closePricing" class="modal-close" type="button" aria-label="Close">×</button>
+      <div class="eyebrow">CHOOSE WHAT SUITS YOU</div>
+      <h2 id="pricingTitle">Start free. Pay only when it earns its place on the holiday.</h2>
+      <p id="pricingReason">Everything you’ve already planned stays yours. Pick a bigger plan only when you want more.</p>
+      <div class="pricing-grid">
+        <article class="pricing-card" data-pricing-tier="explorer"><span class="pricing-kicker">TRY IT</span><h3>Explorer</h3><div class="pricing-price">Free</div><ul><li>1 vacation</li><li>20 Fresh Ideas</li><li>Today planning</li><li>Destination Finder taste</li><li>Sponsored placements</li></ul><button class="secondary-btn full choose-test-plan" data-plan="explorer" type="button">Stay on Explorer</button></article>
+        <article class="pricing-card featured" data-pricing-tier="traveller"><span class="pricing-kicker">MOST FAMILIES</span><h3>Traveller</h3><div class="pricing-price">£8.99 <small>one-off</small></div><ul><li>3 vacations</li><li>150 Fresh Ideas</li><li>Full Today + tomorrow planning</li><li>Full Destination Finder</li><li>No display ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="traveller" type="button">Try Traveller in beta</button></article>
+        <article class="pricing-card" data-pricing-tier="pro"><span class="pricing-kicker">FREQUENT TRAVELLERS</span><h3>Pro Family</h3><div class="pricing-price">£29.99 <small>/ year</small></div><ul><li>Unlimited vacations</li><li>Generous fair-use Fresh Ideas</li><li>All planning tools</li><li>Trip history & future family sharing</li><li>No ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="pro" type="button">Try Pro in beta</button></article>
+      </div>
+      <div class="pricing-footnote">Beta only — these buttons simulate an upgrade on this device. No payment is taken.</div>
     </div>
   </div>
 
