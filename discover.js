@@ -1,3 +1,5 @@
+const SUPPORTED_LANGS=new Set(['en','es','fr','de']);
+function safeLang(v){const x=String(v||'en').toLowerCase().split('-')[0];return SUPPORTED_LANGS.has(x)?x:'en';}
 const CATEGORY_TYPES = {
   // Exclusive primary-type buckets: the same Google place cannot be returned by
   // two daily moods just because it carries several secondary types.
@@ -40,7 +42,13 @@ function visitorExperienceAllowed(x,category){
   if(type==='park')return PUBLIC_OUTDOOR_NAME.test(name)||(x.ratingCount||0)>=75;
   return false;
 }
-function experienceDescription(category,x){
+const GENERIC_DESCRIPTIONS={
+  es:{chill:'Una opción tranquila para bajar el ritmo y descansar un poco.',thrills:'Una experiencia de más energía pensada para la emoción y la aventura.',indoor:'Una opción interior y protegida del tiempo para pasar unas horas en familia.',outdoors:'Una experiencia familiar al aire libre centrada en naturaleza, espacio abierto o animales.',shopping:'Una opción para pasear y comprar, no para hacer la compra práctica del día a día.',sights:'Un lugar de interés pensado para visitantes que puede merecer un hueco en el viaje.',wildlife:'Una experiencia de fauna donde los animales, el hábitat o el safari son el motivo principal para ir.',beaches:'Una parada de playa o costa para arena, agua y un ritmo más tranquilo.'},
+  fr:{chill:'Une option tranquille pour ralentir et récupérer un peu.',thrills:'Une expérience plus énergique axée sur les sensations et l’aventure.',indoor:'Une option couverte et à l’abri de la météo pour quelques heures en famille.',outdoors:'Une expérience familiale en plein air centrée sur la nature, les espaces ouverts ou les animaux.',shopping:'Une sortie shopping et balade, plutôt que des courses pratiques du quotidien.',sights:'Un site pensé pour les visiteurs qui peut mériter une place dans le voyage.',wildlife:'Une expérience autour de la faune où les animaux, l’habitat ou le safari sont la raison principale de venir.',beaches:'Une halte plage ou littoral pour le sable, l’eau et un rythme plus calme.'},
+  de:{chill:'Eine ruhige Option, um das Tempo zu drosseln und etwas aufzutanken.',thrills:'Ein energiegeladenes Erlebnis für Action und Abenteuer.',indoor:'Eine wetterfeste Indoor-Option für ein paar entspanntere Stunden mit der Familie.',outdoors:'Ein Familienerlebnis draußen mit Natur, Freiraum oder Tieren im Mittelpunkt.',shopping:'Eine Freizeit-Shoppingoption zum Bummeln, nicht für praktische Einkäufe.',sights:'Eine besucherorientierte Sehenswürdigkeit, die einen Platz in der Reise wert sein kann.',wildlife:'Ein Tiererlebnis, bei dem Tiere, Lebensraum oder Safari der Hauptgrund für den Besuch sind.',beaches:'Ein Strand- oder Küstenstopp für Sand, Wasser und ein ruhigeres Tempo.'}
+};
+function experienceDescription(category,x,lang='en'){
+  if(lang!=='en')return GENERIC_DESCRIPTIONS[lang]?.[category]||GENERIC_DESCRIPTIONS[lang]?.sights||'';
   const t=String(x.typeKey||x.type||'').toLowerCase();
   const copy={
     beach:'Beach time for sand, water and a slower pace — best when the weather and drive time make it worthwhile.',
@@ -77,9 +85,9 @@ function experienceDescription(category,x){
   };
   return copy[t]||({chill:'A lower-effort option for slowing the pace and giving everyone a bit of breathing room.',thrills:'A higher-energy experience aimed at excitement rather than a quiet day.',indoor:'A weather-proof indoor option for a few easier hours.',outdoors:'An outdoor family experience focused on nature, open space or animals.',shopping:'A leisure-shopping option for browsing rather than practical groceries or essentials.',sights:'A visitor-focused local sight that may be worth building into the trip.',wildlife:'A visitor-focused wildlife experience where animals, habitat or safari-style exploring are the main reason to go.',beaches:'A beach or coastal stop for sand, water and a slower pace.'}[category]||'A nearby visitor experience that fits this part of your trip.');
 }
-async function googlePlaces(category,lat,lon,radius){
+async function googlePlaces(category,lat,lon,radius,lang='en'){
   const key=process.env.GOOGLE_PLACES_API_KEY;if(!key)return null;
-  const body={includedPrimaryTypes:CATEGORY_TYPES[category],maxResultCount:20,rankPreference:category==='chill'?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
+  const body={includedPrimaryTypes:CATEGORY_TYPES[category],maxResultCount:20,languageCode:lang,rankPreference:category==='chill'?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
   const fields=['places.id','places.displayName','places.formattedAddress','places.location','places.rating','places.userRatingCount','places.priceLevel','places.primaryType','places.primaryTypeDisplayName','places.types','places.currentOpeningHours','places.businessStatus','places.googleMapsUri'].join(',');
   const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':fields},body:JSON.stringify(body)});
   if(!r.ok)throw new Error(`Google Places ${r.status}`);
@@ -87,15 +95,15 @@ async function googlePlaces(category,lat,lon,radius){
   return (data.places||[]).map(p=>({
     id:`gp:${p.id}`,providerId:p.id,name:p.displayName?.text||'Nearby place',address:p.formattedAddress||'',lat:p.location?.latitude,lon:p.location?.longitude,
     rating:Number.isFinite(p.rating)?p.rating:null,ratingCount:p.userRatingCount||0,priceLevel:priceLevel(p.priceLevel),type:p.primaryTypeDisplayName?.text||'',typeKey:p.primaryType||'',types:p.types||[],openNow:typeof p.currentOpeningHours?.openNow==='boolean'?p.currentOpeningHours.openNow:null,businessStatus:p.businessStatus||'',mapsUrl:p.googleMapsUri||'',source:'Google Places'
-  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon),description:experienceDescription(category,x)})).sort((a,b)=>category==='outdoors'?a.distance-b.distance:0);
+  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon),description:experienceDescription(category,x,lang)})).sort((a,b)=>category==='outdoors'?a.distance-b.distance:0);
 }
-async function overpass(category,lat,lon,radius){
+async function overpass(category,lat,lon,radius,lang='en'){
   const filters=OSM_FILTERS[category]||[];if(!filters.length)return [];
   const parts=filters.flatMap(f=>[`node${f}(around:${radius},${lat},${lon});`,`way${f}(around:${radius},${lat},${lon});`,`relation${f}(around:${radius},${lat},${lon});`]).join('');
   const q=`[out:json][timeout:14];(${parts});out center tags;`;
   const endpoints=['https://overpass.private.coffee/api/interpreter','https://overpass-api.de/api/interpreter'];
   let last;
-  for(const url of endpoints){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'FamilyVacationPlannerBeta/2.1'},body:`data=${encodeURIComponent(q)}`});if(!r.ok)throw new Error(`Overpass ${r.status}`);const d=await r.json();return (d.elements||[]).map(el=>{const la=el.lat??el.center?.lat,lo=el.lon??el.center?.lon,t=el.tags||{};if(!Number.isFinite(la)||!Number.isFinite(lo))return null;const name=t.name||t.brand||t.operator;if(!name)return null;const addr=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');return{id:`osm:${el.type}:${el.id}`,name,address:addr,lat:la,lon:lo,rating:null,ratingCount:0,priceLevel:null,type:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',typeKey:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',types:[t.tourism||t.leisure||t.shop||t.amenity||t.historic||''].filter(Boolean),openNow:null,mapsUrl:'',source:'OpenStreetMap',access:t.access||'',distance:haversine(lat,lon,la,lo)};}).filter(Boolean).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,description:experienceDescription(category,x)})).sort((a,b)=>a.distance-b.distance).slice(0,12);}catch(e){last=e;}}
+  for(const url of endpoints){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'FamilyVacationPlannerBeta/2.1'},body:`data=${encodeURIComponent(q)}`});if(!r.ok)throw new Error(`Overpass ${r.status}`);const d=await r.json();return (d.elements||[]).map(el=>{const la=el.lat??el.center?.lat,lo=el.lon??el.center?.lon,t=el.tags||{};if(!Number.isFinite(la)||!Number.isFinite(lo))return null;const name=t[`name:${lang}`]||t['name:en']||t.name||t.brand||t.operator;if(!name)return null;const addr=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');return{id:`osm:${el.type}:${el.id}`,name,address:addr,lat:la,lon:lo,rating:null,ratingCount:0,priceLevel:null,type:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',typeKey:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',types:[t.tourism||t.leisure||t.shop||t.amenity||t.historic||''].filter(Boolean),openNow:null,mapsUrl:'',source:'OpenStreetMap',access:t.access||'',distance:haversine(lat,lon,la,lo)};}).filter(Boolean).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,description:experienceDescription(category,x,lang)})).sort((a,b)=>a.distance-b.distance).slice(0,12);}catch(e){last=e;}}
   throw last||new Error('Discovery unavailable');
 }
 function normalizedName(name){return String(name||'').toLowerCase().replace(/&/g,' and ').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\b(supercenter|super centre|store|location|branch)\b/g,' ').replace(/\b#?\d+\b/g,' ').replace(/\s+/g,' ').trim();}
@@ -150,15 +158,15 @@ function diversifyResults(results,category){
 }
 module.exports=async function handler(req,res){
   if(req.method!=='GET'){res.status(405).json({error:'Method not allowed'});return;}
-  const category=String(req.query.category||'');const lat=Number(req.query.lat),lon=Number(req.query.lon),miles=Number(req.query.miles||30);
+  const category=String(req.query.category||'');const lat=Number(req.query.lat),lon=Number(req.query.lon),miles=Number(req.query.miles||30),lang=safeLang(req.query.lang);
   if(!CATEGORY_TYPES[category]||!Number.isFinite(lat)||!Number.isFinite(lon)){res.status(400).json({error:'Invalid category or coordinates'});return;}
   const radius=Math.max(1500,Math.min(50000,miles*1609.344));
   try{
     let results=null,source='';
-    try{results=await googlePlaces(category,lat,lon,radius);if(results?.length)source='Google Places';}catch(e){}
-    if(!results?.length){results=await overpass(category,lat,lon,radius);source='OpenStreetMap fallback';}
+    try{results=await googlePlaces(category,lat,lon,radius,lang);if(results?.length)source='Google Places';}catch(e){}
+    if(!results?.length){results=await overpass(category,lat,lon,radius,lang);source='OpenStreetMap fallback';}
     res.setHeader('Cache-Control','s-maxage=300, stale-while-revalidate=600');
     if(category==='shopping')results=filterShopping(results);results=dedupeResults(results);results=diversifyResults(results,category);
-    res.status(200).json({category,source,results:(results||[]).slice(0,['outdoors','chill','wildlife','beaches'].includes(category)?16:10)});
+    res.status(200).json({category,source,language:lang,results:(results||[]).slice(0,['outdoors','chill','wildlife','beaches'].includes(category)?16:10)});
   }catch(e){res.status(503).json({error:'Discovery temporarily unavailable'});}
 };

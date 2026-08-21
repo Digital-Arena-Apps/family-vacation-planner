@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.3
+# Family Vacation Planner — Destination Beta V2.2.16
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -261,3 +261,16 @@ Beta mappings for testing:
 - Unknown locations → Discover
 
 The temporary Test Location and destination selectors include Nairobi, Anaheim and Maui so the behaviour can be tested directly.
+
+
+## V2.2.16 — Internationalisation foundation + new vacations
+
+- Adds a global language preference with **Automatic / English / Spanish / French / German**. Automatic follows the device language when supported.
+- Core navigation, landing actions, mood names and the new-trip flow are translated; untranslated specialist narrative safely falls back to English while the translation catalogue grows.
+- Google Places discovery now receives the selected `languageCode`, and OpenStreetMap lookup prefers `name:<language>` then English then the local/default name.
+- Dates/times use the selected locale. Distance presentation switches between miles and kilometres based on the destination while the internal scoring model remains in miles.
+- Adds **New vacation** from Trip and Family. Returning users also get this action on the landing screen.
+- Starting a new vacation preserves the family/crew defaults but clears trip-specific shortlist, plans and memories. The previous trip is archived locally and can be restored from Trip.
+- Adds a beta **Destination Finder** so families can choose holiday priorities (thrills, wildlife, beach, sights, outdoors, food, shopping, relaxing), budget feel and trip length and receive ranked destination ideas from the current beta catalogue.
+
+This is an internationalisation foundation, not a claim that every legacy sentence in the beta is fully translated yet. New UI should be added through the translation dictionary rather than hard-coded strings.

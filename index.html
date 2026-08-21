@@ -61,6 +61,16 @@
             </select>
             <small>This temporary beta list lets us test how the planner adapts to different destinations.</small>
           </label>
+          <label class="field-group"><span id="setupLanguageLabel" class="field-label">Language</span>
+            <select id="setupLanguage">
+              <option value="auto">Automatic · device language</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+            <small id="setupLanguageHelp">Place names, dates and core app navigation will follow this language where available.</small>
+          </label>
           <label class="field-group"><span class="field-label">Your holiday base</span>
             <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" autocomplete="off" />
             <small>Handy later when we compare “from here” with “from home base”.</small>
@@ -145,7 +155,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.15</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.16</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -325,7 +335,7 @@
       </section>
 
       <section class="view" data-view="saved">
-        <div class="page-heading trip-heading"><div class="eyebrow">YOUR TRIP</div><h2>Plan, progress & memories</h2><p>Keep fixed plans, must-dos and places you’ve already done in one place.</p></div>
+        <div class="page-heading trip-heading trip-page-heading"><div><div class="eyebrow">YOUR TRIP</div><h2>Plan, progress & memories</h2><p>Keep fixed plans, must-dos and places you’ve already done in one place.</p></div><button id="newTripBtn" class="secondary-btn new-trip-btn" type="button">＋ New vacation</button></div>
         <section id="tripSummary" class="trip-summary"></section>
         <section class="section-block compact">
           <div class="section-title-row"><div><div class="eyebrow">FIXED PLANS</div><h2>Bookings & commitments</h2></div></div>
@@ -345,6 +355,10 @@
         <section class="section-block compact">
           <div class="section-title-row"><div><div class="eyebrow">MEMORIES</div><h2>Where you’ve been</h2></div></div>
           <div id="memoriesList" class="trip-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">PREVIOUS VACATIONS</div><h2>Saved trips</h2><p>Starting a new vacation keeps a lightweight copy of the current trip on this device.</p></div></div>
+          <div id="previousTripsList" class="trip-list"></div>
         </section>
       </section>
 
@@ -369,7 +383,11 @@
           <label class="toggle-row"><span>Prefer indoor options in extreme heat</span><input id="heatAware" type="checkbox" /></label>
           <button class="primary-btn full" type="submit">Save family profile</button><div id="saveProfileMsg" class="save-msg hidden">Saved ✓</div>
         </form>
-        <section class="section-block compact"><div class="setting-row"><div><b>Temperature</b><small>Used throughout the app</small></div><div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div></div></section>
+        <section class="section-block compact settings-stack">
+          <div class="setting-row"><div><b id="languageSettingTitle">Language</b><small id="languageSettingCopy">App navigation, dates and place searches</small></div><select id="languageSelect" class="compact-select"><option value="auto">Automatic</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
+          <div class="setting-row"><div><b>Temperature</b><small>Used throughout the app</small></div><div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div></div>
+          <button id="newTripBtnFamily" class="secondary-btn full" type="button">＋ Start a new vacation</button>
+        </section>
 
         <section class="section-block compact beta-tools">
           <div class="section-title-row"><div><div class="eyebrow">BETA TESTING</div><h2>Testing tools</h2><p>Temporary controls — these disappear before launch.</p></div></div>
@@ -388,9 +406,41 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
+      <button class="nav-item active" data-target="today"><span>⌂</span><small id="navTodayLabel">Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small id="navExploreLabel">Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small id="navTripLabel">Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small id="navFamilyLabel">Family</small></button>
     </nav>
   </div>
+  <div id="newTripDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="newTripTitle">
+    <div class="modal-card new-trip-modal">
+      <button id="closeNewTrip" class="modal-close" type="button" aria-label="Close">×</button>
+      <div id="newTripStartPanel">
+        <div class="eyebrow" id="newTripEyebrow">NEW VACATION</div>
+        <h2 id="newTripTitle">Where shall we go next?</h2>
+        <p id="newTripIntro">Start with a destination you already know, or let the planner compare the kinds of holiday your family is in the mood for.</p>
+        <label class="field-group"><span id="knownDestinationLabel" class="field-label">I know where we’re going</span>
+          <select id="newTripDestination"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="nairobi">Nairobi</option><option value="maui">Maui</option><option value="anaheim">Anaheim / Orange County</option><option value="paris">Paris</option><option value="london">London</option><option value="winsford">Winsford / Cheshire</option><option value="manchester">Manchester</option></select>
+        </label>
+        <button id="startKnownTrip" class="primary-btn full" type="button">Start planning this vacation</button>
+        <div class="new-trip-divider"><span>or</span></div>
+        <button id="openDestinationFinder" class="secondary-btn full" type="button">Help me choose a destination</button>
+      </div>
+      <div id="destinationFinderPanel" class="hidden">
+        <button id="backNewTrip" class="text-btn" type="button">← Back</button>
+        <div class="eyebrow" id="finderEyebrow">DESTINATION FINDER · BETA</div>
+        <h2 id="finderTitle">What kind of holiday sounds good?</h2>
+        <p id="finderCopy">Pick a few priorities. I’ll compare the destinations in our beta catalogue using the same mood logic as the trip planner.</p>
+        <div id="destinationMoodChips" class="finder-chip-grid">
+          <button class="finder-chip active" type="button" data-dest-mood="thrills">Thrills</button><button class="finder-chip" type="button" data-dest-mood="wildlife">Wildlife</button><button class="finder-chip active" type="button" data-dest-mood="beach">Beach</button><button class="finder-chip" type="button" data-dest-mood="sights">City sights</button><button class="finder-chip" type="button" data-dest-mood="outdoors">Outdoors</button><button class="finder-chip active" type="button" data-dest-mood="food">Food</button><button class="finder-chip" type="button" data-dest-mood="shopping">Shopping</button><button class="finder-chip" type="button" data-dest-mood="chill">Relaxing</button>
+        </div>
+        <div class="finder-grid">
+          <label class="field-group"><span id="finderBudgetLabel" class="field-label">Budget feel</span><select id="finderBudget"><option value="low">Value-conscious</option><option value="medium" selected>Comfortable</option><option value="high">Treat trip</option></select></label>
+          <label class="field-group"><span id="finderLengthLabel" class="field-label">Trip length</span><select id="finderLength"><option value="short">3–4 days</option><option value="week" selected>5–8 days</option><option value="long">9+ days</option></select></label>
+        </div>
+        <button id="findDestinations" class="primary-btn full" type="button">Show me some ideas</button>
+        <div id="destinationFinderResults" class="destination-results"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
   <script src="app.js" defer></script>
 </body>

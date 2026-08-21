@@ -1,6 +1,30 @@
-// Family Vacation Planner V2.2.15 — destination-aware specialist module
+// Family Vacation Planner V2.2.16 — destination-aware specialist module
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+
+const SUPPORTED_LANGUAGES=['en','es','fr','de'];
+const LANG_LOCALES={en:'en-GB',es:'es-ES',fr:'fr-FR',de:'de-DE'};
+const TRANSLATIONS={
+  en:{today:'Today',explore:'Explore',trip:'Trip',family:'Family',parks:'Parks',wildlife:'Wildlife',sights:'Sights',highlights:'Highlights',beaches:'Beaches',daysOut:'Days Out',discover:'Discover',language:'Language',languageCopy:'App navigation, dates and place searches',auto:'Automatic',landingStart:'Let’s plan our adventure ✦',landingNew:'Plan a new vacation ✦',landingContinue:'Continue saved trip',quickTitle:'What are you in the mood for?',quickCopy:'Choose the kind of day first — I’ll translate that into experiences that make sense here.',chill:'Chill & Recharge',indoor:'Indoor & Easy',food:'Food & Treats',outdoors:'Outdoors & Explore',thrills:'Thrills & Excitement',shopping:'Shop & Browse',save:'Save',saved:'Saved',directions:'Directions →',openNow:'Open now',ratingUnavailable:'Rating unavailable',whatItsLike:'What it’s like:',newVacation:'＋ New vacation',newVacationLong:'＋ Start a new vacation',whereNext:'Where shall we go next?',newTripIntro:'Start with a destination you already know, or let the planner compare the kinds of holiday your family is in the mood for.',known:'I know where we’re going',startPlanning:'Start planning this vacation',helpChoose:'Help me choose a destination',finderTitle:'What kind of holiday sounds good?',finderCopy:'Pick a few priorities. I’ll compare the destinations in our beta catalogue using the same mood logic as the trip planner.',showIdeas:'Show me some ideas',planThis:'Plan this trip',previousTrips:'Previous vacations',restore:'Restore trip'},
+  es:{today:'Hoy',explore:'Explorar',trip:'Viaje',family:'Familia',parks:'Parques',wildlife:'Fauna',sights:'Lugares',highlights:'Destacados',beaches:'Playas',daysOut:'Excursiones',discover:'Descubrir',language:'Idioma',languageCopy:'Navegación, fechas y búsquedas de lugares',auto:'Automático',landingStart:'Planifiquemos nuestra aventura ✦',landingNew:'Planear unas nuevas vacaciones ✦',landingContinue:'Continuar viaje guardado',quickTitle:'¿Qué os apetece hoy?',quickCopy:'Elige primero el tipo de día y buscaré experiencias que encajen con este destino.',chill:'Relax y recarga',indoor:'Interior y fácil',food:'Comida y caprichos',outdoors:'Aire libre y explorar',thrills:'Emoción y aventura',shopping:'Compras y paseo',save:'Guardar',saved:'Guardado',directions:'Cómo llegar →',openNow:'Abierto ahora',ratingUnavailable:'Valoración no disponible',whatItsLike:'Cómo es:',newVacation:'＋ Nuevo viaje',newVacationLong:'＋ Crear nuevas vacaciones',whereNext:'¿Adónde vamos ahora?',newTripIntro:'Empieza con un destino que ya conozcas o deja que el planificador compare el tipo de vacaciones que busca tu familia.',known:'Ya sabemos adónde vamos',startPlanning:'Empezar a planificar',helpChoose:'Ayúdame a elegir destino',finderTitle:'¿Qué tipo de vacaciones os apetece?',finderCopy:'Elige algunas prioridades y compararé los destinos del catálogo beta con la misma lógica del planificador.',showIdeas:'Mostrar ideas',planThis:'Planear este viaje',previousTrips:'Vacaciones anteriores',restore:'Restaurar viaje'},
+  fr:{today:"Aujourd’hui",explore:'Explorer',trip:'Voyage',family:'Famille',parks:'Parcs',wildlife:'Faune',sights:'Sites',highlights:'Incontournables',beaches:'Plages',daysOut:'Sorties',discover:'Découvrir',language:'Langue',languageCopy:'Navigation, dates et recherche de lieux',auto:'Automatique',landingStart:'Planifions notre aventure ✦',landingNew:'Planifier de nouvelles vacances ✦',landingContinue:'Continuer le voyage enregistré',quickTitle:'De quoi avez-vous envie ?',quickCopy:'Choisissez d’abord le style de journée ; je chercherai des expériences adaptées à cette destination.',chill:'Repos & détente',indoor:'Intérieur & facile',food:'Repas & gourmandises',outdoors:'Plein air & découverte',thrills:'Sensations & aventure',shopping:'Shopping & balade',save:'Enregistrer',saved:'Enregistré',directions:'Itinéraire →',openNow:'Ouvert maintenant',ratingUnavailable:'Note indisponible',whatItsLike:'À quoi s’attendre :',newVacation:'＋ Nouveau voyage',newVacationLong:'＋ Créer de nouvelles vacances',whereNext:'Où partons-nous ensuite ?',newTripIntro:'Choisissez une destination que vous connaissez déjà, ou laissez le planificateur comparer les vacances qui correspondent à votre famille.',known:'Je sais où nous allons',startPlanning:'Commencer à planifier',helpChoose:'Aidez-moi à choisir une destination',finderTitle:'Quel type de vacances vous tente ?',finderCopy:'Choisissez quelques priorités ; je comparerai les destinations du catalogue bêta avec la même logique que le planificateur.',showIdeas:'Voir des idées',planThis:'Planifier ce voyage',previousTrips:'Vacances précédentes',restore:'Restaurer le voyage'},
+  de:{today:'Heute',explore:'Entdecken',trip:'Reise',family:'Familie',parks:'Parks',wildlife:'Tierwelt',sights:'Sehenswürdigkeiten',highlights:'Highlights',beaches:'Strände',daysOut:'Ausflüge',discover:'Entdecken',language:'Sprache',languageCopy:'Navigation, Datumsformat und Ortssuche',auto:'Automatisch',landingStart:'Unser Abenteuer planen ✦',landingNew:'Neue Reise planen ✦',landingContinue:'Gespeicherte Reise fortsetzen',quickTitle:'Worauf habt ihr heute Lust?',quickCopy:'Wählt zuerst die Art des Tages – ich finde Erlebnisse, die zu diesem Reiseziel passen.',chill:'Entspannen & Auftanken',indoor:'Drinnen & entspannt',food:'Essen & Genuss',outdoors:'Draußen & Entdecken',thrills:'Action & Abenteuer',shopping:'Bummeln & Shoppen',save:'Speichern',saved:'Gespeichert',directions:'Route →',openNow:'Jetzt geöffnet',ratingUnavailable:'Keine Bewertung',whatItsLike:'So ist es:',newVacation:'＋ Neue Reise',newVacationLong:'＋ Neue Reise erstellen',whereNext:'Wohin soll es als Nächstes gehen?',newTripIntro:'Startet mit einem Ziel, das ihr schon kennt, oder lasst den Planer Urlaubsarten vergleichen, die zu eurer Familie passen.',known:'Wir wissen schon, wohin',startPlanning:'Reise planen',helpChoose:'Hilf mir bei der Zielwahl',finderTitle:'Welche Art Urlaub klingt gut?',finderCopy:'Wählt ein paar Prioritäten; ich vergleiche die Ziele im Beta-Katalog mit derselben Logik wie der Reiseplaner.',showIdeas:'Ideen anzeigen',planThis:'Diese Reise planen',previousTrips:'Frühere Reisen',restore:'Reise wiederherstellen'}
+};
+const ONBOARDING_I18N={
+ en:{step:'STEP',oneTitle:'Give this trip a name',oneCopy:'Make it yours — family name, holiday nickname, whatever feels right.',tripName:'Trip / family name',destination:'Where are you going?',homeBase:'Your holiday base',arrival:'Arrival date',departure:'Departure date',nextCrew:'Meet the crew →',twoTitle:'Who’s coming along?',twoCopy:'Choose the crew size first. We’ll build the profiles underneath ready for the useful details.',adults:'Adults',children:'Children',notes:'Anything useful to know?',nextStyle:'Vacation style →',threeTitle:'How do you like to holiday?',threeCopy:'No judgement. “Keep it cheap and nearby” and “we flew this far, let’s do it” are both legitimate strategies.',back:'← Back',start:'Start the adventure ✨',skip:'I’ll set this up later'},
+ es:{step:'PASO',oneTitle:'Ponle nombre al viaje',oneCopy:'Hazlo vuestro: apellido, apodo del viaje o lo que os haga ilusión.',tripName:'Nombre del viaje / familia',destination:'¿Adónde vais?',homeBase:'Alojamiento base',arrival:'Fecha de llegada',departure:'Fecha de salida',nextCrew:'Conocer a la familia →',twoTitle:'¿Quién viene?',twoCopy:'Elige primero cuántos adultos y niños viajan. Prepararemos los perfiles debajo.',adults:'Adultos',children:'Niños',notes:'¿Algo útil que debamos saber?',nextStyle:'Estilo de vacaciones →',threeTitle:'¿Cómo os gusta viajar?',threeCopy:'Sin juicios: ahorrar y quedarse cerca o aprovechar al máximo el viaje son opciones igual de válidas.',back:'← Atrás',start:'Empezar la aventura ✨',skip:'Lo configuraré más tarde'},
+ fr:{step:'ÉTAPE',oneTitle:'Donnez un nom à ce voyage',oneCopy:'Nom de famille, petit surnom du séjour… faites-en votre voyage.',tripName:'Nom du voyage / de la famille',destination:'Où allez-vous ?',homeBase:'Votre hébergement',arrival:'Date d’arrivée',departure:'Date de départ',nextCrew:'Présenter la famille →',twoTitle:'Qui vient avec vous ?',twoCopy:'Choisissez d’abord le nombre d’adultes et d’enfants. Les profils seront créés juste dessous.',adults:'Adultes',children:'Enfants',notes:'Quelque chose d’utile à savoir ?',nextStyle:'Style de vacances →',threeTitle:'Comment aimez-vous voyager ?',threeCopy:'Aucun jugement : rester près et économiser ou profiter à fond du voyage sont deux bonnes stratégies.',back:'← Retour',start:'Commencer l’aventure ✨',skip:'Je configurerai plus tard'},
+ de:{step:'SCHRITT',oneTitle:'Gebt dieser Reise einen Namen',oneCopy:'Familienname, Urlaubs-Spitzname oder etwas ganz Eigenes.',tripName:'Reise- / Familienname',destination:'Wohin geht es?',homeBase:'Eure Unterkunft',arrival:'Anreisedatum',departure:'Abreisedatum',nextCrew:'Familie hinzufügen →',twoTitle:'Wer kommt mit?',twoCopy:'Wählt zuerst die Anzahl der Erwachsenen und Kinder. Die Profile erscheinen direkt darunter.',adults:'Erwachsene',children:'Kinder',notes:'Gibt es etwas Wichtiges zu wissen?',nextStyle:'Urlaubsstil →',threeTitle:'Wie reist ihr am liebsten?',threeCopy:'Kein Urteil: günstig und nah bleiben oder den Urlaub voll auskosten – beides ist völlig legitim.',back:'← Zurück',start:'Abenteuer starten ✨',skip:'Später einrichten'}
+};
+function ot(key){return ONBOARDING_I18N[appLanguage()]?.[key]||ONBOARDING_I18N.en[key]||key;}
+function detectedLanguage(){const raw=(navigator.languages?.[0]||navigator.language||'en').toLowerCase().split('-')[0];return SUPPORTED_LANGUAGES.includes(raw)?raw:'en';}
+function appLanguage(){const saved=localStorage.getItem('ffvp_language')||'auto';return saved==='auto'?detectedLanguage():(SUPPORTED_LANGUAGES.includes(saved)?saved:'en');}
+function appLocale(){const lang=appLanguage();if(lang==='en'){const n=(navigator.languages?.[0]||navigator.language||'').toLowerCase();return n.startsWith('en-us')?'en-US':'en-GB';}return LANG_LOCALES[lang]||'en-GB';}
+function t(key,fallback=''){return TRANSLATIONS[appLanguage()]?.[key]??TRANSLATIONS.en[key]??fallback??key;}
+function languageQuery(){return encodeURIComponent(appLanguage());}
+function regionUsesMiles(){const tc=typeof tripContext==='function'?tripContext():null;const region=tc?.before?destinationPreset().region:locationRegion();return ['florida','new-york','anaheim','maui','cheshire','london','manchester'].includes(region);}
+function formatDistance(mi){if(!Number.isFinite(+mi))return '';if(regionUsesMiles()){const v=+mi;return `${v<10?v.toFixed(1):Math.round(v)} mi`;}const km=+mi*1.609344;return `${km<10?km.toFixed(1):Math.round(km)} km`;}
+
 
 const defaultHeightUnit = () => navigator.language?.toLowerCase().startsWith('en-us') ? 'imperial' : 'metric';
 const memberRole = m => m?.role || ((+m?.age||0) < 18 ? 'child' : 'adult');
@@ -35,7 +59,7 @@ const state = {
   profile:{...defaultProfile, ...(savedProfile || {}), members:(savedProfile?.members?.length ? savedProfile.members : defaultMembers())},
   saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), tripStatuses:JSON.parse(localStorage.getItem('ffvp_trip_statuses') || '{}'), plans:JSON.parse(localStorage.getItem('ffvp_plans') || '[]'),
   discovered:JSON.parse(localStorage.getItem('ffvp_discovered') || '{}'), prepDone:JSON.parse(localStorage.getItem('ffvp_prep_done') || '{}'),
-  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}, tomorrowMood:localStorage.getItem('ffvp_tomorrow_mood') || null
+  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}, tomorrowMood:localStorage.getItem('ffvp_tomorrow_mood') || null, archives:JSON.parse(localStorage.getItem('ffvp_trip_archive') || '[]')
 };
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
@@ -90,15 +114,46 @@ function specialistContextRegion(){
   return locationRegion();
 }
 function specialistModule(){return specialistModules[specialistContextRegion()]||specialistModules.local;}
+function specialistTranslatedLabel(m){const key={Parks:'parks',Wildlife:'wildlife',Sights:'sights',Highlights:'highlights',Beaches:'beaches','Days Out':'daysOut',Discover:'discover'}[m.label];return key?t(key,m.label):m.label;}
 function renderSpecialistNav(){
   const m=specialistModule(),label=$('#parksNavLabel'),icon=$('#specialistNavIcon');
-  if(label)label.textContent=m.label;if(icon)icon.textContent=m.icon;
+  if(label)label.textContent=specialistTranslatedLabel(m);if(icon)icon.textContent=m.icon;
 }
 function openSpecialistModule(){
   const m=specialistModule();
   if(m.kind==='parks-live'){setView('parks');return;}
   loadDiscover(m.category,{specialist:true});
 }
+
+function localizeQuickConfig(cfg){
+  if(appLanguage()==='en')return cfg;
+  const labels={stayin:['chill','Slow pace and recovery'],chill:['chill','Slow pace and recovery'],indoor:['indoor','Weather-proof ideas'],food:['food','Meals and treats'],outdoors:['outdoors','Nature and open-air ideas'],thrills:['thrills','High-energy experiences'],shopping:['shopping','Markets, malls and browsing'],sights:['sights','The destination highlights']};
+  return {...cfg,title:t('quickTitle'),copy:t('quickCopy'),items:cfg.items.map(item=>{const k=labels[item[0]]||labels.sights;return [item[0],t(k[0],item[1]),k[1]];})};
+}
+function updateDistanceOptionLabels(){
+  const useMiles=regionUsesMiles();
+  const labels={15:useMiles?'About 15 miles':'About 24 km',30:useMiles?'About 30 miles':'About 48 km',60:useMiles?'About 60 miles':'About 97 km',100:useMiles?'Up to 100 miles':'Up to 161 km'};
+  ['#maxDrive','#setupMaxDrive'].forEach(sel=>{const el=$(sel);if(!el)return;[...el.options].forEach(o=>{if(labels[o.value])o.textContent=labels[o.value];});});
+}
+function applyTranslations(){
+  document.documentElement.lang=appLanguage();
+  const map={navTodayLabel:'today',navExploreLabel:'explore',navTripLabel:'trip',navFamilyLabel:'family',languageSettingTitle:'language',languageSettingCopy:'languageCopy',newTripBtn:'newVacation',newTripBtnFamily:'newVacationLong',newTripTitle:'whereNext',newTripIntro:'newTripIntro',knownDestinationLabel:'known',startKnownTrip:'startPlanning',openDestinationFinder:'helpChoose',finderTitle:'finderTitle',finderCopy:'finderCopy',findDestinations:'showIdeas'};
+  Object.entries(map).forEach(([id,key])=>{const el=$('#'+id);if(el)el.textContent=t(key,el.textContent);});
+  const languageSelect=$('#languageSelect'),setupLanguage=$('#setupLanguage');
+  const saved=localStorage.getItem('ffvp_language')||'auto';if(languageSelect)languageSelect.value=saved;if(setupLanguage)setupLanguage.value=saved;
+  if($('#setupLanguageLabel'))$('#setupLanguageLabel').textContent=t('language');
+  if($('#setupLanguageHelp'))$('#setupLanguageHelp').textContent=t('languageCopy');
+  const steps=$$('.setup-step');
+  if(steps[0]){const labels=$$('.field-label',steps[0]);$('h3',steps[0]).textContent=ot('oneTitle');$('.step-copy',steps[0]).textContent=ot('oneCopy');if(labels[0])labels[0].textContent=ot('tripName');if(labels[1])labels[1].textContent=ot('destination');if(labels[3])labels[3].textContent=ot('homeBase');if(labels[4])labels[4].textContent=ot('arrival');if(labels[5])labels[5].textContent=ot('departure');$('.setup-next',steps[0]).textContent=ot('nextCrew');}
+  if(steps[1]){$('h3',steps[1]).textContent=ot('twoTitle');$('.step-copy',steps[1]).textContent=ot('twoCopy');const cc=$$('.crew-count-label',steps[1]);if(cc[0])cc[0].textContent=ot('adults');if(cc[1])cc[1].textContent=ot('children');const noteLabel=$('.field-group .field-label',steps[1]);if(noteLabel)noteLabel.textContent=ot('notes');const next=$('.setup-next',steps[1]);if(next)next.textContent=ot('nextStyle');const back=$('.setup-back',steps[1]);if(back)back.textContent=ot('back');}
+  if(steps[2]){$('h3',steps[2]).textContent=ot('threeTitle');$('.step-copy',steps[2]).textContent=ot('threeCopy');const back=$('.setup-back',steps[2]);if(back)back.textContent=ot('back');const submit=$('button[type=submit]',steps[2]);if(submit)submit.textContent=ot('start');}
+  if($('#skipSetup'))$('#skipSetup').textContent=ot('skip');
+  $$('.finder-chip').forEach(b=>{const key={thrills:'thrills',wildlife:'wildlife',beach:'beaches',sights:'sights',outdoors:'outdoors',food:'food',shopping:'shopping',chill:'chill'}[b.dataset.destMood];if(key)b.textContent=t(key,b.textContent);});
+  const hasSaved=!!localStorage.getItem('ffvp_onboarded');if($('#landingPrimary'))$('#landingPrimary').textContent=hasSaved?t('landingNew'):t('landingStart');if($('#landingContinue'))$('#landingContinue').textContent=t('landingContinue');
+  updateDistanceOptionLabels();renderSpecialistNav();
+}
+function setAppLanguage(value){localStorage.setItem('ffvp_language',value||'auto');applyTranslations();renderQuickMoods();renderTripHub();if(state.discoveryCategory&&$('.view[data-view="discover"]')?.classList.contains('active'))loadDiscover(state.discoveryCategory,{specialist:!!state.discoverySpecialist});}
+
 
 const activities = [
   {id:'disney-springs',name:'Disney Springs',icon:'✨',category:'shopping',tags:['shopping','food','indoor'],cost:1,energy:1,lat:28.3703,lon:-81.5194,destination:'Disney Springs, Lake Buena Vista, FL',note:'Food, shops and entertainment with no theme-park admission.'},
@@ -256,6 +311,7 @@ function renderQuickMoods(){
     else if(stage==='final-days'){cfg={...cfg,title:'A few days left — what still feels worth doing?',copy:'Choose the mood first and I’ll focus the remaining time on experiences that still feel worth the effort.'};}
     else if(stage==='early'){cfg={...cfg,title:'What are you in the mood for?',copy:'The trip is still young — choose the kind of day that fits the crew rather than trying to tick everything off at once.'};}
   }
+  cfg=localizeQuickConfig(cfg);
   $('#quickStartTitle').textContent=cfg.title;$('#quickStartCopy').textContent=cfg.copy;
   cfg.items.forEach((item,i)=>{
     const b=$(`#quickMood${i+1}`);if(!b)return;
@@ -493,7 +549,7 @@ async function loadWeather(){
   try{const r=await fetch(u);if(!r.ok)throw new Error();state.weather=await r.json();renderWeather();}catch(e){$('#weatherCard').className='hero-card weather-card'+(tripContext()?.before?' countdown-hidden':'');$('#weatherCard').innerHTML='<b>Weather unavailable right now.</b><p style="color:#d7e7e4;margin-top:8px">The planner still works, but weather-aware scoring is paused.</p>';}
 }
 function formatWeatherHour(iso){
-  if(!iso)return ''; const d=new Date(iso); return d.toLocaleTimeString([], {hour:'numeric',minute:undefined});
+  if(!iso)return ''; const d=new Date(iso); return d.toLocaleTimeString(appLocale(), {hour:'numeric',minute:undefined});
 }
 function rainWindow(w){
   const times=w.hourly?.time||[], probs=w.hourly?.precipitation_probability||[]; if(!times.length)return null;
@@ -536,7 +592,7 @@ function activityStatusSelect(a){
   return `<select class="trip-status-select" aria-label="Trip status for ${escapeHtml(a.name)}"><option value="" ${!s?'selected':''}>Trip status…</option><option value="must" ${s==='must'?'selected':''}>⭐ Must do</option><option value="want" ${s==='want'?'selected':''}>♡ Want to go</option><option value="visited" ${s==='visited'?'selected':''}>✓ Been there</option><option value="repeat" ${s==='repeat'?'selected':''}>↻ Happy to repeat</option><option value="skip" ${s==='skip'?'selected':''}>× Don’t suggest</option></select>`;
 }
 function roughSpendTier(a){const n=memberSummary().length||2,f=currencyInfo().factor;return (a.cost===3?Math.max(120,n*45):a.cost===2?Math.max(60,n*25):Math.max(20,n*12))*f;}
-function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
+function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString(appLocale(),{hour:'numeric',minute:'2-digit'});}
 function refreshDecisionCard(){
   const now=new Date(),h=now.getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn'),t=tripContext(now);if(!title)return;
   if(t?.before){const days=daysUntilArrival(t),dest=destinationPreset().short;title.textContent=days<=1?'Nearly adventure time':countdownLabel(days,dest);copy.textContent=days<=2?'Final checks, travel-day basics and a short must-do list — no need to over-plan the fun out of it.':days<=7?`Use the final countdown to sort the useful bits and choose a few ${dest} experiences you really care about.`:`Discover ${dest}, build your must-do list and let the itinerary take shape gradually.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Build trip ideas';tomorrow.classList.remove('hidden');return;}
@@ -677,8 +733,8 @@ function recommendationScore(a,options={}){
   return {score:Math.max(-999,Math.min(99,Math.round(score))),reason:reasons.slice(0,3).join(' · ')||familyFitReason(a)||a.note,travelMinutes:travel,commitmentMinutes:commitment};
 }
 async function seedLocalDiscovery(){
-  if(isFloridaContext()||!state.coords)return;const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}`;if(state.localSeedKey===key)return;
-  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){}
+  if(isFloridaContext()||!state.coords)return;const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}:${appLanguage()}`;if(state.localSeedKey===key)return;
+  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){}
 }
 
 function tomorrowTargetDate(){return nextPlanningDate(new Date());}
@@ -800,8 +856,8 @@ async function seedMoodDiscovery(mood){
   if(!state.coords)return;
   const category=({chill:'chill',indoor:'indoor',outdoors:'outdoors',thrills:'thrills',shopping:'shopping'}[mood]||'sights');
   if(mood==='food')return;
-  const key=`${category}:${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}`;state.moodSeedKeys=state.moodSeedKeys||{};if(state.moodSeedKeys[key])return;
-  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,category)));state.moodSeedKeys[key]=true;}catch(e){}
+  const key=`${category}:${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}:${appLanguage()}`;state.moodSeedKeys=state.moodSeedKeys||{};if(state.moodSeedKeys[key])return;
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,category)));state.moodSeedKeys[key]=true;}catch(e){}
 }
 function renderTomorrowPlannerContext(){
   const target=tomorrowTargetDate(),t=tripContext(target),wx=weatherForDate(target),plans=plansForDate(target),dest=destinationPreset();
@@ -926,14 +982,14 @@ function discoveredActivity(x,category){
 }
 function rememberDiscovered(a){state.discovered[a.id]=a;localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));}
 function discoveryCard(x,category){
-  const a=discoveredActivity(x,category);rememberDiscovered(a);const d=Number(x.distance),distance=Number.isFinite(d)?`${d<10?d.toFixed(1):Math.round(d)} mi`:'';
+  const a=discoveredActivity(x,category);rememberDiscovered(a);const d=Number(x.distance),distance=Number.isFinite(d)?formatDistance(d):'';
   const rating=x.rating?`★ ${Number(x.rating).toFixed(1)}${x.ratingCount?` · ${Number(x.ratingCount).toLocaleString()} reviews`:''}`:'Rating unavailable';
   const open=x.openNow===true?'<span class="trip-state-chip state-repeat">Open now</span>':x.openNow===false?'<span class="trip-state-chip state-skip">Closed now</span>':'';
   const s=tripStatus(a.id),saved=state.saved.includes(a.id),type=escapeHtml(x.type||'Local attraction'),address=x.address?escapeHtml(x.address):'',desc=escapeHtml(x.description||a.experienceDescription||'');
-  return `<article class="place-card discover-card" data-id="${escapeHtml(a.id)}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(a.name)}</div>${distance?`<span class="score-pill">${distance}</span>`:''}</div><div class="place-meta">${type}${address?` · ${address}`:''}</div></div></div>${desc?`<div class="experience-description"><b>What it’s like:</b> ${desc}</div>`:''}<div class="discover-rating-row"><b>${rating}</b>${open}</div><div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div><div class="place-actions"><button class="small-btn discover-save">${saved?'♥ Saved':'♡ Save'}</button><a class="small-btn primary-small direction-link" href="${x.mapsUrl||directionsUrl(a)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+  return `<article class="place-card discover-card" data-id="${escapeHtml(a.id)}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(a.name)}</div>${distance?`<span class="score-pill">${distance}</span>`:''}</div><div class="place-meta">${type}${address?` · ${address}`:''}</div></div></div>${desc?`<div class="experience-description"><b>${t('whatItsLike')}</b> ${desc}</div>`:''}<div class="discover-rating-row"><b>${rating}</b>${open}</div><div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div><div class="place-actions"><button class="small-btn discover-save">${saved?`♥ ${t('saved')}`:`♡ ${t('save')}`}</button><a class="small-btn primary-small direction-link" href="${x.mapsUrl||directionsUrl(a)}" target="_blank" rel="noopener">${t('directions')}</a></div></article>`;
 }
 function wireDiscover(root){
-  $$('.discover-save',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderTripHub();b.textContent=state.saved.includes(id)?'♥ Saved':'♡ Save';}));
+  $$('.discover-save',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderTripHub();b.textContent=state.saved.includes(id)?`♥ ${t('saved')}`:`♡ ${t('save')}`;}));
   $$('.trip-status-select',root).forEach(sel=>sel.addEventListener('change',()=>{const id=sel.closest('.place-card').dataset.id;setTripStatus(id,sel.value);loadDiscover(state.discoveryCategory,{specialist:!!state.discoverySpecialist});}));
 }
 async function loadDiscover(category='sights',opts={}){
@@ -944,19 +1000,19 @@ async function loadDiscover(category='sights',opts={}){
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} Search centre: ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding local options…</b><small>Checking places inside your travel range.</small></div>';$('#discoverResults').innerHTML='';
-  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
     $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} varied ideas around ${escapeHtml(state.locationName||'your location')}</b><small>${escapeHtml(data.source||'Places')} · I’ll mix experience types before repeating the same kind.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
   }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Local discovery is taking a break</b><small>Try again in a moment. Your saved trip plan still works.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">I couldn’t get a reliable local shortlist just now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category,{specialist:!!state.discoverySpecialist}));}
 }
 
 function placeCard(a,withScore=false,hero=false){
   const d=distMiles(a),saved=!a.transient&&state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),travel=a.travelMinutes??estimatedTravelMinutes(a);
-  const distanceMeta=d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi · ~${travel} min drive`:(a.category==='stayin'?'No travel':null),commit=a.commitmentMinutes?`~${Math.round(a.commitmentMinutes/15)*15} min total commitment`:null;
+  const distanceMeta=d!=null?`${formatDistance(d)} · ~${travel} min drive`:(a.category==='stayin'?'No travel':null),commit=a.commitmentMinutes?`~${Math.round(a.commitmentMinutes/15)*15} min total commitment`:null;
   const meta=[distanceMeta,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a),s=tripStatus(a.id);
-  const saveAction=a.transient?'':`<button class="small-btn save-btn">${saved?'♥ Saved':'♡ Save'}</button>`;
+  const saveAction=a.transient?'':`<button class="small-btn save-btn">${saved?`♥ ${t('saved')}`:`♡ ${t('save')}`}</button>`;
   const primaryAction=a.internalView?`<button class="small-btn primary-small internal-view-btn" data-view="${a.internalView}">See ideas</button>`:`<button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button>`;
   const tripTools=a.transient?'':`<div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div>`;
-  const desc=a.experienceDescription?`<div class="experience-description"><b>What it’s like:</b> ${escapeHtml(a.experienceDescription)}</div>`:'';
+  const desc=a.experienceDescription?`<div class="experience-description"><b>${t('whatItsLike')}</b> ${escapeHtml(a.experienceDescription)}</div>`:'';
   return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div>${desc}<div class="reason">${withScore?`<b>Why:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">${commit} including return travel + useful visit time.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${tripTools}<div class="place-actions">${saveAction}${primaryAction}</div></article>`;
 }
 function wirePlaceActions(root){
@@ -970,6 +1026,7 @@ function renderExplore(){if(!isFloridaContext()&&$('.view.active')?.dataset.view
 $$('#exploreFilters .chip').forEach(c=>c.addEventListener('click',()=>{state.filter=c.dataset.filter;$$('#exploreFilters .chip').forEach(x=>x.classList.toggle('active',x===c));renderExplore();}));
 function renderSaved(){renderTripHub();}
 function renderTripHub(){
+  renderPreviousTrips();
   const summary=$('#tripSummary');if(!summary)return;const t=tripContext(),remaining=Number(state.profile.budgetRemaining);
   if(t?.inTrip)summary.innerHTML=`<div class="trip-summary-main"><div><span class="trip-day-big">Day ${t.index}</span><small>of ${t.total}</small></div><div><b>${t.daysUntilDeparture} day${t.daysUntilDeparture===1?'':'s'} to departure</b><small>${t.fullDaysRemaining} full days after today</small></div>${remaining>0?`<div><b>${tripCurrencyInfo().symbol}${Math.round(remaining)}</b><small>budget remaining</small></div>`:''}</div>`;else if(t?.departureDay)summary.innerHTML=`<div class="trip-summary-main"><div><span class="trip-day-big">Departure</span><small>day</small></div><div><b>Keep it flexible</b><small>Short, nearby options rank higher today</small></div>${remaining>0?`<div><b>${tripCurrencyInfo().symbol}${Math.round(remaining)}</b><small>budget remaining</small></div>`:''}</div>`;
   else summary.innerHTML=`<div class="trip-empty"><b>${t?.before?'Trip countdown ready':'Add your vacation dates'}</b><small>${t?.before?`${daysUntilArrival(t)} days until ${destinationPreset().name}.`:'Set arrival and departure in Family so recommendations understand the length of your stay.'}</small></div>`;
@@ -981,7 +1038,7 @@ function renderTripHub(){
   $$('.memory-rating',$('#memoriesList')).forEach(s=>s.addEventListener('change',()=>setTripRating(s.closest('.memory-row').dataset.id,s.value)));
 }
 function savePlans(){localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));updateTripPulse();}
-function renderPlans(){const root=$('#plansList');if(!root)return;const nowKey=localDateKey();const list=[...state.plans].sort((a,b)=>(a.date+(a.time||'23:59')).localeCompare(b.date+(b.time||'23:59')));root.innerHTML=list.length?list.map(p=>`<article class="plan-row ${p.date<nowKey?'past':''}" data-id="${p.id}"><div><b>${escapeHtml(p.title)}</b><small>${new Date(`${p.date}T12:00:00`).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})}${p.time?` · ${formatPlanTime(p.time)}`:''}${p.location?` · ${escapeHtml(p.location)}`:''}</small></div><button class="icon-btn remove-plan" aria-label="Remove plan">×</button></article>`).join(''):'<div class="trip-empty"><b>No fixed plans yet.</b><small>Add reservations, flights, shows or anything the decision engine needs to work around.</small></div>';$$('.remove-plan',root).forEach(b=>b.addEventListener('click',()=>{state.plans=state.plans.filter(p=>p.id!==b.closest('.plan-row').dataset.id);savePlans();renderTripHub();}));}
+function renderPlans(){const root=$('#plansList');if(!root)return;const nowKey=localDateKey();const list=[...state.plans].sort((a,b)=>(a.date+(a.time||'23:59')).localeCompare(b.date+(b.time||'23:59')));root.innerHTML=list.length?list.map(p=>`<article class="plan-row ${p.date<nowKey?'past':''}" data-id="${p.id}"><div><b>${escapeHtml(p.title)}</b><small>${new Date(`${p.date}T12:00:00`).toLocaleDateString(appLocale(),{weekday:'short',month:'short',day:'numeric'})}${p.time?` · ${formatPlanTime(p.time)}`:''}${p.location?` · ${escapeHtml(p.location)}`:''}</small></div><button class="icon-btn remove-plan" aria-label="Remove plan">×</button></article>`).join(''):'<div class="trip-empty"><b>No fixed plans yet.</b><small>Add reservations, flights, shows or anything the decision engine needs to work around.</small></div>';$$('.remove-plan',root).forEach(b=>b.addEventListener('click',()=>{state.plans=state.plans.filter(p=>p.id!==b.closest('.plan-row').dataset.id);savePlans();renderTripHub();}));}
 $('#planForm').addEventListener('submit',e=>{e.preventDefault();const title=$('#planTitle').value.trim(),date=$('#planDate').value;if(!title||!date)return;state.plans.push({id:crypto.randomUUID?.()||String(Date.now()),title,date,time:$('#planTime').value,location:$('#planLocation').value.trim()});savePlans();e.target.reset();renderTripHub();showToast('Fixed plan added');});
 
 
@@ -1006,8 +1063,8 @@ function essentialAddress(el){
 function directionsUrl(x){return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${x.lat},${x.lon}`)}&travelmode=driving`;}
 function mapsSearchUrl(q){return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`;}
 function essentialResultCard(x,e){
-  const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
-  return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d} mi</span></div><div class="place-meta">${localCostGuide(e.cost)} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><a class="small-btn primary-small direction-link" href="${directionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+  const d=formatDistance(x.distance),address=x.address?` · ${escapeHtml(x.address)}`:'';
+  return `<article class="place-card essential-result"><div class="place-top"><div class="place-icon">${e.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(x.name)}</div><span class="score-pill">${d}</span></div><div class="place-meta">${localCostGuide(e.cost)} typical cost guide${address}</div></div></div><div class="reason">${e.costNote}. Price guide is approximate rather than live.</div><div class="place-actions"><a class="small-btn primary-small direction-link" href="${directionsUrl(x)}" target="_blank" rel="noopener">${t('directions')}</a></div></article>`;
 }
 async function loadNearbyEssential(id){
   const e=essentials.find(x=>x.id===id);if(!e)return;
@@ -1053,12 +1110,12 @@ function familyMealEstimate(level){
 }
 function foodDirectionsUrl(x){return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(x.lat+','+x.lon)}&travelmode=driving`;}
 function foodCard(x){
-  const rating=x.rating?`<span class="food-rating">★ ${Number(x.rating).toFixed(1)}${x.userRatingCount?` <small>(${x.userRatingCount})</small>`:''}</span>`:`<span class="food-rating muted-rating">Rating unavailable</span>`;
+  const rating=x.rating?`<span class="food-rating">★ ${Number(x.rating).toFixed(1)}${x.userRatingCount?` <small>(${x.userRatingCount})</small>`:''}</span>`:`<span class="food-rating muted-rating">${t('ratingUnavailable')}</span>`;
   const price=foodPriceText(x.priceLevel),estimate=familyMealEstimate(x.priceLevel);
-  const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance);
+  const d=formatDistance(x.distance);
   const type=x.typeLabel||'Food & drink';
-  const open=x.openNow===true?'<span class="open-pill open">Open now</span>':x.openNow===false?'<span class="open-pill closed">Closed</span>':'';
-  return `<article class="place-card food-card"><div class="food-card-top"><div><div class="place-title">${escapeHtml(x.name)}</div><div class="place-meta">${escapeHtml(type)} · ${d} mi away ${open}</div></div>${rating}</div><div class="food-budget-row"><span class="price-pill">${price}</span><b>${estimate}</b></div>${x.address?`<div class="reason">${escapeHtml(x.address)}</div>`:''}<div class="place-actions"><a class="small-btn primary-small direction-link" href="${foodDirectionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+  const open=x.openNow===true?`<span class="open-pill open">${t('openNow')}</span>`:x.openNow===false?'<span class="open-pill closed">Closed</span>':'';
+  return `<article class="place-card food-card"><div class="food-card-top"><div><div class="place-title">${escapeHtml(x.name)}</div><div class="place-meta">${escapeHtml(type)} · ${d} ${open}</div></div>${rating}</div><div class="food-budget-row"><span class="price-pill">${price}</span><b>${estimate}</b></div>${x.address?`<div class="reason">${escapeHtml(x.address)}</div>`:''}<div class="place-actions"><a class="small-btn primary-small direction-link" href="${foodDirectionsUrl(x)}" target="_blank" rel="noopener">${t('directions')}</a></div></article>`;
 }
 function renderFoodResults(){
   let list=[...foodResultsCache];
@@ -1113,7 +1170,7 @@ async function loadParkSchedule(p,targetDate=new Date()){
     const result={open,close,status};state.parkSchedules[cacheKey]=result;return result;
   }catch(e){return null;}
 }
-function timeLabel(d){return d?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—';}
+function timeLabel(d){return d?d.toLocaleTimeString(appLocale(),{hour:'numeric',minute:'2-digit'}):'—';}
 async function loadPark(p){
   const [liveR,schedule]=await Promise.all([
     fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/live`),
@@ -1197,9 +1254,11 @@ $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));
 
 function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#destinationPreset').value=p.destinationPreset||'orlando';$('#homeBase').value=p.homeBase||'';$('#arrivalDate').value=p.arrivalDate||'';$('#departureDate').value=p.departureDate||'';$('#budgetRemaining').value=p.budgetRemaining||'';$('#walkingTolerance').value=p.walkingTolerance||'medium';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
 $('#familyForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#familyName').value.trim(),destinationPreset:$('#destinationPreset').value,homeBase:$('#homeBase').value.trim(),arrivalDate:$('#arrivalDate').value,departureDate:$('#departureDate').value,budgetRemaining:$('#budgetRemaining').value,walkingTolerance:$('#walkingTolerance').value,members:collectMembers('#familyMembers'),maxDrive:+$('#maxDrive').value,budget:$('#budget').value,energy:$('#energy').value,interests:$$('input[name=interests]:checked').map(x=>x.value),heatAware:$('#heatAware').checked,notes:$('#familyNotes').value.trim()};saveProfile();$('#saveProfileMsg').classList.remove('hidden');setTimeout(()=>$('#saveProfileMsg').classList.add('hidden'),1600);renderExplore();renderTripHub();});
-function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));updateGreeting();renderTripHub();renderQuickMoods();}
+function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));updateGreeting();renderTripHub();renderQuickMoods();renderSpecialistNav();updateDistanceOptionLabels();}
 function updateUnits(){$('#unitC').classList.toggle('active',state.unit==='c');$('#unitF').classList.toggle('active',state.unit==='f');if(state.weather)renderWeather();}
 $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.dataset.unit;localStorage.setItem('ffvp_unit',state.unit);updateUnits();}));
+$('#languageSelect')?.addEventListener('change',e=>setAppLanguage(e.target.value));
+$('#setupLanguage')?.addEventListener('change',e=>setAppLanguage(e.target.value));
 
 let setupStep=0;
 let setupQuickNotes=new Set();
@@ -1238,12 +1297,12 @@ function showSetupStep(n){
   const onboarding=$('#onboarding');onboarding.dataset.setupStep=String(setupStep);
   $$('.setup-step').forEach((x,i)=>x.classList.toggle('active',i===setupStep));
   $$('.setup-progress span').forEach((x,i)=>{x.classList.toggle('completed',i<setupStep);x.classList.toggle('active',i===setupStep);});
-  const progress=$('#setupProgressText');if(progress)progress.textContent=`STEP ${setupStep+1} OF 3`;
+  const progress=$('#setupProgressText');if(progress)progress.textContent=`${ot('step')} ${setupStep+1} / 3`;
   $('.skip-setup').classList.toggle('hidden',setupStep>0);
   onboarding.scrollTop=0;
 }
 function showOnboarding(){
-  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';setupQuickNotes=new Set(p.quickNotes||[]);renderSetupQuickNotes();normalizeCrewDraft(p.members?.length?p.members:defaultMembers());renderSetupCrew();showSetupStep(0);$('#onboarding').classList.remove('hidden');
+  const p=state.profile;if($('#setupLanguage'))$('#setupLanguage').value=localStorage.getItem('ffvp_language')||'auto';$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';setupQuickNotes=new Set(p.quickNotes||[]);renderSetupQuickNotes();normalizeCrewDraft(p.members?.length?p.members:defaultMembers());renderSetupCrew();showSetupStep(0);$('#onboarding').classList.remove('hidden');
 }
 $$('.count-stepper .count-btn').forEach(b=>b.addEventListener('click',()=>{const stepper=b.closest('.count-stepper');changeSetupCrewCount(stepper.dataset.countRole,+b.dataset.countChange||0);}));
 $$('.note-chip').forEach(b=>b.addEventListener('click',()=>{const note=b.dataset.note;if(setupQuickNotes.has(note))setupQuickNotes.delete(note);else setupQuickNotes.add(note);renderSetupQuickNotes();}));
@@ -1255,11 +1314,50 @@ function showLanding(){
   const landing=$('#landingScreen');if(!landing)return;
   const hasSaved=!!localStorage.getItem('ffvp_onboarded');
   $('#landingContinue')?.classList.toggle('hidden',!hasSaved);
+  if($('#landingPrimary'))$('#landingPrimary').textContent=hasSaved?t('landingNew'):t('landingStart');
+  if($('#landingContinue'))$('#landingContinue').textContent=t('landingContinue');
   landing.classList.remove('hidden');
 }
 function hideLanding(){ $('#landingScreen')?.classList.add('hidden'); }
-$('#landingPrimary')?.addEventListener('click',()=>{hideLanding();showOnboarding();});
+$('#landingPrimary')?.addEventListener('click',()=>{const hasSaved=!!localStorage.getItem('ffvp_onboarded');hideLanding();if(hasSaved)openNewTripDialog();else showOnboarding();});
 $('#landingContinue')?.addEventListener('click',()=>{hideLanding();});
+
+const destinationFinderProfiles={
+  orlando:{tags:{thrills:5,food:4,shopping:4,indoor:4,outdoors:2,chill:2,wildlife:2,sights:3,beach:1},cost:3,length:{short:3,week:5,long:4},reason:'Huge family attraction choice, strong theme-park depth and plenty of weather-proof backups.'},
+  anaheim:{tags:{thrills:5,food:3,shopping:3,indoor:3,outdoors:2,chill:2,wildlife:1,sights:3,beach:3},cost:3,length:{short:4,week:5,long:3},reason:'Theme-park energy with Southern California beaches and city options within reach.'},
+  'new-york':{tags:{thrills:3,food:5,shopping:5,indoor:5,outdoors:3,chill:1,wildlife:1,sights:5,beach:1},cost:3,length:{short:5,week:5,long:3},reason:'Packed city-break choice: sights, food, museums, shows and shopping with very little dead time.'},
+  nairobi:{tags:{thrills:3,food:3,shopping:2,indoor:2,outdoors:5,chill:3,wildlife:5,sights:4,beach:0},cost:2,length:{short:3,week:5,long:5},reason:'Outstanding wildlife and outdoor experiences, with safari-style days as the specialist strength.'},
+  maui:{tags:{thrills:3,food:4,shopping:2,indoor:1,outdoors:5,chill:5,wildlife:3,sights:3,beach:5},cost:3,length:{short:2,week:5,long:5},reason:'Best when coast, scenery, water and slower recovery days are high on the list.'},
+  paris:{tags:{thrills:2,food:5,shopping:4,indoor:5,outdoors:3,chill:3,wildlife:1,sights:5,beach:0},cost:3,length:{short:5,week:5,long:3},reason:'Landmarks, museums, neighbourhoods and food make it a strong culture-led family city break.'},
+  london:{tags:{thrills:2,food:4,shopping:5,indoor:5,outdoors:4,chill:2,wildlife:2,sights:5,beach:0},cost:3,length:{short:5,week:5,long:4},reason:'A broad family city break with major sights, museums, markets, parks and easy day trips.'},
+  winsford:{tags:{thrills:3,food:3,shopping:3,indoor:3,outdoors:5,chill:4,wildlife:4,sights:3,beach:2},cost:1,length:{short:4,week:4,long:3},reason:'Value-friendly regional days out, countryside, zoos and attractions without a flyaway-trip budget.'},
+  manchester:{tags:{thrills:3,food:4,shopping:4,indoor:5,outdoors:3,chill:2,wildlife:2,sights:4,beach:1},cost:2,length:{short:5,week:4,long:2},reason:'Strong indoor, food, city and regional day-out mix for a shorter family break.'}
+};
+function archiveCurrentTrip(){
+  if(!localStorage.getItem('ffvp_onboarded'))return;
+  const p=state.profile;if(!p.destinationPreset&&!p.arrivalDate&&!state.saved.length&&!state.plans.length)return;
+  const snapshot={id:crypto.randomUUID?.()||String(Date.now()),archivedAt:new Date().toISOString(),profile:JSON.parse(JSON.stringify(p)),saved:[...state.saved],tripStatuses:{...state.tripStatuses},plans:JSON.parse(JSON.stringify(state.plans)),discovered:{...state.discovered}};
+  state.archives=[snapshot,...(state.archives||[])].slice(0,10);localStorage.setItem('ffvp_trip_archive',JSON.stringify(state.archives));
+}
+function clearCurrentTripState(){
+  state.saved=[];state.tripStatuses={};state.plans=[];state.discovered={};state.prepDone={};state.localSeedKey='';state.recommendationRuns={};state.tomorrowMood=null;
+  ['ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done','ffvp_tomorrow_mood'].forEach(k=>localStorage.removeItem(k));
+}
+function startNewTrip(destinationKey='orlando'){
+  archiveCurrentTrip();const old=state.profile;clearCurrentTripState();
+  state.profile={...defaultProfile,members:JSON.parse(JSON.stringify(old.members?.length?old.members:defaultMembers())),maxDrive:old.maxDrive||30,budget:old.budget||'medium',energy:old.energy||'medium',interests:[...(old.interests||defaultProfile.interests)],heatAware:old.heatAware!==false,notes:old.notes||'',quickNotes:[...(old.quickNotes||[])],walkingTolerance:old.walkingTolerance||'medium',destinationPreset:destinationKey};
+  localStorage.removeItem('ffvp_onboarded');saveProfile();closeNewTripDialog();loadProfileForm();showOnboarding();renderTripHub();
+}
+function openNewTripDialog(){const d=$('#newTripDialog');if(!d)return;$('#newTripStartPanel')?.classList.remove('hidden');$('#destinationFinderPanel')?.classList.add('hidden');$('#destinationFinderResults').innerHTML='';applyTranslations();d.classList.remove('hidden');}
+function closeNewTripDialog(){$('#newTripDialog')?.classList.add('hidden');}
+function scoreDestinations(){
+  const moods=$$('.finder-chip.active').map(b=>b.dataset.destMood);const budget=$('#finderBudget')?.value||'medium',length=$('#finderLength')?.value||'week';const targetCost={low:1,medium:2,high:3}[budget];
+  return Object.entries(destinationFinderProfiles).map(([key,d])=>{let score=(d.length[length]||3)*2;for(const mood of moods)score+=(d.tags[mood]||0)*3;score-=Math.abs(d.cost-targetCost)*3;const preset=presetFor(key);const strongest=[...moods].sort((a,b)=>(d.tags[b]||0)-(d.tags[a]||0)).slice(0,2);return {key,name:preset?.name||key,score,reason:d.reason,strongest};}).sort((a,b)=>b.score-a.score).slice(0,3);
+}
+function renderDestinationFinder(){const root=$('#destinationFinderResults');if(!root)return;const results=scoreDestinations();root.innerHTML=results.map((r,i)=>`<article class="destination-result"><div class="destination-rank">${i+1}</div><div><h3>${escapeHtml(r.name)}</h3><p>${escapeHtml(r.reason)}</p><div class="destination-fit">${r.strongest.map(x=>escapeHtml(x)).join(' · ')}</div></div><button class="small-btn primary-small choose-destination" data-destination="${r.key}" type="button">${t('planThis')}</button></article>`).join('');$$('.choose-destination',root).forEach(b=>b.addEventListener('click',()=>startNewTrip(b.dataset.destination)));}
+function renderPreviousTrips(){const root=$('#previousTripsList');if(!root)return;const list=state.archives||[];root.innerHTML=list.length?list.map(a=>{const p=a.profile||{},dest=presetFor(p.destinationPreset)?.name||p.destinationPreset||'Trip';const when=p.arrivalDate?new Date(`${p.arrivalDate}T12:00:00`).toLocaleDateString(appLocale(),{year:'numeric',month:'short',day:'numeric'}):new Date(a.archivedAt).toLocaleDateString(appLocale(),{year:'numeric',month:'short'});return `<article class="plan-row archive-row" data-id="${a.id}"><div><b>${escapeHtml(p.familyName||dest)}</b><small>${escapeHtml(dest)} · ${when}</small></div><button class="text-btn restore-trip" type="button">${t('restore')}</button></article>`;}).join(''):`<div class="trip-empty"><b>${t('previousTrips')}</b><small>Your completed or replaced trips will appear here.</small></div>`;$$('.restore-trip',root).forEach(b=>b.addEventListener('click',()=>restoreArchivedTrip(b.closest('.archive-row').dataset.id)));}
+function restoreArchivedTrip(id){const a=(state.archives||[]).find(x=>x.id===id);if(!a)return;if(!confirm('Replace the current trip with this saved vacation?'))return;archiveCurrentTrip();state.profile=a.profile;state.saved=a.saved||[];state.tripStatuses=a.tripStatuses||{};state.plans=a.plans||[];state.discovered=a.discovered||{};localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));localStorage.setItem('ffvp_trip_statuses',JSON.stringify(state.tripStatuses));localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));localStorage.setItem('ffvp_onboarded','1');loadProfileForm();renderTripHub();renderExplore();updateGreeting();showToast('Trip restored');}
+$('#newTripBtn')?.addEventListener('click',openNewTripDialog);$('#newTripBtnFamily')?.addEventListener('click',openNewTripDialog);$('#closeNewTrip')?.addEventListener('click',closeNewTripDialog);$('#newTripDialog')?.addEventListener('click',e=>{if(e.target.id==='newTripDialog')closeNewTripDialog();});$('#startKnownTrip')?.addEventListener('click',()=>startNewTrip($('#newTripDestination')?.value||'orlando'));$('#openDestinationFinder')?.addEventListener('click',()=>{$('#newTripStartPanel').classList.add('hidden');$('#destinationFinderPanel').classList.remove('hidden');renderDestinationFinder();});$('#backNewTrip')?.addEventListener('click',()=>{$('#destinationFinderPanel').classList.add('hidden');$('#newTripStartPanel').classList.remove('hidden');});$$('.finder-chip').forEach(b=>b.addEventListener('click',()=>{b.classList.toggle('active');renderDestinationFinder();}));$('#findDestinations')?.addEventListener('click',renderDestinationFinder);
 
 function clearTripLocalData(includeSettings=false){
   const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done'];
@@ -1285,4 +1383,4 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.defer
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+applyTranslations();loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
