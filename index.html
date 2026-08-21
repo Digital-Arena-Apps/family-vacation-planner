@@ -85,7 +85,7 @@
 
         <section class="setup-step" data-setup-step="1">
           <div class="step-kicker">02 · YOUR CREW</div>
-          <div class="setup-heading adventure-heading"><div><h3>Who’s coming along?</h3><p class="step-copy">Choose the crew size first. We’ll build the profiles underneath ready for the useful details.</p></div></div>
+          <div class="setup-heading adventure-heading"><div><h3>Who’s coming along?</h3><p class="step-copy">Tell us who’s travelling and the few details that actually make a difference.</p></div></div>
           <div class="crew-count-panel" aria-label="Choose the number of adults and children">
             <div class="crew-count-intro"><b>Build your crew</b><small>Add names and ages, then choose a simple ride-height band and ride preference.</small></div>
             <div class="crew-count-grid">
@@ -140,10 +140,10 @@
               <select id="setupBudget"><option value="low">💵 Keep costs down</option><option value="medium" selected>🌴 Comfortable holiday spend</option><option value="high">✨ We’re on vacation</option></select>
             </label>
           </div>
-          <div class="launch-card"><span>✨</span><div><b>That’s enough admin.</b><small>We’ll learn more from what you save and choose as the trip goes on.</small></div></div>
+          <div class="launch-card"><span>✨</span><div><b>That’s the boring bit done.</b><small>We can fine-tune things as you save places and make plans.</small></div></div>
           <div class="setup-actions"><button class="secondary-btn setup-back" type="button">← Back</button><button class="primary-btn" type="submit">Start the adventure ✨</button></div>
         </section>
-        <button id="skipSetup" class="text-btn full skip-setup" type="button">I’ll set this up later</button>
+        <button id="skipSetup" class="text-btn full skip-setup" type="button">Do this later</button>
       </form>
     </div>
   </div>
@@ -155,7 +155,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.18</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.19</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -167,7 +167,7 @@
         <section class="today-intro">
           <div id="todayLocationEyebrow" class="eyebrow">TODAY</div>
           <h2 id="todayGreeting">Good evening</h2>
-          <p id="todayGreetingCopy">Here’s what looks smartest for your crew right now.</p>
+          <p id="todayGreetingCopy">Let’s see what looks good for your crew.</p>
         </section>
         <div id="locationStrip" class="location-strip location-strip-v21">
           <div class="location-live-row"><span class="pulse-dot"></span><span id="locationLabel">Finding your location…</span><button id="refreshLocation" class="text-btn">Refresh</button></div>
@@ -182,7 +182,7 @@
           </select></label>
         </div>
         <section id="tripPulse" class="trip-pulse hidden">
-          <div><div class="eyebrow">YOUR TRIP</div><b id="tripPulseTitle">Add your vacation dates</b><small id="tripPulseCopy">I’ll use them to pace the rest of the holiday.</small></div>
+          <div><div class="eyebrow">YOUR TRIP</div><b id="tripPulseTitle">Add your vacation dates</b><small id="tripPulseCopy">That helps keep the pace right for the rest of your holiday.</small></div>
           <button id="openTripBtn" class="text-btn" type="button">Trip →</button>
         </section>
         <section id="prepSection" class="prep-section hidden">
@@ -196,9 +196,9 @@
 
         <section class="decision-card">
           <div>
-            <div class="eyebrow light">DECISION ENGINE</div>
+            <div class="eyebrow light">LET’S PLAN TODAY</div>
             <h2 id="decisionTitle">What should we do now?</h2>
-            <p id="decisionCopy">I’ll weigh up weather, distance, budget, energy, trip progress and your next fixed plan.</p>
+            <p id="decisionCopy">Weather, distance, energy and your plans all matter — let’s find something that fits.</p>
           </div>
           <div class="decision-actions">
             <button id="whatNowBtn" class="primary-btn">What Now?</button>
@@ -207,8 +207,8 @@
         </section>
 
         <section id="recommendations" class="section-block hidden">
-          <div class="section-title-row"><div><div id="recommendationsEyebrow" class="eyebrow">BEST RIGHT NOW</div><h2 id="recommendationsTitle">Your shortlist</h2></div><button id="rerunBtn" class="text-btn">Re-run</button></div>
-          <p id="recommendationsContext" class="recommendations-context">We’ll balance travel time with how much useful day you have left.</p>
+          <div class="section-title-row"><div><div id="recommendationsEyebrow" class="eyebrow">A FEW GOOD BETS</div><h2 id="recommendationsTitle">Here’s what looks good</h2></div><button id="rerunBtn" class="text-btn">Mix it up</button></div>
+          <p id="recommendationsContext" class="recommendations-context">Close enough to be worth it, with enough time left to enjoy it.</p>
           <div id="recommendationList" class="card-list"></div>
         </section>
 
@@ -231,11 +231,11 @@
           <button class="text-btn inline-back" data-back="today">← Today</button>
           <div id="tomorrowPlannerEyebrow" class="eyebrow">PLAN TOMORROW</div>
           <h2 id="tomorrowPlannerTitle">How should tomorrow feel?</h2>
-          <p id="tomorrowPlannerContext">Choose the mood first. I’ll use it to build a shortlist for the following day.</p>
+          <p id="tomorrowPlannerContext">Pick the vibe first and we’ll line up a few places that suit the day.</p>
         </div>
         <div id="tomorrowSnapshot" class="tomorrow-snapshot"></div>
         <section class="section-block compact tomorrow-mood-section">
-          <div class="section-title-row"><div><div class="eyebrow">CHOOSE A MOOD</div><h2>What sounds good?</h2><p id="tomorrowMoodCopy" class="quick-start-copy">The options below shape tomorrow’s recommendations — not what to do right now.</p></div></div>
+          <div class="section-title-row"><div><div class="eyebrow">CHOOSE A MOOD</div><h2>What sounds good?</h2><p id="tomorrowMoodCopy" class="quick-start-copy">This is just about the kind of day you fancy — we can pick the exact place next.</p></div></div>
           <div class="quick-grid tomorrow-mood-grid">
             <button class="quick-card quick-relax tomorrow-mood" data-tomorrow-mood="chill"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Chill & Recharge</b><small>Slower pace, lighter effort</small></button>
             <button class="quick-card quick-indoor tomorrow-mood" data-tomorrow-mood="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor & Easy</b><small>Weather-proof, lower-stress ideas</small></button>
@@ -244,10 +244,10 @@
             <button class="quick-card quick-park tomorrow-mood" data-tomorrow-mood="thrills"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7z"/></svg></span><b>Thrills & Excitement</b><small>Big-energy experiences</small></button>
             <button class="quick-card quick-shopping tomorrow-mood" data-tomorrow-mood="shopping"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span><b>Shop & Browse</b><small>Markets, malls & retail time</small></button>
           </div>
-          <button id="tomorrowBestOverall" class="secondary-btn full tomorrow-best-btn" type="button">Surprise me — best overall for tomorrow</button>
+          <button id="tomorrowBestOverall" class="secondary-btn full tomorrow-best-btn" type="button">Pick for me — best overall for tomorrow</button>
         </section>
         <section id="tomorrowResults" class="section-block hidden">
-          <div class="section-title-row"><div><div id="tomorrowResultsEyebrow" class="eyebrow">TOMORROW SHORTLIST</div><h2 id="tomorrowResultsTitle">Best bets for tomorrow</h2></div><button id="tomorrowRerunBtn" class="text-btn">Re-run</button></div>
+          <div class="section-title-row"><div><div id="tomorrowResultsEyebrow" class="eyebrow">IDEAS FOR TOMORROW</div><h2 id="tomorrowResultsTitle">A few good bets</h2></div><button id="tomorrowRerunBtn" class="text-btn">Mix it up</button></div>
           <p id="tomorrowResultsContext" class="recommendations-context"></p>
           <div id="tomorrowRecommendationList" class="card-list"></div>
         </section>
@@ -264,9 +264,9 @@
 
       <section class="view" data-view="discover">
         <div class="page-heading discover-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div id="discoverEyebrow" class="eyebrow">NEARBY IDEAS</div><h2 id="discoverTitle">Explore nearby</h2><p id="discoverCopy">Real local options ranked around your selected location.</p></div>
-        <div id="discoverStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding good options…</b><small>Using your selected location and travel range.</small></div></div>
+        <div id="discoverStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Having a look nearby…</b><small>Keeping it within the distance you’re happy to travel.</small></div></div>
         <div id="discoverResults" class="card-list discover-results"></div>
-        <div class="notice"><b>Beta discovery:</b> results use Google Places when available, with OpenStreetMap fallback. Ratings are provider data; travel time is still a planning estimate rather than live traffic.</div>
+        <div class="notice"><b>Good to know:</b> Ratings and opening info come from local listings. Drive times are a rough guide, so traffic can still have the last laugh.</div>
       </section>
 
       <section class="view" data-view="food">
@@ -282,13 +282,13 @@
           <button class="chip" data-food-sort="budget">Budget</button>
           <button class="chip" data-food-sort="treat">Treat night</button>
         </div>
-        <div id="foodStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding food nearby…</b><small>Using your current location.</small></div></div>
+        <div id="foodStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding somewhere good to eat…</b><small>Looking close to where you are.</small></div></div>
         <div id="foodResults" class="card-list food-results"></div>
-        <div class="notice"><b>Budget note:</b> $ levels come from the places provider where available. Family spend figures are planning estimates, not menu quotes.</div>
+        <div class="notice"><b>Price guide:</b> Family spend is a rough guide — menus and prices can change, especially in tourist spots.</div>
       </section>
 
       <section class="view" data-view="essentials">
-        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>Quick shortlist of nearby spots. We’ll only open Maps when you tap Directions.</p></div>
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>A few useful places nearby. Maps only opens when you ask for directions.</p></div>
         <div id="essentialsList" class="essentials-grid"></div>
         <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
         <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. Use the local emergency service for your current destination.</div>
@@ -306,7 +306,7 @@
             </div>
           </div>
         </div>
-        <div id="essentialsStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Getting things ready…</b><small>Using your current location.</small></div></div>
+        <div id="essentialsStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding the useful stuff nearby…</b><small>Looking close to where you are.</small></div></div>
         <div id="essentialResults" class="card-list essentials-results"></div>
         <div class="notice"><b>Price note:</b> these are category-level spend guides, not live shelf, fuel or medical prices.</div>
       </section>
@@ -415,7 +415,7 @@
       <div id="newTripStartPanel">
         <div class="eyebrow" id="newTripEyebrow">NEW VACATION</div>
         <h2 id="newTripTitle">Where shall we go next?</h2>
-        <p id="newTripIntro">Start with a destination you already know, or let the planner compare the kinds of holiday your family is in the mood for.</p>
+        <p id="newTripIntro">Already got somewhere in mind? Great. If not, tell me the kind of holiday you fancy and we’ll narrow it down.</p>
         <label class="field-group"><span id="knownDestinationLabel" class="field-label">I know where we’re going</span>
           <select id="newTripDestination"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="nairobi">Nairobi</option><option value="maui">Maui</option><option value="anaheim">Anaheim / Orange County</option><option value="paris">Paris</option><option value="london">London</option><option value="winsford">Winsford / Cheshire</option><option value="manchester">Manchester</option></select>
         </label>
@@ -425,9 +425,9 @@
       </div>
       <div id="destinationFinderPanel" class="hidden">
         <button id="backNewTrip" class="text-btn" type="button">← Back</button>
-        <div class="eyebrow" id="finderEyebrow">DESTINATION FINDER · BETA</div>
+        <div class="eyebrow" id="finderEyebrow">FIND YOUR NEXT TRIP</div>
         <h2 id="finderTitle">What kind of holiday sounds good?</h2>
-        <p id="finderCopy">Choose up to 3 things that matter most. I’ll change the destination ideas around those priorities.</p>
+        <p id="finderCopy">Pick up to 3 things that matter most, then add budget and trip length. We’ll see what genuinely fits.</p>
         <div id="destinationMoodChips" class="finder-chip-grid">
           <button class="finder-chip" type="button" data-dest-mood="thrills">Thrills & Excitement</button><button class="finder-chip" type="button" data-dest-mood="wildlife">Wildlife</button><button class="finder-chip" type="button" data-dest-mood="beach">Beaches</button><button class="finder-chip" type="button" data-dest-mood="sights">Sights</button><button class="finder-chip" type="button" data-dest-mood="outdoors">Outdoors & Explore</button><button class="finder-chip" type="button" data-dest-mood="food">Food & Treats</button><button class="finder-chip" type="button" data-dest-mood="shopping">Shop & Browse</button><button class="finder-chip" type="button" data-dest-mood="chill">Chill & Recharge</button>
         </div>
@@ -439,7 +439,7 @@
           <label class="field-group"><span id="finderClimateLabel" class="field-label">Weather feel</span><select id="finderClimate"><option value="any">Any</option><option value="hot">Hot & sunny</option><option value="warm">Warm / mild</option><option value="cool">Cool / fresh</option></select></label>
           <label class="field-group"><span id="finderSettingLabel" class="field-label">Holiday setting</span><select id="finderSetting"><option value="any">Any</option><option value="city">City</option><option value="coast">Coast / island</option><option value="nature">Nature / scenery</option><option value="mixed">A bit of everything</option></select></label>
         </div>
-        <button id="findDestinations" class="primary-btn full" type="button">Show me ideas</button>
+        <button id="findDestinations" class="primary-btn full" type="button">Find me a few ideas</button>
         <div id="destinationFinderResults" class="destination-results"><div class="finder-empty">Choose at least one priority to get started.</div></div>
       </div>
     </div>
