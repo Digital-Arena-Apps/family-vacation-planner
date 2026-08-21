@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.13 — simpler ride-height bands in onboarding
+// Family Vacation Planner V2.2.14 — diverse experience shortlists
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -657,10 +657,14 @@ function tomorrowMoodAffinity(a,mood){
 function moodSubtype(a,mood){
   const t=normalizedPlaceType(a.placeType);
   if(mood==='outdoors'){
+    if(t==='playground'||t.includes('playground'))return 'playground';
     if(t.includes('zoo')||t.includes('wildlife'))return 'wildlife';
-    if(t.includes('garden'))return 'garden';
+    if(t.includes('garden')||t.includes('botanical'))return 'garden';
     if(t.includes('hiking')||t.includes('trail')||t.includes('cycling'))return 'trail';
-    if(t.includes('park')||t.includes('playground')||t.includes('picnic'))return 'park';
+    if(t.includes('preserve')||t.includes('refuge'))return 'nature';
+    if(t.includes('scenic')||t.includes('viewpoint'))return 'scenic';
+    if(t.includes('picnic'))return 'picnic';
+    if(t.includes('park'))return 'park';
     return 'other-outdoors';
   }
   if(mood==='chill'){
@@ -687,27 +691,69 @@ function moodSubtype(a,mood){
   if(mood==='shopping')return normalizeVenueName(a.name).split(' ').slice(0,2).join(' ')||'shopping';
   return mood;
 }
+function interleaveBySubtype(items,mood){
+  // Choice diversity matters more than tiny score differences: show one of each
+  // experience subtype before offering a second playground/park/theme park/etc.
+  const groups=new Map();
+  for(const a of items){const key=moodSubtype(a,mood);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(a);}
+  const out=[];let round=0,added=true;
+  while(added){added=false;for(const group of groups.values()){if(group[round]){out.push(group[round]);added=true;}}round++;}
+  return out;
+}
 function shapeMoodResults(list,mood){
-  // Exact venue de-dupe is already done in allTripPlaces; this pass adds shortlist diversity.
+  // Exact venue de-dupe is already done in allTripPlaces. This pass makes the
+  // shortlist feel like genuine choices, not five variations of the same thing.
   const maxMiles=state.profile.maxDrive||30;
   const inRange=list.filter(a=>{const d=distMiles(a);return d==null||d<=maxMiles;});
   const primary=inRange.length>=3?inRange:list;
   const rest=inRange.length>=3?list.filter(a=>!inRange.includes(a)):[];
-  const caps={
-    outdoors:{park:2,wildlife:1,garden:1,trail:1,'other-outdoors':1},
-    chill:{'stay-in':1,beach:2,spa:1,scenic:1,'other-chill':1},
-    indoor:{museum:2,aquarium:1,show:1,play:1,'other-indoor':1},
-    thrills:{'theme-park':3,karting:1,'mini-golf':1,adventure:1,'other-thrill':1}
-  };
-  const diversify=(items)=>{
-    const picked=[],deferred=[],counts={};
-    for(const a of items){
-      const key=moodSubtype(a,mood),cap=mood==='shopping'?1:(caps[mood]?.[key]??2);
-      if((counts[key]||0)<cap){picked.push(a);counts[key]=(counts[key]||0)+1;}else deferred.push(a);
-    }
-    return [...picked,...deferred];
-  };
-  return [...diversify(primary),...diversify(rest)];
+  return [...interleaveBySubtype(primary,mood),...interleaveBySubtype(rest,mood)];
+}
+function discoverySubtype(x,category){
+  const t=String(x.typeKey||x.type||'').toLowerCase();
+  if(category==='outdoors'){
+    if(t.includes('playground'))return 'playground';
+    if(t.includes('zoo')||t.includes('wildlife'))return 'wildlife';
+    if(t.includes('garden')||t.includes('botanical'))return 'garden';
+    if(t.includes('hiking')||t.includes('trail')||t.includes('cycling'))return 'trail';
+    if(t.includes('preserve')||t.includes('refuge'))return 'nature';
+    if(t.includes('scenic')||t.includes('viewpoint'))return 'scenic';
+    if(t.includes('picnic'))return 'picnic';
+    if(t.includes('park'))return 'park';
+  }
+  if(category==='indoor'){
+    if(t.includes('aquarium'))return 'aquarium';
+    if(t.includes('museum')||t.includes('gallery'))return 'museum';
+    if(t.includes('movie')||t.includes('theater'))return 'show';
+    if(t.includes('bowling'))return 'bowling';
+    if(t.includes('playground'))return 'play';
+  }
+  if(category==='thrills'){
+    if(t.includes('amusement_park')||t==='water_park')return 'theme-park';
+    if(t.includes('kart'))return 'karting';
+    if(t.includes('miniature_golf'))return 'mini-golf';
+    if(t.includes('adventure')||t.includes('paintball')||t.includes('off_roading'))return 'adventure';
+  }
+  if(category==='shopping'){
+    if(t.includes('mall'))return 'mall';
+    if(t.includes('market'))return 'market';
+    if(t.includes('gift'))return 'gifts';
+    if(t.includes('book')||t.includes('toy'))return 'books-toys';
+    if(t.includes('clothing')||t.includes('shoe')||t.includes('jewelry')||t.includes('cosmetics'))return 'fashion';
+  }
+  if(category==='chill'){
+    if(t==='beach')return 'beach';
+    if(t.includes('spa')||t.includes('wellness')||t.includes('sauna'))return 'spa';
+    if(t.includes('scenic'))return 'scenic';
+  }
+  return t||category||'other';
+}
+function diversifyDiscoveryResults(results,category){
+  const groups=new Map();
+  for(const x of results){const key=discoverySubtype(x,category);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(x);}
+  const out=[];let round=0,added=true;
+  while(added){added=false;for(const group of groups.values()){if(group[round]){out.push(group[round]);added=true;}}round++;}
+  return out;
 }
 async function seedMoodDiscovery(mood){
   if(!state.coords)return;
@@ -853,8 +899,8 @@ async function loadDiscover(category='sights'){
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} Search centre: ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding local options…</b><small>Checking places inside your travel range.</small></div>';$('#discoverResults').innerHTML='';
-  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));if(!results.length)throw new Error();
-    $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} ideas around ${escapeHtml(state.locationName||'your location')}</b><small>${escapeHtml(data.source||'Places')} · within roughly ${state.profile.maxDrive||30} miles.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
+    $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} varied ideas around ${escapeHtml(state.locationName||'your location')}</b><small>${escapeHtml(data.source||'Places')} · I’ll mix experience types before repeating the same kind.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
   }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Local discovery is taking a break</b><small>Try again in a moment. Your saved trip plan still works.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">I couldn’t get a reliable local shortlist just now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category));}
 }
 

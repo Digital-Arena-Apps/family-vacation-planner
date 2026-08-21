@@ -75,7 +75,7 @@ function experienceDescription(category,x){
 }
 async function googlePlaces(category,lat,lon,radius){
   const key=process.env.GOOGLE_PLACES_API_KEY;if(!key)return null;
-  const body={includedPrimaryTypes:CATEGORY_TYPES[category],maxResultCount:20,rankPreference:['outdoors','chill'].includes(category)?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
+  const body={includedPrimaryTypes:CATEGORY_TYPES[category],maxResultCount:20,rankPreference:category==='chill'?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
   const fields=['places.id','places.displayName','places.formattedAddress','places.location','places.rating','places.userRatingCount','places.priceLevel','places.primaryType','places.primaryTypeDisplayName','places.types','places.currentOpeningHours','places.businessStatus','places.googleMapsUri'].join(',');
   const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':fields},body:JSON.stringify(body)});
   if(!r.ok)throw new Error(`Google Places ${r.status}`);
@@ -107,6 +107,41 @@ function filterShopping(results){
   const practical=new Set(['supermarket','grocery_store','discount_supermarket','hypermarket','warehouse_store','convenience_store','food_store','general_store','discount_store']);
   return (results||[]).filter(r=>![r.typeKey,...(r.types||[])].some(t=>practical.has(String(t||'').toLowerCase())));
 }
+function resultSubtype(r,category){
+  const t=String(r.typeKey||r.type||'').toLowerCase();
+  if(category==='outdoors'){
+    if(t.includes('playground'))return 'playground';
+    if(t.includes('zoo')||t.includes('wildlife'))return 'wildlife';
+    if(t.includes('garden')||t.includes('botanical'))return 'garden';
+    if(t.includes('hiking')||t.includes('cycling'))return 'trail';
+    if(t.includes('preserve')||t.includes('refuge'))return 'nature';
+    if(t.includes('scenic')||t.includes('viewpoint'))return 'scenic';
+    if(t.includes('picnic'))return 'picnic';
+    if(t.includes('park'))return 'park';
+  }
+  if(category==='shopping'){
+    if(t.includes('mall'))return 'mall';if(t.includes('market'))return 'market';if(t.includes('gift'))return 'gift';
+    if(t.includes('book')||t.includes('toy'))return 'books-toys';if(t.includes('clothing')||t.includes('shoe')||t.includes('jewelry')||t.includes('cosmetics'))return 'fashion';
+  }
+  if(category==='indoor'){
+    if(t.includes('aquarium'))return 'aquarium';if(t.includes('museum')||t.includes('gallery'))return 'museum';if(t.includes('movie')||t.includes('theater'))return 'show';if(t.includes('bowling'))return 'bowling';if(t.includes('playground'))return 'play';
+  }
+  if(category==='thrills'){
+    if(t.includes('amusement_park')||t==='water_park')return 'theme-park';if(t.includes('kart'))return 'karting';if(t.includes('miniature_golf'))return 'mini-golf';if(t.includes('adventure')||t.includes('paintball')||t.includes('off_roading'))return 'adventure';
+  }
+  if(category==='chill'){if(t==='beach')return 'beach';if(t.includes('spa')||t.includes('wellness')||t.includes('sauna'))return 'spa';if(t.includes('scenic'))return 'scenic';}
+  return t||category||'other';
+}
+function diversifyResults(results,category){
+  const groups=new Map();
+  for(const r of results||[]){const key=resultSubtype(r,category);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+  // Within each experience type, prefer the nearer option; then round-robin
+  // across types so the first five feel like choices rather than duplicates.
+  for(const group of groups.values())group.sort((a,b)=>(a.distance??999)-(b.distance??999));
+  const out=[];let round=0,added=true;
+  while(added){added=false;for(const group of groups.values()){if(group[round]){out.push(group[round]);added=true;}}round++;}
+  return out;
+}
 module.exports=async function handler(req,res){
   if(req.method!=='GET'){res.status(405).json({error:'Method not allowed'});return;}
   const category=String(req.query.category||'');const lat=Number(req.query.lat),lon=Number(req.query.lon),miles=Number(req.query.miles||30);
@@ -117,7 +152,7 @@ module.exports=async function handler(req,res){
     try{results=await googlePlaces(category,lat,lon,radius);if(results?.length)source='Google Places';}catch(e){}
     if(!results?.length){results=await overpass(category,lat,lon,radius);source='OpenStreetMap fallback';}
     res.setHeader('Cache-Control','s-maxage=300, stale-while-revalidate=600');
-    if(category==='shopping')results=filterShopping(results);results=dedupeResults(results);
+    if(category==='shopping')results=filterShopping(results);results=dedupeResults(results);results=diversifyResults(results,category);
     res.status(200).json({category,source,results:(results||[]).slice(0,['outdoors','chill'].includes(category)?16:10)});
   }catch(e){res.status(503).json({error:'Discovery temporarily unavailable'});}
 };

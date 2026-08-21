@@ -235,3 +235,12 @@ Exact cm or ft/in height entry remains available later in Family settings for us
 Local discovery now filters more aggressively for places a family can genuinely visit. Outdoors uses a visitor-focused whitelist (public parks, zoos, botanical gardens, nature preserves, trails, playgrounds, scenic spots and similar). Generic `park` results must also look like a real public/visitor place; generic gardens, residential dog parks, landscaping/property businesses and private-access OpenStreetMap features are excluded.
 
 Suggested experience cards now include a short **What it’s like** description. These descriptions are generated from the place's primary venue type and are deliberately concise; they help the family decide whether the experience fits before opening Maps. Google editorial summaries are not requested, avoiding the additional Atmosphere data tier for this beta.
+
+
+## V2.2.14 — Experience-variety shortlists
+
+Discovery and mood recommendations now diversify by **experience subtype**, not just venue identity. The first pass deliberately shows one of each available kind before repeating a subtype (for example: playground, public park, garden, wildlife/zoo, trail/nature, scenic stop).
+
+For Outdoors & Explore, Google Places discovery now builds its candidate pool by popularity within the selected travel radius, then keeps the nearest candidate inside each subtype. This gives the app a better chance of finding meaningful visitor experiences instead of filling the top of the list with the nearest residential playgrounds.
+
+The same round-robin diversity principle is applied to Indoor, Thrills, Chill and Shopping where possible. If the local area genuinely has only one or two suitable subtypes, repeats are still allowed after the distinct options have been shown.
