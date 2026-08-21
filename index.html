@@ -155,7 +155,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.16</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.17</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -427,16 +427,19 @@
         <button id="backNewTrip" class="text-btn" type="button">← Back</button>
         <div class="eyebrow" id="finderEyebrow">DESTINATION FINDER · BETA</div>
         <h2 id="finderTitle">What kind of holiday sounds good?</h2>
-        <p id="finderCopy">Pick a few priorities. I’ll compare the destinations in our beta catalogue using the same mood logic as the trip planner.</p>
+        <p id="finderCopy">Choose up to 3 things that matter most. I’ll change the destination ideas around those priorities.</p>
         <div id="destinationMoodChips" class="finder-chip-grid">
-          <button class="finder-chip active" type="button" data-dest-mood="thrills">Thrills</button><button class="finder-chip" type="button" data-dest-mood="wildlife">Wildlife</button><button class="finder-chip active" type="button" data-dest-mood="beach">Beach</button><button class="finder-chip" type="button" data-dest-mood="sights">City sights</button><button class="finder-chip" type="button" data-dest-mood="outdoors">Outdoors</button><button class="finder-chip active" type="button" data-dest-mood="food">Food</button><button class="finder-chip" type="button" data-dest-mood="shopping">Shopping</button><button class="finder-chip" type="button" data-dest-mood="chill">Relaxing</button>
+          <button class="finder-chip" type="button" data-dest-mood="thrills">Thrills & Excitement</button><button class="finder-chip" type="button" data-dest-mood="wildlife">Wildlife</button><button class="finder-chip" type="button" data-dest-mood="beach">Beaches</button><button class="finder-chip" type="button" data-dest-mood="sights">Sights</button><button class="finder-chip" type="button" data-dest-mood="outdoors">Outdoors & Explore</button><button class="finder-chip" type="button" data-dest-mood="food">Food & Treats</button><button class="finder-chip" type="button" data-dest-mood="shopping">Shop & Browse</button><button class="finder-chip" type="button" data-dest-mood="chill">Chill & Recharge</button>
         </div>
-        <div class="finder-grid">
+        <div id="finderSelectionHint" class="finder-selection-hint">Choose at least one priority to get started.</div>
+        <div class="finder-grid finder-grid-four">
           <label class="field-group"><span id="finderBudgetLabel" class="field-label">Budget feel</span><select id="finderBudget"><option value="low">Value-conscious</option><option value="medium" selected>Comfortable</option><option value="high">Treat trip</option></select></label>
           <label class="field-group"><span id="finderLengthLabel" class="field-label">Trip length</span><select id="finderLength"><option value="short">3–4 days</option><option value="week" selected>5–8 days</option><option value="long">9+ days</option></select></label>
+          <label class="field-group"><span id="finderClimateLabel" class="field-label">Weather feel</span><select id="finderClimate"><option value="any">Any</option><option value="hot">Hot & sunny</option><option value="warm">Warm / mild</option><option value="cool">Cool / fresh</option></select></label>
+          <label class="field-group"><span id="finderSettingLabel" class="field-label">Holiday setting</span><select id="finderSetting"><option value="any">Any</option><option value="city">City</option><option value="coast">Coast / island</option><option value="nature">Nature / scenery</option><option value="mixed">A bit of everything</option></select></label>
         </div>
-        <button id="findDestinations" class="primary-btn full" type="button">Show me some ideas</button>
-        <div id="destinationFinderResults" class="destination-results"></div>
+        <button id="findDestinations" class="primary-btn full" type="button">Show me ideas</button>
+        <div id="destinationFinderResults" class="destination-results"><div class="finder-empty">Choose at least one priority to get started.</div></div>
       </div>
     </div>
   </div>

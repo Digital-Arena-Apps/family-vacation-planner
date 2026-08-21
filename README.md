@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.16
+# Family Vacation Planner — Destination Beta V2.2.17
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -274,3 +274,10 @@ The temporary Test Location and destination selectors include Nairobi, Anaheim a
 - Adds a beta **Destination Finder** so families can choose holiday priorities (thrills, wildlife, beach, sights, outdoors, food, shopping, relaxing), budget feel and trip length and receive ranked destination ideas from the current beta catalogue.
 
 This is an internationalisation foundation, not a claim that every legacy sentence in the beta is fully translated yet. New UI should be added through the translation dictionary rather than hard-coded strings.
+
+
+## V2.2.17 — Intuitive destination finder
+
+The destination finder is no longer seeded with the same three active priorities or limited to the original nine test destinations. Users start with a blank brief, choose up to three priorities, then refine by budget, trip length, climate and setting. The beta comparison library now covers a much broader mix of city, beach, wildlife, nature and theme-park destinations.
+
+Scoring now rewards destinations that satisfy the whole selected brief and heavily penalises destinations that are weak against a chosen must-have. `Show me different ideas` rotates through further suitable matches rather than returning the same shortlist. This is still a curated beta destination intelligence layer; it is deliberately separated from the UI so it can later be replaced or augmented with a live destination data service without redesigning the flow.
