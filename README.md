@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.1
+# Family Vacation Planner — Destination Beta V2.2.2
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -112,3 +112,17 @@ Remove or disable the testing section and forced-onboarding default before produ
 `Plan tomorrow` now opens a separate planning screen instead of immediately dumping ranked results onto Today. The family first chooses the kind of day they want tomorrow: Chill & Recharge, Indoor & Easy, Food & Treats, Outdoors & Explore, Thrills & Excitement, or Shop & Browse. A Best overall option remains available.
 
 The chosen mood then filters tomorrow-only recommendations while preserving the existing scoring for tomorrow weather, trip progress, distance, fixed plans, family fit, budget, park schedules and visited/repeat status. Results stay on the Tomorrow Planner screen.
+
+
+## V2.2.2 — Semantic mood filtering
+
+Tomorrow Planner moods now use hard eligibility gates before ranking. A venue can no longer appear in a mood merely because it is nearby, highly rated or coded as low energy. In particular, theme parks are reserved for **Thrills & Excitement** rather than leaking into **Chill & Recharge** through generic nature/energy tags.
+
+- **Chill & Recharge:** stay-in/reset, beaches, gentle parks/gardens/viewpoints.
+- **Indoor & Easy:** indoor attractions rather than generic food/shopping.
+- **Food & Treats:** food-first options only.
+- **Outdoors & Explore:** beaches, nature and outdoor exploration.
+- **Thrills & Excitement:** theme parks, rides, karting and high-energy experiences.
+- **Shop & Browse:** shopping-first options.
+
+Mood fit is now a semantic gate first, then distance, weather, trip status, time, budget and family fit rank the eligible choices.

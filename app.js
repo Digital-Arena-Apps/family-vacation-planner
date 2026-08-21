@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.1 — tomorrow-planner flow + branded trip-aware beta
+// Family Vacation Planner V2.2.2 — semantic mood gates + branded trip-aware beta
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -496,14 +496,37 @@ async function seedLocalDiscovery(){
 function tomorrowTargetDate(){const d=new Date();d.setDate(d.getDate()+1);return d;}
 function tomorrowMoodTitle(mood){return ({chill:'Chill & Recharge',indoor:'Indoor & Easy',food:'Food & Treats',outdoors:'Outdoors & Explore',thrills:'Thrills & Excitement',shopping:'Shop & Browse'}[mood]||'Best overall');}
 function tomorrowMoodMatches(a,mood){
-  if(!mood)return true;const tags=a.tags||[];
-  if(mood==='chill')return a.category==='stayin'||a.energy<=1||a.category==='beach'||tags.includes('nature');
-  if(mood==='indoor')return a.category==='indoor'||a.category==='shopping'||a.category==='food'||tags.includes('indoor');
-  if(mood==='food')return a.category==='food'||tags.includes('food');
-  if(mood==='outdoors')return a.category==='beach'||tags.includes('nature')||(a.category==='park'&&a.energy<=2);
-  if(mood==='thrills')return a.category==='park'||tags.includes('rides')||a.energy>=3;
-  if(mood==='shopping')return a.category==='shopping'||tags.includes('shopping');
-  return a.category===mood||tags.includes(mood);
+  if(!mood)return true;
+  const tags=a.tags||[], category=a.category||'', placeType=String(a.placeType||'').toLowerCase();
+
+  // A mood is an intent, not just a score modifier. Hard-gate venue types first
+  // so a highly rated/nearby place cannot leak into the wrong kind of day.
+  if(category==='park')return mood==='thrills';
+
+  if(mood==='chill'){
+    if(category==='stayin'||category==='beach')return true;
+    if(category!=='outdoors')return false;
+    // Keep recharge ideas genuinely gentle: parks, gardens and viewpoints are fine;
+    // hiking, zoos and playground-style outings belong under Outdoors & Explore.
+    if(!placeType)return (a.energy??2)<=1;
+    return ['park','botanical_garden','garden','viewpoint'].some(t=>placeType.includes(t));
+  }
+  if(mood==='indoor')return category==='indoor' || (a.discovered&&tags.includes('indoor')&&category!=='shopping'&&category!=='food');
+  if(mood==='food')return category==='food';
+  if(mood==='outdoors')return category==='beach'||category==='outdoors'||(tags.includes('nature')&&category==='activity');
+  if(mood==='thrills')return category==='park'||tags.includes('rides')||(a.energy??0)>=3;
+  if(mood==='shopping')return category==='shopping';
+  return category===mood||tags.includes(mood);
+}
+function tomorrowMoodAffinity(a,mood){
+  if(!mood)return 0;
+  if(mood==='chill'){if(a.category==='stayin')return 24;if(a.category==='beach')return 14;if(a.category==='outdoors')return 10;}
+  if(mood==='indoor'&&a.category==='indoor')return 12;
+  if(mood==='food'&&a.category==='food')return 14;
+  if(mood==='outdoors'&&(a.category==='outdoors'||a.category==='beach'))return 12;
+  if(mood==='thrills'&&(a.category==='park'||(a.tags||[]).includes('rides')))return 14;
+  if(mood==='shopping'&&a.category==='shopping')return 12;
+  return 0;
 }
 async function seedMoodDiscovery(mood){
   if(isFloridaContext()||!state.coords)return;
@@ -528,7 +551,11 @@ async function runRecommendations(forcedTag=null,mode='now'){
   if(!isFloridaContext()){if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else await seedLocalDiscovery();}
   const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);if(mode==='tomorrow'&&forcedTag==='chill')candidates.push(stayHomeRecommendation);
   let list=candidates.map(a=>({...a,...recommendationScore(a,{targetDate,mode})})).filter(a=>a.score>-500);
-  if(forcedTag)list=list.filter(a=>mode==='tomorrow'?tomorrowMoodMatches(a,forcedTag):(a.category===forcedTag||a.tags.includes(forcedTag)));list.sort((a,b)=>b.score-a.score);
+  if(forcedTag){
+    list=list.filter(a=>mode==='tomorrow'?tomorrowMoodMatches(a,forcedTag):(a.category===forcedTag||a.tags.includes(forcedTag)));
+    if(mode==='tomorrow')list=list.map(a=>({...a,score:Math.min(99,a.score+tomorrowMoodAffinity(a,forcedTag))}));
+  }
+  list.sort((a,b)=>b.score-a.score);
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
   if(mode==='tomorrow'){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
@@ -571,7 +598,7 @@ const discoveryMeta={
 };
 function discoveredActivity(x,category){
   const m=discoveryMeta[category]||discoveryMeta.sights,level=x.priceLevel==null?2:Math.max(1,Math.min(3,x.priceLevel||1));
-  return {id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||''};
+  return {id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||'',sourceCategory:category,placeType:x.typeKey||x.type||''};
 }
 function rememberDiscovered(a){state.discovered[a.id]=a;localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));}
 function discoveryCard(x,category){
