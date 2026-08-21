@@ -1,8 +1,8 @@
-# Family Vacation Planner — Florida Beta V1.5
+# Family Vacation Planner — Florida Beta V1.6
 
 Mobile-first PWA prototype for family vacation decision support.
 
-## What changed in V1.5
+## What changed in V1.6
 
 ### Nearby essentials: server-backed
 The browser no longer calls public map infrastructure directly.
@@ -27,12 +27,12 @@ The Parks screen now combines:
 - tomorrow's crowd outlook
 - the existing family-fit steer
 
-Important: the crowd outlook is **not official park attendance or capacity**. V1.5 uses a transparent beta heuristic based on season, day-of-week, weather and a small park-specific pressure modifier. This is intentionally separated from the live wait feed so a licensed historical source or our own recorded history can replace it later without redesigning the feature.
+Important: the crowd outlook is **not official park attendance or capacity**. V1.6 uses a transparent beta heuristic based on season, day-of-week, weather and a small park-specific pressure modifier. This is intentionally separated from the live wait feed so a licensed historical source or our own recorded history can replace it later without redesigning the feature.
 
 ThemeParks.wiki live data is suitable for wait-time products under its current public API terms, and its terms allow derived analysis and recording your own history. Its maintained historical archive is moving toward paid access, so a commercial launch should use licensed history or a first-party history store rather than scrape third-party crowd calendars.
 
 ### Design-system refresh
-V1.5 applies the supplied Family Vacation Planner design guidance:
+V1.6 applies the supplied Family Vacation Planner design guidance:
 - warm `#F8F9FA` canvas
 - deep slate `#0F172A`
 - coral `#FF6B6B` primary CTA
@@ -47,13 +47,13 @@ V1.5 applies the supplied Family Vacation Planner design guidance:
 
 The project remains deployable directly from the GitHub repo to Vercel.
 
-V1.5 adds one new root file:
+V1.6 adds one new root file:
 
 - `nearby.js`
 
 `vercel.json` uses Vercel's legacy `builds` routing for this beta so the function can stay at the repository root, which makes mobile GitHub uploads easier. `/api/nearby` routes to that function.
 
-Upload the V1.5 files to the existing repository and commit to `main`; the connected Vercel project should redeploy automatically.
+Upload the V1.6 files to the existing repository and commit to `main`; the connected Vercel project should redeploy automatically.
 
 ## Data/product notes
 
@@ -62,3 +62,19 @@ Upload the V1.5 files to the existing repository and commit to `main`; the conne
 - Nearby places: OpenStreetMap public infrastructure for beta only.
 - Crowd outlook: our own transparent beta heuristic, not official capacity.
 - Maps: used only for final directions/fallback.
+
+
+## V1.6 food ratings
+
+The Food page works without a paid key using the OpenStreetMap fallback, but ratings and provider price levels require Google Places API (New).
+
+To enable them in Vercel:
+
+1. Enable **Places API (New)** in a Google Cloud project with billing enabled.
+2. Create an API key and restrict that key to the Places API.
+3. In the Vercel project, add an environment variable named `GOOGLE_PLACES_API_KEY`.
+4. Redeploy the project.
+
+The key stays server-side in `food.js`; it is never shipped to the browser. Family spend amounts shown by the app are estimates derived from the provider's price band and the saved family profile.
+
+V1.6 also reads park schedule data from ThemeParks.wiki so closed parks no longer appear as LIVE with missing waits.

@@ -79,7 +79,7 @@
       <div class="brand-lockup">
         <div class="brand-badge" aria-hidden="true">☀</div>
         <div>
-          <div class="brand-kicker">FLORIDA BETA · V1.5</div>
+          <div class="brand-kicker">FLORIDA BETA · V1.6</div>
           <h1>Family Vacation Planner</h1>
         </div>
       </div>
@@ -122,7 +122,7 @@
           <div class="quick-grid">
             <button class="quick-card quick-relax" data-quick="stayin"><span>🏠</span><b>Stay in</b><small>Villa / hotel reset day</small></button>
             <button class="quick-card quick-indoor" data-quick="indoor"><span>☂</span><b>Indoor attractions</b><small>Get out, stay cool & dry</small></button>
-            <button class="quick-card quick-food" data-quick="food"><span>🍽</span><b>Food</b><small>With family budget estimates</small></button>
+            <button class="quick-card quick-food" data-quick="food"><span>🍽</span><b>Food</b><small>Ratings, distance & family spend</small></button>
             <button class="quick-card quick-logistics" data-quick="essentials"><span>🛒</span><b>Essentials</b><small>Groceries, pharmacy, fuel & help</small></button>
             <button class="quick-card quick-park" data-quick="park"><span>🎢</span><b>Theme parks</b><small>Live waits + family fit</small></button>
             <button class="quick-card quick-shopping" data-quick="shopping"><span>🛍</span><b>Shopping</b><small>Malls, outlets & retail</small></button>
@@ -138,6 +138,25 @@
           <button class="chip active" data-filter="all">All</button><button class="chip" data-filter="indoor">Indoor</button><button class="chip" data-filter="park">Parks</button><button class="chip" data-filter="food">Food</button><button class="chip" data-filter="shopping">Shopping</button><button class="chip" data-filter="beach">Outdoors</button><button class="chip" data-filter="lowcost">Low cost</button>
         </div>
         <div id="exploreList" class="card-list"></div>
+      </section>
+
+
+      <section class="view" data-view="food">
+        <div class="page-heading food-heading">
+          <button class="text-btn inline-back" data-back="today">← Today</button>
+          <div class="eyebrow">FOOD NEAR YOU</div>
+          <h2>Where shall we eat?</h2>
+          <p>Compare nearby options without bouncing between apps. Distance, ratings and price guidance first — Maps only when you choose Directions.</p>
+        </div>
+        <div class="food-sort-row" id="foodSort">
+          <button class="chip active" data-food-sort="distance">Closest</button>
+          <button class="chip" data-food-sort="rating">Top rated</button>
+          <button class="chip" data-food-sort="budget">Budget</button>
+          <button class="chip" data-food-sort="treat">Treat night</button>
+        </div>
+        <div id="foodStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding food nearby…</b><small>Using your current location.</small></div></div>
+        <div id="foodResults" class="card-list food-results"></div>
+        <div class="notice"><b>Budget note:</b> $ levels come from the places provider where available. Family spend figures are planning estimates, not menu quotes.</div>
       </section>
 
       <section class="view" data-view="essentials">

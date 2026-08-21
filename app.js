@@ -138,7 +138,7 @@ function setView(name){
   $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target===name));
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='explore')renderExplore(); if(name==='saved')renderSaved(); if(name==='parks'&&!$('#parksList').children.length)loadParks();
-  if(name==='essentials')renderEssentials(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm();
+  if(name==='essentials')renderEssentials(); if(name==='food')loadFood(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm();
 }
 $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.target)));
 $$('[data-back]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.back)));
@@ -199,7 +199,7 @@ function runRecommendations(forcedTag=null){
   $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#whatNowBtn').addEventListener('click',()=>runRecommendations());$('#rerunBtn').addEventListener('click',()=>runRecommendations());
-$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='family'){showOnboarding();return;}if(q==='essentials'||q==='stayin'){setView(q);return;}runRecommendations(q);}));
+$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='family'){showOnboarding();return;}if(q==='food'||q==='essentials'||q==='stayin'){setView(q);return;}runRecommendations(q);}));
 
 function placeCard(a,withScore=false,hero=false){
   const d=distMiles(a),saved=state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),meta=[d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi away`:null,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a);
@@ -262,16 +262,93 @@ async function loadNearbyEssential(id){
     $('.retry-essential').addEventListener('click',()=>loadNearbyEssential(id));
   }
 }
+
+let foodResultsCache=[];
+let foodSortMode='distance';
+function familyCounts(){
+  const members=state.profile.members||[];
+  const adults=Math.max(1,members.filter(m=>(+m.age||0)>=18).length || 1);
+  const children=members.filter(m=>(+m.age||0)<18).length;
+  return {adults,children};
+}
+function foodPriceText(level){
+  if(level===1)return '$'; if(level===2)return '$$'; if(level===3)return '$$$'; if(level>=4)return '$$$$'; return '$–$$';
+}
+function familyMealEstimate(level){
+  const {adults,children}=familyCounts();
+  const bands={1:[10,18,7,12],2:[18,35,10,20],3:[35,60,18,30],4:[60,100,25,45]};
+  const b=bands[level]||[16,32,9,18];
+  const low=Math.round(adults*b[0]+children*b[2]),high=Math.round(adults*b[1]+children*b[3]);
+  return `Family est. $${low}–$${high}`;
+}
+function foodDirectionsUrl(x){return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(x.lat+','+x.lon)}&travelmode=driving`;}
+function foodCard(x){
+  const rating=x.rating?`<span class="food-rating">★ ${Number(x.rating).toFixed(1)}${x.userRatingCount?` <small>(${x.userRatingCount})</small>`:''}</span>`:`<span class="food-rating muted-rating">Rating unavailable</span>`;
+  const price=foodPriceText(x.priceLevel),estimate=familyMealEstimate(x.priceLevel);
+  const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance);
+  const type=x.typeLabel||'Food & drink';
+  return `<article class="place-card food-card"><div class="food-card-top"><div><div class="place-title">${escapeHtml(x.name)}</div><div class="place-meta">${escapeHtml(type)} · ${d} mi away</div></div>${rating}</div><div class="food-budget-row"><span class="price-pill">${price}</span><b>${estimate}</b></div>${x.address?`<div class="reason">${escapeHtml(x.address)}</div>`:''}<div class="place-actions"><a class="small-btn primary-small direction-link" href="${foodDirectionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+}
+function renderFoodResults(){
+  let list=[...foodResultsCache];
+  if(foodSortMode==='rating')list.sort((a,b)=>(b.rating||-1)-(a.rating||-1)||a.distance-b.distance);
+  else if(foodSortMode==='budget')list.sort((a,b)=>(a.priceLevel||2)-(b.priceLevel||2)||a.distance-b.distance);
+  else if(foodSortMode==='treat')list.sort((a,b)=>(b.priceLevel||2)-(a.priceLevel||2)||(b.rating||0)-(a.rating||0));
+  else list.sort((a,b)=>a.distance-b.distance);
+  $('#foodResults').innerHTML=list.map(foodCard).join('');
+}
+async function loadFood(force=false){
+  if(foodResultsCache.length&&!force){renderFoodResults();return;}
+  if(!state.coords){$('#foodStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Turn on location and try again.</small></div>';return;}
+  $('#foodStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding nearby food…</b><small>Ratings and price guidance where available.</small></div>';
+  $('#foodResults').innerHTML='';
+  const {lat,lon}=state.coords;
+  try{
+    const r=await fetch(`/api/food?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,{headers:{Accept:'application/json'}});
+    if(!r.ok)throw new Error(`Food ${r.status}`);
+    const data=await r.json();foodResultsCache=Array.isArray(data.results)?data.results:[];
+    if(!foodResultsCache.length)throw new Error('No food results');
+    const rich=foodResultsCache.some(x=>x.rating||x.priceLevel);
+    $('#foodStatus').innerHTML=`<span>🍽</span><div><b>${foodResultsCache.length} nearby options</b><small>${rich?'Ratings + price guidance available':'Nearby shortlist found · ratings need Google Places to be enabled'} · ${escapeHtml(data.source||'places data')}</small></div>`;
+    $('#foodSort').querySelector('[data-food-sort="rating"]').disabled=!foodResultsCache.some(x=>x.rating);
+    renderFoodResults();
+  }catch(err){
+    $('#foodStatus').innerHTML='<span>🧭</span><div><b>Food lookup is temporarily unavailable</b><small>Try again in a moment.</small></div>';
+    $('#foodResults').innerHTML='<article class="place-card"><div class="reason">We could not load nearby restaurants just now.</div><div class="place-actions"><button class="small-btn primary-small retry-food">Try again</button></div></article>';
+    $('.retry-food').addEventListener('click',()=>loadFood(true));
+  }
+}
+$$('[data-food-sort]').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;foodSortMode=b.dataset.foodSort;$$('[data-food-sort]').forEach(x=>x.classList.toggle('active',x===b));renderFoodResults();}));
+
 function renderStayIn(){
   const storm=state.weather&&[95,96,99].includes(state.weather.current.weather_code),rain=state.weather?.daily?.precipitation_probability_max?.[0]||0;
   $('#stayInList').innerHTML=stayInIdeas.map(i=>{let note=i.note;if(i.weatherSensitive&&(storm||rain>65))note='Skip the pool for now: weather suggests a safer indoor reset instead.';return `<article class="place-card stay-card"><div class="place-top"><div class="place-icon">${i.icon}</div><div class="place-main"><div class="place-title">${i.name}</div></div></div><div class="reason">${note}</div>${i.search?`<div class="place-actions"><button class="small-btn primary-small stay-search" data-search="${i.search}">Find nearby</button></div>`:''}</article>`;}).join('');
   $$('.stay-search').forEach(b=>b.addEventListener('click',()=>mapsSearch(b.dataset.search)));
 }
 
+async function loadParkSchedule(p){
+  try{
+    const r=await fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/schedule`);if(!r.ok)return null;
+    const data=await r.json(),entries=Array.isArray(data)?data:(data.schedule||[]);
+    const today=new Date(),key=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const operating=entries.find(e=>String(e.date||'').slice(0,10)===key&&String(e.type||'OPERATING').toUpperCase()==='OPERATING')||entries.find(e=>String(e.date||'').slice(0,10)===key);
+    if(!operating)return null;
+    const openRaw=operating.openingTime||operating.opening_time||operating.startTime||operating.start;
+    const closeRaw=operating.closingTime||operating.closing_time||operating.endTime||operating.end;
+    const open=openRaw?new Date(openRaw):null,close=closeRaw?new Date(closeRaw):null,now=new Date();
+    let status='UNKNOWN';
+    if(open&&close){if(now<open)status='NOT_OPEN_YET';else if(now>=close)status='CLOSED';else if((close-now)/60000<=60)status='CLOSING_SOON';else status='OPEN';}
+    return {open,close,status};
+  }catch(e){return null;}
+}
+function timeLabel(d){return d?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—';}
 async function loadPark(p){
-  const r=await fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/live`);
-  if(!r.ok)throw new Error();
-  const data=await r.json(),raw=data.liveData||data.children||data;
+  const [liveR,schedule]=await Promise.all([
+    fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/live`),
+    loadParkSchedule(p)
+  ]);
+  if(!liveR.ok)throw new Error();
+  const data=await liveR.json(),raw=data.liveData||data.children||data;
   const rows=(Array.isArray(raw)?raw:[]).map(x=>{
     const standby=x.queue?.STANDBY?.waitTime??x.queue?.standby?.waitTime??x.waitTime??null;
     return {name:x.name||x.entity?.name||'Attraction',wait:Number.isFinite(standby)?standby:null,status:x.status||'',lastUpdated:x.lastUpdated||null};
@@ -283,35 +360,32 @@ async function loadPark(p){
   const outlook=crowdOutlook(p,new Date());
   const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
   const tomorrowOutlook=crowdOutlook(p,tomorrow);
-  const result={...p,avg,median,top,count:open.length,outlook,tomorrowOutlook};
-  result.heat=waitHeat(avg);
-  result.value=parkValueSignal(result);
-  return result;
+  const result={...p,avg,median,top,count:open.length,outlook,tomorrowOutlook,schedule};
+  result.heat=waitHeat(avg);result.value=parkValueSignal(result);return result;
 }
 function parkFit(p){if(p.style==='thrill'&&(smallerVisitors().length||lowThrill()))return 'Mixed fit for your family';return 'Broad family fit';}
 function tempPill(label,tone){return `<span class="pressure-pill ${tone}"><span class="pressure-dot"></span>${label}</span>`;}
+function parkStatusPill(p){
+  const s=p.schedule?.status;
+  if(s==='CLOSED')return '<span class="park-status closed">CLOSED</span>';
+  if(s==='NOT_OPEN_YET')return '<span class="park-status soon">OPENS LATER</span>';
+  if(s==='CLOSING_SOON')return '<span class="park-status warning">CLOSING SOON</span>';
+  if(s==='OPEN')return '<span class="park-status">OPEN</span>';
+  return p.count?'<span class="park-status">LIVE</span>':'<span class="park-status closed">NO LIVE DATA</span>';
+}
+function parkHoursLine(p){const s=p.schedule;if(!s||!s.open||!s.close)return '';return `<div class="park-hours">Today · ${timeLabel(s.open)}–${timeLabel(s.close)}</div>`;}
 function parkCard(p){
   if(p.error)return `<article class="park-card"><div class="park-head"><div class="park-name">${p.name}</div><span class="park-status closed">Unavailable</span></div><p class="park-error">Live data couldn't be loaded right now.</p></article>`;
+  const closed=['CLOSED','NOT_OPEN_YET'].includes(p.schedule?.status);
+  const heat=closed?tempPill('Not live','neutral'):tempPill(`${p.heat.band}`,p.heat.tone);
+  const value=closed?`<div class="value-signal neutral"><div class="value-title">${p.schedule?.status==='NOT_OPEN_YET'?'Park has not opened yet':'Park is closed'}</div><div class="value-copy">Crowd outlook remains useful; live queue pressure resumes when the park is operating.</div></div>`:`<div class="value-signal ${p.value.tone}"><div class="value-title">${p.value.label}</div><div class="value-copy">${p.value.copy}</div></div>`;
   return `<article class="park-card pressure-card">
-    <div class="park-head">
-      <div><div class="park-name">${p.name}</div><div class="park-fit">${parkFit(p)}</div></div>
-      <span class="park-status">LIVE</span>
-    </div>
-    <div class="pressure-strip">
-      <div class="pressure-block"><small>Crowd outlook</small>${tempPill(`${p.outlook.band} · ${p.outlook.score}/100`,p.outlook.tone)}</div>
-      <div class="pressure-block"><small>Live wait heat</small>${tempPill(`${p.heat.band}`,p.heat.tone)}</div>
-    </div>
-    <div class="park-waits triple">
-      <div class="wait-stat"><small>Avg wait</small><b>${p.avg==null?'—':p.avg+' min'}</b></div>
-      <div class="wait-stat"><small>Median</small><b>${p.median==null?'—':p.median+' min'}</b></div>
-      <div class="wait-stat"><small>Rides live</small><b>${p.count}</b></div>
-    </div>
-    <div class="value-signal ${p.value.tone}">
-      <div class="value-title">${p.value.label}</div>
-      <div class="value-copy">${p.value.copy}</div>
-    </div>
+    <div class="park-head"><div><div class="park-name">${p.name}</div><div class="park-fit">${parkFit(p)}</div>${parkHoursLine(p)}</div>${parkStatusPill(p)}</div>
+    <div class="pressure-strip"><div class="pressure-block"><small>Crowd outlook</small>${tempPill(`${p.outlook.band} · ${p.outlook.score}/100`,p.outlook.tone)}</div><div class="pressure-block"><small>Live wait heat</small>${heat}</div></div>
+    <div class="park-waits triple"><div class="wait-stat"><small>Avg wait</small><b>${closed?'—':(p.avg==null?'—':p.avg+' min')}</b></div><div class="wait-stat"><small>Median</small><b>${closed?'—':(p.median==null?'—':p.median+' min')}</b></div><div class="wait-stat"><small>Rides live</small><b>${closed?'—':p.count}</b></div></div>
+    ${value}
     <div class="tomorrow-outlook"><span>Tomorrow outlook</span>${tempPill(`${p.tomorrowOutlook.band} · ${p.tomorrowOutlook.score}/100`,p.tomorrowOutlook.tone)}</div>
-    <div class="ride-list">${p.top.length?p.top.map(r=>`<div class="ride-row"><span>${r.name}</span><span>${r.wait} min</span></div>`).join(''):'<div class="ride-row"><span>No standby waits reporting</span></div>'}</div>
+    <div class="ride-list">${closed?'<div class="ride-row"><span>Live waits resume while the park is open</span></div>':(p.top.length?p.top.map(r=>`<div class="ride-row"><span>${r.name}</span><span>${r.wait} min</span></div>`).join(''):'<div class="ride-row"><span>No standby waits reporting</span></div>')}</div>
   </article>`;
 }
 async function loadParks(){

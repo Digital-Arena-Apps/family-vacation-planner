@@ -217,3 +217,7 @@ button,a.small-btn,input,select{min-height:48px}
   .park-waits.triple{grid-template-columns:1fr 1fr}
   .park-waits.triple .wait-stat:last-child{grid-column:1/-1}
 }
+
+
+/* V1.6 — in-app food finder + schedule-aware parks */
+.food-sort-row{display:flex;gap:8px;overflow:auto;padding:0 2px 13px;scrollbar-width:none}.food-sort-row .chip:disabled{opacity:.38;cursor:not-allowed}.food-results{margin-top:12px}.food-card{padding:18px}.food-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.food-rating{background:#fff4d9;color:#7b5600;padding:7px 9px;border-radius:999px;font-weight:850;font-size:12px;white-space:nowrap}.food-rating small{font-weight:650;color:#8a7650}.muted-rating{background:#eef2f6;color:#64748b}.food-budget-row{display:flex;align-items:center;gap:9px;margin-top:13px;color:#334155;font-size:13px}.price-pill{background:#fff0ec;color:#b84f3d;padding:6px 9px;border-radius:999px;font-weight:900;letter-spacing:.03em}.park-hours{font-size:11px;color:#64748b;margin-top:4px;font-weight:700}.park-status.warning{background:#fff0d1;color:#9a5b00}.park-status.soon{background:#eaf4ff;color:#176aa6}.pressure-pill.neutral{background:#eef2f6;color:#64748b}.value-signal.neutral{background:#f1f5f9;color:#475569}

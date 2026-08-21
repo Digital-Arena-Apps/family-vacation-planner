@@ -8,6 +8,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "food.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     },
@@ -40,6 +44,10 @@
     {
       "src": "/api/nearby",
       "dest": "/nearby.js"
+    },
+    {
+      "src": "/api/food",
+      "dest": "/food.js"
     },
     {
       "handle": "filesystem"
