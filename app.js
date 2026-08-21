@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.9 — count-first crew onboarding + clean profile avatars
+// Family Vacation Planner V2.2.11 — contextual holiday copy + trip-aware dayparts
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -24,7 +24,7 @@ const state = {
   profile:{...defaultProfile, ...(savedProfile || {}), members:(savedProfile?.members?.length ? savedProfile.members : defaultMembers())},
   saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), tripStatuses:JSON.parse(localStorage.getItem('ffvp_trip_statuses') || '{}'), plans:JSON.parse(localStorage.getItem('ffvp_plans') || '[]'),
   discovered:JSON.parse(localStorage.getItem('ffvp_discovered') || '{}'), prepDone:JSON.parse(localStorage.getItem('ffvp_prep_done') || '{}'),
-  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}
+  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}, tomorrowMood:localStorage.getItem('ffvp_tomorrow_mood') || null
 };
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
@@ -185,6 +185,13 @@ function renderQuickMoods(){
       ]
     };
   }
+  if(t?.inTrip){
+    const now=new Date(),h=now.getHours(),stage=holidayStage(t);
+    if(h<5){cfg={...cfg,title:'Planning later today?',copy:'Choose the kind of day you want when everyone wakes up — I’ll turn the mood into suitable experiences nearby.'};}
+    else if(h>=22){cfg={...cfg,title:'Thinking ahead to tomorrow?',copy:'Pick the vibe for tomorrow now, or leave it until morning. No need to squeeze another big plan into tonight.'};}
+    else if(stage==='final-days'){cfg={...cfg,title:'A few days left — what still feels worth doing?',copy:'Choose the mood first and I’ll focus the remaining time on experiences that still feel worth the effort.'};}
+    else if(stage==='early'){cfg={...cfg,title:'What are you in the mood for?',copy:'The trip is still young — choose the kind of day that fits the crew rather than trying to tick everything off at once.'};}
+  }
   $('#quickStartTitle').textContent=cfg.title;$('#quickStartCopy').textContent=cfg.copy;
   cfg.items.forEach((item,i)=>{
     const b=$(`#quickMood${i+1}`);if(!b)return;
@@ -325,23 +332,66 @@ function renderPrep(){
   $('#prepChecklist').innerHTML=prepSuggestions(days,dest.region).map(([id,text])=>`<label class="prep-item"><input type="checkbox" data-prep-id="${id}" ${done[id]?'checked':''}><span><b>${done[id]?'Done':'Suggested prep'}</b><small>${escapeHtml(text)}</small></span></label>`).join('');
   $$('.prep-item input',$('#prepChecklist')).forEach(i=>i.addEventListener('change',()=>{state.prepDone[key]={...(state.prepDone[key]||{}),[i.dataset.prepId]:i.checked};localStorage.setItem('ffvp_prep_done',JSON.stringify(state.prepDone));renderPrep();}));
 }
+function holidayStage(t){
+  if(!t)return 'unknown';
+  if(t.before){const d=daysUntilArrival(t);return d<=1?'imminent':d<=7?'final-countdown':d<=30?'countdown':'planning';}
+  if(t.after)return 'after';
+  if(t.departureDay)return 'departure';
+  if(t.daysUntilDeparture<=2)return 'final-days';
+  if(t.index<=Math.max(2,Math.ceil(t.total*.25)))return 'early';
+  if(t.index>=Math.ceil(t.total*.6))return 'later';
+  return 'middle';
+}
+function countdownLabel(days,dest){
+  if(days===0)return 'Trip day is here';
+  if(days===1)return `1 sleep to ${dest}`;
+  if(days<=30)return `${days} sleeps to ${dest}`;
+  return `${days} days to ${dest}`;
+}
+function tripStageLine(t){
+  if(!t)return 'Add your vacation dates and I’ll pace the planning around your trip.';
+  const stage=holidayStage(t);
+  if(stage==='departure')return 'Departure day — keep plans light, close and easy to abandon if travel timings move.';
+  if(stage==='final-days')return `Only ${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} left after today — make the remaining time count without exhausting everyone.`;
+  if(stage==='early')return 'The holiday is still young — there’s no need to cram everything into today.';
+  if(stage==='middle')return 'You’re into the rhythm of the trip now — a good time to balance must-dos with recovery.';
+  if(stage==='later')return `${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} remain after today — worth checking what is still on the must-do list.`;
+  return 'I’ll keep recommendations paced around the time you have left.';
+}
+function moodFutureLine(mood,label='tomorrow'){
+  return ({
+    thrills:`Get some sleep — ${label} is shaping up to be a day of excitement.`,
+    chill:`Get some sleep — ${label} can be a proper recharge day.`,
+    outdoors:`Get some sleep — ${label} is for fresh air and exploring.`,
+    indoor:`Get some sleep — ${label} can stay easy, comfortable and weather-proof.`,
+    food:`Get some sleep — ${label} is looking good for food and treats.`,
+    shopping:`Get some sleep — ${label} can be a relaxed browse-and-shop day.`
+  }[mood]||'Get some sleep — there’s another holiday day waiting for you.');
+}
+function contextualRestLine(now=new Date()){
+  const t=tripContext(now),label=isOvernightWindow(now)?'later today':'tomorrow';
+  if(t?.departureDay)return 'Get some sleep — checkout and travel will come around quickly, so keep the next stretch easy.';
+  if(t?.daysUntilDeparture<=2&&!state.tomorrowMood)return `Get some sleep — there ${t.fullDaysRemaining===1?'is':'are'} only ${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} left after today, so start the next one rested.`;
+  return moodFutureLine(state.tomorrowMood,label);
+}
 function updateTripPulse(){
   const box=$('#tripPulse'),title=$('#tripPulseTitle'),copy=$('#tripPulseCopy');if(!box)return;
   box.classList.remove('hidden');const t=tripContext();
   if(!t){title.textContent='Add your vacation dates';copy.textContent='I’ll use them to pace recommendations, countdown and prep.';renderPrep();return;}
-  if(t.before){const days=daysUntilArrival(t);title.textContent=days===0?'Trip starts today':`${days} day${days===1?'':'s'} until ${destinationPreset().short}`;copy.textContent='Countdown mode is on — prep suggestions will change as departure gets closer.';renderPrep();return;}
-  if(t.after){title.textContent='Trip complete';copy.textContent='Your visited places are waiting in Trip memories.';renderPrep();return;}
-  if(t.departureDay){title.textContent='Departure day';copy.textContent='I’ll favour short, nearby plans that fit around checkout and travel.';renderPrep();return;}
+  if(t.before){const days=daysUntilArrival(t),dest=destinationPreset().short;title.textContent=countdownLabel(days,dest);copy.textContent=days<=2?'Final checks now; the fun part is almost here.':days<=7?'One week or less — useful prep now means less admin on holiday.':'Build the must-do list now and leave room for spontaneous days too.';renderPrep();return;}
+  if(t.after){title.textContent='Trip complete';copy.textContent='Your visited places are waiting in Trip memories — a nice little record of where the holiday took you.';renderPrep();return;}
+  if(t.departureDay){title.textContent='Departure day';copy.textContent='No heroic planning today — short, nearby options that fit around checkout and travel win.';renderPrep();return;}
   title.textContent=`Day ${t.index} of ${t.total} · ${t.daysUntilDeparture} day${t.daysUntilDeparture===1?'':'s'} until departure`;
   const next=nextFixedPlan();
-  copy.textContent=next&&next.date===localDateKey()?`Next fixed plan: ${next.title}${next.time?` at ${formatPlanTime(next.time)}`:''}.`:`${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} remain after today.`;renderPrep();
+  copy.textContent=next&&next.date===localDateKey()?`Next fixed plan: ${next.title}${next.time?` at ${formatPlanTime(next.time)}`:''}. ${tripStageLine(t)}`:tripStageLine(t);renderPrep();
 }
 function updateGreeting(){
-  const h=new Date().getHours(),part=h<5?'Still up?':h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const now=new Date(),h=now.getHours(),part=h<5?'Late night':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Evening';
   const family=state.profile.familyName?.trim();
-  const title=$('#todayGreeting'),copy=$('#todayGreetingCopy'),t=tripContext();
-  if(t?.before){const days=daysUntilArrival(t);if(title)title.textContent=days===0?'Trip day is here!':(family?`${days} days to go, ${family}`:`${days} days to go`);if(copy)copy.textContent=`Your ${destinationPreset().name} trip is in countdown mode.`;}
-  else{if(title)title.textContent=h<5?(family?`Still up, ${family}?`:'Still up?'):(family?`${part}, ${family}`:part);if(copy)copy.textContent=t?.inTrip?`Day ${t.index} of ${t.total}. Here’s what looks smartest for your crew.`:'Here’s what looks smartest for your crew right now.';}
+  const title=$('#todayGreeting'),copy=$('#todayGreetingCopy'),t=tripContext(now);
+  if(t?.before){const days=daysUntilArrival(t),dest=destinationPreset().short;if(title)title.textContent=family?`${countdownLabel(days,dest)}, ${family}`:countdownLabel(days,dest);if(copy)copy.textContent=days<=2?'Almost time — keep the prep list short and the excitement high.':days<=7?'The countdown is properly on now.':'Plenty of time to discover, shortlist and shape the trip.';}
+  else if(h<5){if(title)title.textContent=family?`Late one, ${family}?`:'Late one?';if(copy)copy.textContent=contextualRestLine(now);}
+  else{if(title)title.textContent=family?`${part}, ${family}`:part;if(copy)copy.textContent=t?.inTrip?`Day ${t.index} of ${t.total}. ${tripStageLine(t)}`:'Here’s what looks smartest for your crew right now.';}
   updateTripPulse();refreshDecisionCard();renderQuickMoods();
 }
 function mapsSearch(q){window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`,'_blank','noopener');}
@@ -423,14 +473,15 @@ function activityStatusSelect(a){
 function roughSpendTier(a){const n=memberSummary().length||2,f=currencyInfo().factor;return (a.cost===3?Math.max(120,n*45):a.cost===2?Math.max(60,n*25):Math.max(20,n*12))*f;}
 function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
 function refreshDecisionCard(){
-  const h=new Date().getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn'),t=tripContext();if(!title)return;
-  if(t?.before){const days=daysUntilArrival(t);title.textContent=days<=1?'Ready for the adventure?':`${days} days to go — let’s get trip-ready`;copy.textContent=`Use countdown mode to prep the essentials, discover ${destinationPreset().short} ideas and build a shortlist before you arrive.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Build trip ideas';tomorrow.classList.remove('hidden');return;}
+  const now=new Date(),h=now.getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn'),t=tripContext(now);if(!title)return;
+  if(t?.before){const days=daysUntilArrival(t),dest=destinationPreset().short;title.textContent=days<=1?'Nearly adventure time':countdownLabel(days,dest);copy.textContent=days<=2?'Final checks, travel-day basics and a short must-do list — no need to over-plan the fun out of it.':days<=7?`Use the final countdown to sort the useful bits and choose a few ${dest} experiences you really care about.`:`Discover ${dest}, build your must-do list and let the itinerary take shape gradually.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Build trip ideas';tomorrow.classList.remove('hidden');return;}
   tomorrow.textContent=h<5?'Plan later today':'Plan tomorrow';
-  if(h<5){title.textContent='Still up? Keep it easy or plan later today';copy.textContent='It’s after midnight, so I’ll treat this as late night — nearby, low-effort options only, or plan the coming daytime instead.';nowBtn.textContent='Something now';tomorrow.classList.remove('hidden');}
-  else if(h>=22){title.textContent='Call it a night or plan tomorrow?';copy.textContent='I’ll heavily favour nearby, low-effort options tonight — or build a stronger plan for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
-  else if(h>=20){title.textContent='Tonight or tomorrow?';copy.textContent='I’ll compare what is still worth doing now with the value of saving your energy for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
-  else if(h>=17){title.textContent='What works this evening?';copy.textContent='Travel time, closing windows and your next fixed plan matter much more now.';nowBtn.textContent='This evening';tomorrow.classList.remove('hidden');}
-  else{title.textContent='What should we do now?';copy.textContent='I’ll weigh up weather, distance, budget, energy, trip progress and your next fixed plan.';nowBtn.textContent='What Now?';tomorrow.classList.add('hidden');}
+  if(h<5){title.textContent='Time to recharge?';copy.textContent=`${contextualRestLine(now)} If you’re not ready to call it yet, I’ll only suggest genuinely nearby, low-effort options.`;nowBtn.textContent='One last easy option';tomorrow.classList.remove('hidden');}
+  else if(h>=22){title.textContent='Wind down or set up tomorrow?';copy.textContent=`${contextualRestLine(now)} I can still find something easy nearby if nobody is ready for bed.`;nowBtn.textContent='Keep tonight easy';tomorrow.classList.remove('hidden');}
+  else if(h>=20){title.textContent='One more thing tonight — or save it for tomorrow?';copy.textContent=`I’ll compare what is genuinely worth doing now with the value of starting tomorrow rested. ${tripStageLine(t)}`;nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
+  else if(h>=17){title.textContent='How should we finish the day?';copy.textContent=`Closing times and travel matter more now. ${tripStageLine(t)}`;nowBtn.textContent='Plan this evening';tomorrow.classList.remove('hidden');}
+  else if(h>=12){title.textContent='What fits the rest of today?';copy.textContent=`I’ll balance weather, travel, energy and the time left in the day. ${tripStageLine(t)}`;nowBtn.textContent='Find our best options';tomorrow.classList.add('hidden');}
+  else{title.textContent='What kind of day shall we make of it?';copy.textContent=`You’ve got the day ahead. I’ll weigh weather, distance, energy and trip priorities. ${tripStageLine(t)}`;nowBtn.textContent='Find our best options';tomorrow.classList.add('hidden');}
 }
 function weatherForDate(target){
   const w=state.weather;if(!w)return null;const today=localDateKey(),key=localDateKey(target),idx=key===today?0:1;
@@ -476,17 +527,17 @@ function minimumVisitMinutes(a){
   return ({park:240,beach:180,activity:90,indoor:90,shopping:75,food:60,stayin:30}[a.category]||75);
 }
 function recommendationWindow(){
-  const now=new Date(),phase=dayPhase(now),mins=now.getHours()*60+now.getMinutes();
-  const labels={morning:'BEST THIS MORNING',midday:'BEST AROUND LUNCH',afternoon:'BEST THIS AFTERNOON',evening:'BEST THIS EVENING',late:'BEST FOR TONIGHT'};
-  const titles={morning:'Make the most of the morning',midday:'What works next?',afternoon:'Best use of the afternoon',evening:'Worth doing this evening',late:'Keep tonight easy'};
+  const now=new Date(),phase=dayPhase(now),mins=now.getHours()*60+now.getMinutes(),t=tripContext(now);
+  const labels={morning:'START THE DAY WELL',midday:'BEST FOR THE NEXT FEW HOURS',afternoon:'MAKE THE AFTERNOON COUNT',evening:'FINISH THE DAY WELL',late:'KEEP TONIGHT LIGHT'};
+  const titles={morning:'Good options for the day ahead',midday:'What fits from here?',afternoon:'Best use of the afternoon',evening:'Worth doing this evening',late:'Easy wins for tonight'};
   const copies={
-    morning:'Plenty of day left — distance matters less when the payoff is worth it.',
-    midday:'We’re balancing travel time with how much useful day you’ll have when you arrive.',
-    afternoon:'Long journeys and full-day attractions start losing value from here.',
-    evening:'Nearby food, shopping and shorter entertainment get priority over big day trips.',
-    late:'We’re heavily favouring nearby options that are still worth the journey — or staying in.'
+    morning:`There’s plenty of usable day ahead, so a slightly longer journey can still earn its place. ${tripStageLine(t)}`,
+    midday:`We’re balancing travel time with how much useful day you’ll have when you arrive. ${tripStageLine(t)}`,
+    afternoon:`Full-day attractions and long journeys lose value from here, so the shortlist gets more selective. ${tripStageLine(t)}`,
+    evening:`Nearby food, short entertainment and easy wins take priority over another huge day out. ${tripStageLine(t)}`,
+    late:`Only genuinely worthwhile nearby options make the cut now. Rest is a perfectly good recommendation too. ${tripStageLine(t)}`
   };
-  if(isOvernightWindow(now))return {now,phase:'late',mins,label:'LATE NIGHT',title:'Keep it easy',copy:'It’s after midnight — only genuinely useful nearby options should compete with calling it a night and planning later today.'};
+  if(isOvernightWindow(now))return {now,phase:'late',mins,label:'WIND-DOWN MODE',title:'One last easy option — or bed',copy:`${contextualRestLine(now)} I’ll only surface something now if it is genuinely close and low effort.`};
   return {now,phase,mins,label:labels[phase],title:titles[phase],copy:copies[phase]};
 }
 function foodEstimate(tier){
@@ -713,7 +764,7 @@ async function runRecommendations(forcedTag=null,mode='now',options={}){
   if(mode==='tomorrow'){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
     if($('.view.active')?.dataset.view==='tomorrow-planner'){
-      state.tomorrowMood=forcedTag||null;const mood=tomorrowMoodTitle(forcedTag);
+      state.tomorrowMood=forcedTag||null;localStorage.setItem('ffvp_tomorrow_mood',state.tomorrowMood||'');const mood=tomorrowMoodTitle(forcedTag);
       const planLabel=nextPlanningLabel(now),planEyebrow=nextPlanningEyebrow(now);
       $('#tomorrowResultsEyebrow').textContent=forcedTag?`${mood.toUpperCase()} · ${planEyebrow}`:`BEST OVERALL · ${planEyebrow}`;
       $('#tomorrowResultsTitle').textContent=t?.departureDay?'Best fit for departure day':(forcedTag?`${mood} for ${planLabel}`:(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:`Best bets for ${planLabel}`));

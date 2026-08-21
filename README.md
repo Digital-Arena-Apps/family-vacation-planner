@@ -211,3 +211,10 @@ Profile emoji avatars have been replaced by clean initial circles, with subtle a
 - The decision card switches to a late-night context after midnight.
 - At that time the planning action says `Plan later today` and targets the coming daylight hours, avoiding the post-midnight off-by-one-day problem.
 - Greeting and recommendation headings no longer say `Good morning` / `Best this morning` at 00:xx.
+
+
+## V2.2.11 contextual holiday copy
+
+The app copy now reacts to daypart and trip stage as well as recommendation data. Overnight mode encourages rest and, when a Tomorrow Planner mood has been chosen, references the kind of day being planned. Countdown wording uses more human milestones such as sleeps-to-go, while early/mid/final-trip wording changes the tone of the dashboard and Quick Start prompts.
+
+Selected Tomorrow Planner mood is persisted locally so a late-night/overnight return to the app can say what the family is resting for.
