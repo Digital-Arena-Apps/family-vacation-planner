@@ -1,9 +1,20 @@
-// Family Vacation Planner V2.2.11 — contextual holiday copy + trip-aware dayparts
+// Family Vacation Planner V2.2.12 — simpler ride-height bands in onboarding
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
 const defaultHeightUnit = () => navigator.language?.toLowerCase().startsWith('en-us') ? 'imperial' : 'metric';
 const memberRole = m => m?.role || ((+m?.age||0) < 18 ? 'child' : 'adult');
+
+const heightBandFromInches = inches => {
+  const h=+inches||0;
+  if(!h)return 'unknown';
+  if(h<36)return 'under36';
+  if(h<42)return '36to41';
+  if(h<48)return '42to47';
+  return '48plus';
+};
+const heightBandFromMember = m => m?.heightBand || heightBandFromInches(m?.height);
+const representativeHeightForBand = band => ({under36:34,'36to41':39,'42to47':45,'48plus':50,unknown:0}[band] ?? 0);
 const memberInitial = (name='', role='adult', index=0) => {
   const cleaned=String(name).trim();
   if(cleaned){const parts=cleaned.split(/\s+/).filter(Boolean);return (parts.length>1?(parts[0][0]+parts.at(-1)[0]):parts[0][0]).toUpperCase();}
@@ -288,7 +299,7 @@ function tripCurrencyInfo(){const r=destinationPreset().region;return currencyIn
 function localCostGuide(text){return String(text||'').replace(/\$/g,currencyInfo().symbol);}
 const memberSummary=()=>state.profile.members || [];
 const childMembers=()=>memberSummary().filter(m=>(+m.age||0)<18);
-const smallerVisitors=()=>childMembers().filter(m=>(+m.age||0)<8 || (+m.height||999)<48);
+const smallerVisitors=()=>childMembers().filter(m=>{const band=heightBandFromMember(m);return (+m.age||0)<8 || (band!=='unknown' && band!=='48plus') || (band==='unknown' && (+m.height||999)<48);});
 const lowThrill=()=>memberSummary().filter(m=>m.thrill==='low').length;
 function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1900);}
 function dateOnly(s){if(!s)return null;const [y,m,d]=String(s).split('-').map(Number);return y&&m&&d?new Date(y,m-1,d,12,0,0,0):null;}
@@ -1054,12 +1065,15 @@ $('#refreshParks').addEventListener('click',loadParks);
 function newMember(seed={}){
   const role=seed.role||((seed.age!=='' && seed.age!=null && +seed.age<18)?'child':'adult');
   const defaultAge=role==='child'?10:35, defaultHeight=role==='child'?54:68;
-  return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name??'',age:seed.age??defaultAge,height:seed.height??defaultHeight,heightUnit:seed.heightUnit||defaultHeightUnit(),role,thrill:seed.thrill||'medium'};
+  return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name??'',age:seed.age??defaultAge,height:seed.height??defaultHeight,heightBand:seed.heightBand||heightBandFromInches(seed.height??defaultHeight),heightUnit:seed.heightUnit||defaultHeightUnit(),role,thrill:seed.thrill||'medium'};
 }
 function memberRow(m,scope='profile',index=0){
   const role=m.role||memberRole(m), unit=m.heightUnit||defaultHeightUnit(), inches=+m.height||0, cm=inches?Math.round(inches*2.54):'', feet=inches?Math.floor(inches/12):'', rem=inches?Math.round(inches-(Math.floor(inches/12)*12)):'';
   const initial=memberInitial(m.name,role,index), roleLabel=role==='child'?'Child':'Adult', remove=scope==='setup'?'':`<button class="member-remove" type="button" aria-label="Remove ${roleLabel.toLowerCase()}">×</button>`;
-  return `<div class="member-row crew-card" data-id="${m.id}" data-role="${role}" data-role-index="${index}"><div class="crew-avatar crew-avatar-initial ${role}" aria-hidden="true">${escapeHtml(initial)}</div><div class="crew-fields"><div class="crew-role-line"><span>${roleLabel} ${index+1}</span></div><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/>${remove}</div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label><div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>Bring it on</option></select></label></div></div></div>`;
+  const band=heightBandFromMember(m);
+  const setupHeight=`<div class="height-field height-band-field"><span class="member-field-label">Ride height</span><div class="height-band-grid" role="radiogroup" aria-label="Approximate ride height"><button type="button" class="height-band ${band==='under36'?'active':''}" data-height-band="under36"><b>Under 36″</b><small>&lt;92cm</small></button><button type="button" class="height-band ${band==='36to41'?'active':''}" data-height-band="36to41"><b>36–41″</b><small>92–106cm</small></button><button type="button" class="height-band ${band==='42to47'?'active':''}" data-height-band="42to47"><b>42–47″</b><small>107–121cm</small></button><button type="button" class="height-band ${band==='48plus'?'active':''}" data-height-band="48plus"><b>48″+</b><small>122cm+</small></button><button type="button" class="height-band height-band-unknown ${band==='unknown'?'active':''}" data-height-band="unknown"><b>Not sure</b><small>That’s fine</small></button></div><small class="height-band-note">Approximate is enough for planning. Individual rides set their own height rules.</small></div>`;
+  const profileHeight=`<div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div>`;
+  return `<div class="member-row crew-card" data-id="${m.id}" data-role="${role}" data-role-index="${index}" data-height-band="${band}"><div class="crew-avatar crew-avatar-initial ${role}" aria-hidden="true">${escapeHtml(initial)}</div><div class="crew-fields"><div class="crew-role-line"><span>${roleLabel} ${index+1}</span></div><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/>${remove}</div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label>${scope==='setup'?setupHeight:profileHeight}<label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>Bring it on</option></select></label></div></div></div>`;
 }
 function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function wireMemberRow(row){
@@ -1067,11 +1081,12 @@ function wireMemberRow(row){
   const avatar=$('.crew-avatar-initial',row), name=$('.member-name',row);
   const refreshInitial=()=>{if(avatar)avatar.textContent=memberInitial(name?.value,row.dataset.role||'adult',+row.dataset.roleIndex||0);};
   name?.addEventListener('input',refreshInitial);
-  const unit=$('.member-height-unit',row);const syncHeightUnit=()=>{const metric=unit.value==='metric';$('.height-metric',row).classList.toggle('hidden',!metric);$('.height-imperial',row).classList.toggle('hidden',metric);};
+  const unit=$('.member-height-unit',row);const syncHeightUnit=()=>{if(!unit)return;const metric=unit.value==='metric';$('.height-metric',row)?.classList.toggle('hidden',!metric);$('.height-imperial',row)?.classList.toggle('hidden',metric);};
   unit?.addEventListener('change',syncHeightUnit);syncHeightUnit();
+  $$('.height-band',row).forEach(b=>b.addEventListener('click',()=>{row.dataset.heightBand=b.dataset.heightBand;$$('.height-band',row).forEach(x=>x.classList.toggle('active',x===b));}));
 }
 function renderMemberEditor(rootId,members,scope='profile'){const root=$(rootId);const roleCounts={adult:0,child:0};root.innerHTML=members.map(m=>{const role=m.role||memberRole(m),i=roleCounts[role]++;return memberRow({...m,role},scope,i);}).join('');$$('.member-row',root).forEach(wireMemberRow);}
-function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightUnit:unit,role:r.dataset.role||'adult',thrill:$('.member-thrill',r).value};});}
+function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const band=r.dataset.heightBand||'unknown',unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;const exactHeight=$('.member-height-unit',r);if(exactHeight){if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightBand:exactHeight?(height?heightBandFromInches(height):band):band,heightUnit:unit,role:r.dataset.role||'adult',thrill:$('.member-thrill',r).value};});}
 function addMemberTo(rootId){const root=$(rootId);const m=newMember({role:'adult'});root.insertAdjacentHTML('beforeend',memberRow(m,'profile',$$('.member-row[data-role="adult"]',root).length));wireMemberRow(root.lastElementChild);}
 $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));
 
