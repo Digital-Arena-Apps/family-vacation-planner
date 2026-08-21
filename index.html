@@ -18,6 +18,27 @@
   <title>Family Vacation Planner</title>
 </head>
 <body>
+
+  <div id="landingScreen" class="landing-screen hidden" aria-modal="true" role="dialog" aria-label="Welcome to Family Vacation Planner">
+    <div class="landing-shell">
+      <div class="landing-brand-area">
+        <img class="landing-logo" src="brand-logo.png" alt="Family Vacation Planner" />
+        <span class="landing-beta">DESTINATION BETA · V2.2.7</span>
+      </div>
+      <div class="landing-visual">
+        <img src="landing-scenic.png" alt="A family looking out over a sunny coastal adventure" />
+        <div class="landing-visual-shade"></div>
+      </div>
+      <div class="landing-copy">
+        <h1>Plan better. Travel together.</h1>
+        <div class="landing-script">Make it unforgettable.</div>
+        <p>One place to discover, plan and make smarter choices before the trip and while you’re there.</p>
+        <button id="landingPrimary" class="landing-primary" type="button">Let’s plan our adventure ✦</button>
+        <button id="landingContinue" class="landing-secondary hidden" type="button">Continue saved trip</button>
+        <small>Built around your family, your destination and the time you actually have.</small>
+      </div>
+    </div>
+  </div>
   <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
     <div class="onboarding-card adventure-onboarding">
       <div class="onboarding-hero brand-onboarding-hero">
@@ -97,7 +118,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.6</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.7</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -326,8 +347,10 @@
         <section class="section-block compact beta-tools">
           <div class="section-title-row"><div><div class="eyebrow">BETA TESTING</div><h2>Testing tools</h2><p>Temporary controls — these disappear before launch.</p></div></div>
           <div class="testing-card">
-            <label class="toggle-row"><span><b>Force onboarding on launch</b><small>Show onboarding every time the app is freshly opened.</small></span><input id="forceOnboarding" type="checkbox" /></label>
+            <label class="toggle-row"><span><b>Force landing screen on launch</b><small>Show the branded welcome screen every time the app is freshly opened.</small></span><input id="forceLanding" type="checkbox" /></label>
+            <label class="toggle-row"><span><b>Force onboarding on launch</b><small>After the landing screen, keep onboarding available for repeated flow testing.</small></span><input id="forceOnboarding" type="checkbox" /></label>
             <div class="testing-actions">
+              <button id="showLanding" class="secondary-btn" type="button">Show landing screen</button>
               <button id="restartOnboarding" class="secondary-btn" type="button">Restart onboarding</button>
               <button id="newUserTest" class="secondary-btn" type="button">Start as new user</button>
               <button id="resetAppData" class="danger-btn" type="button">Reset all app data</button>

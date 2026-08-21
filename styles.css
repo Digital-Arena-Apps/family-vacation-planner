@@ -490,3 +490,23 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
 /* V2.2.2: keep compact section actions readable beside long mood headings */
 .section-title-row>.text-btn{flex:0 0 auto;white-space:nowrap}
 .section-title-row>div{min-width:0}
+
+
+/* V2.2.7 — branded landing screen */
+.landing-screen{position:fixed;inset:0;z-index:120;overflow:auto;background:linear-gradient(180deg,#D9F5FF 0%,#F5FCFD 38%,#FFF7EF 100%);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.landing-shell{width:min(100%,560px);min-height:100dvh;margin:0 auto;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.84));overflow:hidden}
+.landing-brand-area{text-align:center;padding:22px 22px 8px}
+.landing-logo{display:block;width:min(290px,76vw);max-height:250px;object-fit:contain;margin:0 auto;mix-blend-mode:multiply}
+.landing-beta{display:inline-block;margin-top:0;color:#71808D;font:800 8px/1 Inter,sans-serif;letter-spacing:.17em}
+.landing-visual{position:relative;margin:6px 22px 0;border-radius:30px 30px 24px 24px;overflow:hidden;box-shadow:0 18px 38px rgba(47,58,69,.16);min-height:220px;background:#BDEDF5}
+.landing-visual img{display:block;width:100%;height:100%;min-height:220px;max-height:330px;object-fit:cover;object-position:center}
+.landing-visual-shade{position:absolute;inset:auto 0 0;height:38%;background:linear-gradient(180deg,transparent,rgba(28,51,58,.13))}
+.landing-copy{text-align:center;padding:24px 28px 30px;color:var(--brand-slate)}
+.landing-copy h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,8vw,43px);line-height:1.03;letter-spacing:-.035em;margin:0}
+.landing-copy .landing-script{margin-top:7px;color:#159F99;font-size:18px;font-weight:800;font-style:italic}
+.landing-copy p{max-width:430px;margin:13px auto 20px;color:#506372;font-size:14px;line-height:1.55}
+.landing-primary,.landing-secondary{width:100%;min-height:56px;border-radius:999px;font-weight:850;font-size:17px;padding:14px 20px}
+.landing-primary{border:0;background:var(--brand-coral);color:#fff;box-shadow:0 8px 22px rgba(255,107,107,.28)}
+.landing-secondary{margin-top:10px;border:1px solid rgba(19,143,138,.22);background:#fff;color:#117C77;box-shadow:0 7px 18px rgba(47,58,69,.07)}
+.landing-copy>small{display:block;margin:16px auto 0;max-width:390px;color:#83909A;font-size:10px;line-height:1.4}
+@media(max-width:430px){.landing-brand-area{padding-top:15px}.landing-logo{width:min(245px,72vw);max-height:205px}.landing-visual{margin-left:18px;margin-right:18px;min-height:205px;border-radius:25px}.landing-visual img{min-height:205px}.landing-copy{padding:20px 22px 26px}.landing-copy p{margin-bottom:17px}.landing-primary,.landing-secondary{min-height:54px}}

@@ -20,6 +20,7 @@ const state = {
   locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}
 };
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
+const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
 
 const quickIconSvg = {
   stayin:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
@@ -1002,17 +1003,29 @@ $$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupS
 $('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
+function showLanding(){
+  const landing=$('#landingScreen');if(!landing)return;
+  const hasSaved=!!localStorage.getItem('ffvp_onboarded');
+  $('#landingContinue')?.classList.toggle('hidden',!hasSaved);
+  landing.classList.remove('hidden');
+}
+function hideLanding(){ $('#landingScreen')?.classList.add('hidden'); }
+$('#landingPrimary')?.addEventListener('click',()=>{hideLanding();showOnboarding();});
+$('#landingContinue')?.addEventListener('click',()=>{hideLanding();});
+
 function clearTripLocalData(includeSettings=false){
   const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done'];
   keys.forEach(k=>localStorage.removeItem(k));
   if(includeSettings){
-    ['ffvp_unit','ffvp_test_location','ffvp_force_onboarding'].forEach(k=>localStorage.removeItem(k));
+    ['ffvp_unit','ffvp_test_location','ffvp_force_onboarding','ffvp_force_landing'].forEach(k=>localStorage.removeItem(k));
   }
 }
 function initBetaTestingTools(){
-  const force=$('#forceOnboarding');if(force){force.checked=betaForceOnboarding();force.addEventListener('change',()=>{localStorage.setItem('ffvp_force_onboarding',force.checked?'1':'0');showToast(force.checked?'Onboarding will open on each launch':'Onboarding launch test off');});}
+  const forceLanding=$('#forceLanding');if(forceLanding){forceLanding.checked=betaForceLanding();forceLanding.addEventListener('change',()=>{localStorage.setItem('ffvp_force_landing',forceLanding.checked?'1':'0');showToast(forceLanding.checked?'Landing screen will open on each launch':'Landing launch test off');});}
+  const force=$('#forceOnboarding');if(force){force.checked=betaForceOnboarding();force.addEventListener('change',()=>{localStorage.setItem('ffvp_force_onboarding',force.checked?'1':'0');showToast(force.checked?'Onboarding stays enabled for launch testing':'Onboarding launch test off');});}
+  $('#showLanding')?.addEventListener('click',()=>showLanding());
   $('#restartOnboarding')?.addEventListener('click',()=>showOnboarding());
-  $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';clearTripLocalData(false);localStorage.setItem('ffvp_force_onboarding',keepForce);location.reload();});
+  $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';const keepLanding=localStorage.getItem('ffvp_force_landing')??'1';clearTripLocalData(false);localStorage.setItem('ffvp_force_onboarding',keepForce);localStorage.setItem('ffvp_force_landing',keepLanding);location.reload();});
   $('#resetAppData')?.addEventListener('click',()=>{if(!confirm('Reset ALL Family Vacation Planner data and testing settings on this device?'))return;localStorage.clear();location.reload();});
 }
 initBetaTestingTools();
@@ -1024,4 +1037,4 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.defer
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
