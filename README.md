@@ -142,3 +142,16 @@ Mood fit is now a semantic gate first, then distance, weather, trip status, time
 - Expanded outdoor types include city/state parks, gardens, zoos, wildlife parks/refuges, playgrounds, picnic grounds and cycling parks.
 - Tomorrow outdoor recommendations prefer options inside the family's chosen travel range when at least three are available.
 - Result shaping limits repeated subtypes (especially beaches) so the shortlist is more varied.
+
+## V2.2.5 — exclusive mood taxonomy + de-duplication
+
+Mood selection now uses an exclusive primary-mood taxonomy rather than overlapping tags. A venue can belong to only one daily mood:
+
+- Chill & Recharge: stay-in, beaches, spas/wellness and scenic low-effort options.
+- Indoor & Easy: museums, aquariums, galleries, cinema, bowling and indoor play.
+- Food & Treats: food-first options only.
+- Outdoors & Explore: parks, zoos, gardens, trails, wildlife/nature and similar active outdoor experiences.
+- Thrills & Excitement: theme/water parks, karting, adventure sports, amusement centres and similar high-energy options.
+- Shop & Browse: leisure shopping destinations only; supermarkets, grocery/hypermarkets and other practical retail are left to Essentials.
+
+Google discovery now filters by **primary place type** so secondary provider tags cannot make one place appear in several moods. Recommendation candidates are de-duplicated by normalized venue name + proximity, and mood shortlists apply variety caps so one venue type or retail chain does not dominate the five suggestions. Server discovery also de-duplicates duplicate map records before returning them.
