@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2
+# Family Vacation Planner — Destination Beta V2.2.1
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -105,3 +105,10 @@ Temporary beta testing controls are available under **Family → Testing tools**
 - Reset all app data
 
 Remove or disable the testing section and forced-onboarding default before production launch.
+
+
+## V2.2.1 — Dedicated Tomorrow Planner
+
+`Plan tomorrow` now opens a separate planning screen instead of immediately dumping ranked results onto Today. The family first chooses the kind of day they want tomorrow: Chill & Recharge, Indoor & Easy, Food & Treats, Outdoors & Explore, Thrills & Excitement, or Shop & Browse. A Best overall option remains available.
+
+The chosen mood then filters tomorrow-only recommendations while preserving the existing scoring for tomorrow weather, trip progress, distance, fixed plans, family fit, budget, park schedules and visited/repeat status. Results stay on the Tomorrow Planner screen.

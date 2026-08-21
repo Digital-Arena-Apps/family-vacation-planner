@@ -362,7 +362,7 @@ button,a.small-btn,input,select{min-height:48px}
 @media(max-width:430px){.prep-head{display:block}.prep-head .secondary-btn{width:100%;margin-top:11px}.test-location-picker{align-items:stretch;flex-direction:column;gap:4px}.test-location-picker select{width:100%}}
 
 
-/* V2.2 — selected Family Vacation Planner brand identity + beta testing polish */
+/* V2.2.1 — selected brand identity + dedicated Tomorrow Planner flow */
 :root{
   --brand-coral:#FF6B6B;
   --brand-peach:#FFB48A;
@@ -473,3 +473,16 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
   .testing-actions{grid-template-columns:1fr}
   .testing-actions .danger-btn{grid-column:auto}
 }
+
+
+/* V2.2.1 — Tomorrow Planner */
+.tomorrow-planner-view{padding-bottom:118px}
+.tomorrow-planner-heading{padding-bottom:14px}
+.tomorrow-snapshot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 28px 18px}
+.tomorrow-snapshot>div{background:#fff;border:1px solid rgba(47,58,69,.08);border-radius:18px;padding:14px 12px;box-shadow:0 8px 24px rgba(47,58,69,.06)}
+.tomorrow-snapshot span{display:block;color:#64748b;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.tomorrow-snapshot b{display:block;color:#2f3a45;font-size:.94rem;line-height:1.25}
+.tomorrow-mood-section{margin-top:4px}
+.tomorrow-mood-grid .quick-card{min-height:150px}
+.tomorrow-best-btn{margin-top:14px;min-height:54px}
+@media (max-width:520px){.tomorrow-snapshot{margin-left:28px;margin-right:28px;grid-template-columns:1fr 1fr}.tomorrow-snapshot>div:first-child{grid-column:1/-1}.tomorrow-mood-grid .quick-card{min-height:138px}}

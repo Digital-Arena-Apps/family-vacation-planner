@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2 — branded trip-aware beta + destination discovery
+// Family Vacation Planner V2.2.1 — tomorrow-planner flow + branded trip-aware beta
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -287,7 +287,7 @@ function setView(name){
   $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target===name));
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='explore')renderExplore(); if(name==='saved')renderTripHub(); if(name==='parks'&&!$('#parksList').children.length)loadParks();
-  if(name==='essentials')renderEssentials(); if(name==='food')loadFood(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm();
+  if(name==='essentials')renderEssentials(); if(name==='food')loadFood(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm(); if(name==='tomorrow-planner')renderTomorrowPlannerContext();
 }
 $$('.nav-item').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.target==='explore'&&!isFloridaContext()){loadDiscover('sights');return;}setView(b.dataset.target);}));
 $$('[data-back]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.back)));
@@ -492,22 +492,62 @@ async function seedLocalDiscovery(){
   if(isFloridaContext()||!state.coords)return;const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}`;if(state.localSeedKey===key)return;
   try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){}
 }
+
+function tomorrowTargetDate(){const d=new Date();d.setDate(d.getDate()+1);return d;}
+function tomorrowMoodTitle(mood){return ({chill:'Chill & Recharge',indoor:'Indoor & Easy',food:'Food & Treats',outdoors:'Outdoors & Explore',thrills:'Thrills & Excitement',shopping:'Shop & Browse'}[mood]||'Best overall');}
+function tomorrowMoodMatches(a,mood){
+  if(!mood)return true;const tags=a.tags||[];
+  if(mood==='chill')return a.category==='stayin'||a.energy<=1||a.category==='beach'||tags.includes('nature');
+  if(mood==='indoor')return a.category==='indoor'||a.category==='shopping'||a.category==='food'||tags.includes('indoor');
+  if(mood==='food')return a.category==='food'||tags.includes('food');
+  if(mood==='outdoors')return a.category==='beach'||tags.includes('nature')||(a.category==='park'&&a.energy<=2);
+  if(mood==='thrills')return a.category==='park'||tags.includes('rides')||a.energy>=3;
+  if(mood==='shopping')return a.category==='shopping'||tags.includes('shopping');
+  return a.category===mood||tags.includes(mood);
+}
+async function seedMoodDiscovery(mood){
+  if(isFloridaContext()||!state.coords)return;
+  const category=({chill:'outdoors',indoor:'indoor',outdoors:'outdoors',thrills:'thrills',shopping:'shopping'}[mood]||'sights');
+  if(mood==='food')return;
+  const key=`${category}:${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}`;state.moodSeedKeys=state.moodSeedKeys||{};if(state.moodSeedKeys[key])return;
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,category)));state.moodSeedKeys[key]=true;}catch(e){}
+}
+function renderTomorrowPlannerContext(){
+  const target=tomorrowTargetDate(),t=tripContext(target),wx=weatherForDate(target),plans=plansForDate(target),dest=destinationPreset();
+  const bits=[];if(t?.departureDay)bits.push('Departure day');else if(t?.inTrip)bits.push(`Day ${t.index} of ${t.total}`);
+  if(wx)bits.push(`${Math.round(wx.high)}°C high`,`${wx.rain}% rain risk`);if(plans.length)bits.push(`${plans.length} fixed plan${plans.length===1?'':'s'}`);
+  $('#tomorrowPlannerContext').textContent=`Choose the mood first and I’ll rank experiences for ${dest.short||dest.name} using tomorrow’s conditions, travel time and your trip progress.`;
+  $('#tomorrowSnapshot').innerHTML=`<div><span>Tomorrow</span><b>${bits[0]||'A fresh day'}</b></div><div><span>Conditions</span><b>${wx?`${Math.round(wx.high)}°C · ${wx.rain}% rain`:'Forecast loading'}</b></div><div><span>Diary</span><b>${plans.length?`${plans.length} fixed plan${plans.length===1?'':'s'}`:'Wide open'}</b></div>`;
+}
+function openTomorrowPlanner(){
+  if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}
+  setView('tomorrow-planner');$$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target==='today'));renderTomorrowPlannerContext();
+}
 async function runRecommendations(forcedTag=null,mode='now'){
-  const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);if(!isFloridaContext())await seedLocalDiscovery();
-  const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);
+  const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);
+  if(!isFloridaContext()){if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else await seedLocalDiscovery();}
+  const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);if(mode==='tomorrow'&&forcedTag==='chill')candidates.push(stayHomeRecommendation);
   let list=candidates.map(a=>({...a,...recommendationScore(a,{targetDate,mode})})).filter(a=>a.score>-500);
-  if(forcedTag)list=list.filter(a=>a.category===forcedTag||a.tags.includes(forcedTag));list.sort((a,b)=>b.score-a.score);
+  if(forcedTag)list=list.filter(a=>mode==='tomorrow'?tomorrowMoodMatches(a,forcedTag):(a.category===forcedTag||a.tags.includes(forcedTag)));list.sort((a,b)=>b.score-a.score);
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
   if(mode==='tomorrow'){
-    const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate);
-    eyebrow.textContent='PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow');
-    const weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
-    copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
+    const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
+    if($('.view.active')?.dataset.view==='tomorrow-planner'){
+      state.tomorrowMood=forcedTag||null;const mood=tomorrowMoodTitle(forcedTag);
+      $('#tomorrowResultsEyebrow').textContent=forcedTag?`${mood.toUpperCase()} · TOMORROW`:'BEST OVERALL · TOMORROW';
+      $('#tomorrowResultsTitle').textContent=t?.departureDay?'Best fit for departure day':(forcedTag?`${mood} for tomorrow`:(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow'));
+      $('#tomorrowResultsContext').textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} in the diary`:''}. I’ve filtered out places already visited unless you marked them Repeat.`;
+      $('#tomorrowResults').classList.remove('hidden');$('#tomorrowRecommendationList').innerHTML=list.length?list.slice(0,5).map((a,i)=>placeCard(a,true,i===0)).join(''):'<div class="error-card"><b>No strong matches for that mood yet.</b><br/>Try another mood or Best overall.</div>';wirePlaceActions($('#tomorrowRecommendationList'));$('#tomorrowResults').scrollIntoView({behavior:'smooth',block:'start'});return;
+    }
+    eyebrow.textContent='PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow');copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
   }else{eyebrow.textContent=context.label;title.textContent=context.title;copy.textContent=context.copy+' I’m also checking trip progress, fixed plans and places you’ve already done. Drive times are planning estimates, not live traffic.';}
   $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#whatNowBtn').addEventListener('click',()=>{if(tripContext()?.before){$('#prepSection').scrollIntoView({behavior:'smooth',block:'start'});return;}runRecommendations(null,'now');});
-$('#tomorrowBtn').addEventListener('click',()=>{if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}runRecommendations(null,'tomorrow');});$('#rerunBtn').addEventListener('click',()=>runRecommendations());
+$('#tomorrowBtn').addEventListener('click',openTomorrowPlanner);$('#rerunBtn').addEventListener('click',()=>runRecommendations());
+$$('.tomorrow-mood').forEach(b=>b.addEventListener('click',()=>runRecommendations(b.dataset.tomorrowMood,'tomorrow')));
+$('#tomorrowBestOverall').addEventListener('click',()=>runRecommendations(null,'tomorrow'));
+$('#tomorrowRerunBtn').addEventListener('click',()=>runRecommendations(state.tomorrowMood||null,'tomorrow'));
 $('#openTripBtn').addEventListener('click',()=>setView('saved'));$('#quickEssentialsLink').addEventListener('click',()=>setView('essentials'));
 $$('.quick-card').forEach(b=>b.addEventListener('click',()=>{
   const q=b.dataset.quick,t=tripContext();
