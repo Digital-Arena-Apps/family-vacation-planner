@@ -162,10 +162,14 @@ Google discovery now filters by **primary place type** so secondary provider tag
 Re-run now deliberately rotates to a different high-quality shortlist for the same mood/context. It avoids the immediately previous suggestions when enough alternatives exist, tracks already-shown venues during the session, and only recycles earlier options once the sensible candidate pool has been exhausted. The quality band prevents weak distant filler being shown merely to look different.
 
 
-## V2.2.7 — Landing screen
+## V2.2.7.2 — Landing screen
 
 - Adds a branded first-launch / welcome screen using the selected Family Vacation Planner identity.
 - Primary action opens onboarding; returning beta users can continue a saved trip.
 - Adds temporary beta controls for **Force landing screen on launch** and **Show landing screen**.
 - Keeps the landing screen enabled by default during beta so the first-impression flow can be repeatedly tested.
 - Adds `landing-scenic.png` as the branded hero artwork used by the landing experience.
+
+
+## V2.2.7.2 landing composition
+The landing screen now follows the selected mobile mockup: the scenic family artwork fills the screen, the brand and tagline sit over the sky, and the coral primary action is anchored at the bottom rather than using separate logo/image/copy cards.
