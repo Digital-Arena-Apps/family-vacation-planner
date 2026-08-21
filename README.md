@@ -155,3 +155,8 @@ Mood selection now uses an exclusive primary-mood taxonomy rather than overlappi
 - Shop & Browse: leisure shopping destinations only; supermarkets, grocery/hypermarkets and other practical retail are left to Essentials.
 
 Google discovery now filters by **primary place type** so secondary provider tags cannot make one place appear in several moods. Recommendation candidates are de-duplicated by normalized venue name + proximity, and mood shortlists apply variety caps so one venue type or retail chain does not dominate the five suggestions. Server discovery also de-duplicates duplicate map records before returning them.
+
+
+## V2.2.6 — rotating re-runs
+
+Re-run now deliberately rotates to a different high-quality shortlist for the same mood/context. It avoids the immediately previous suggestions when enough alternatives exist, tracks already-shown venues during the session, and only recycles earlier options once the sensible candidate pool has been exhausted. The quality band prevents weak distant filler being shown merely to look different.

@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.3 — strict semantic place classification + branded trip-aware beta
+// Family Vacation Planner V2.2.6 — strict semantic place classification + branded trip-aware beta
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -17,7 +17,7 @@ const state = {
   profile:{...defaultProfile, ...(savedProfile || {}), members:(savedProfile?.members?.length ? savedProfile.members : defaultMembers())},
   saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), tripStatuses:JSON.parse(localStorage.getItem('ffvp_trip_statuses') || '{}'), plans:JSON.parse(localStorage.getItem('ffvp_plans') || '[]'),
   discovered:JSON.parse(localStorage.getItem('ffvp_discovered') || '{}'), prepDone:JSON.parse(localStorage.getItem('ffvp_prep_done') || '{}'),
-  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all'
+  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}
 };
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 
@@ -637,7 +637,48 @@ function openTomorrowPlanner(){
   if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}
   setView('tomorrow-planner');$$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target==='today'));renderTomorrowPlannerContext();
 }
-async function runRecommendations(forcedTag=null,mode='now'){
+
+function recommendationRunKey(forcedTag,mode,targetDate){
+  const region=locationRegion();
+  const loc=state.coords?`${state.coords.lat.toFixed(2)},${state.coords.lon.toFixed(2)}`:'no-location';
+  const day=targetDate.toISOString().slice(0,10);
+  return `${mode}:${forcedTag||'overall'}:${region}:${loc}:${day}`;
+}
+function rotatingShortlist(list,count,key,rerun=false){
+  if(!list.length)return [];
+  const best=list[0].score;
+  // Keep reruns inside a sensible quality band rather than surfacing weak filler.
+  let pool=list.filter((a,i)=>i<18 && a.score>=Math.max(30,best-30));
+  if(pool.length<count)pool=list.slice(0,Math.min(18,list.length));
+  let run=state.recommendationRuns[key];
+  if(!run||!rerun)run={last:[],seen:[],runs:0};
+
+  const lastSet=new Set(run.last||[]),seenSet=new Set(run.seen||[]);
+  let candidates=rerun?pool.filter(a=>!lastSet.has(a.id)&&!seenSet.has(a.id)):pool.slice();
+  // Once every unseen option has been used, allow earlier suggestions back in —
+  // but never repeat the immediately previous set when alternatives exist.
+  if(candidates.length<count&&rerun){
+    const notLast=pool.filter(a=>!lastSet.has(a.id)&&!candidates.some(x=>x.id===a.id));
+    candidates=[...candidates,...notLast];
+  }
+  if(candidates.length<count){
+    candidates=[...candidates,...pool.filter(a=>!candidates.some(x=>x.id===a.id))];
+  }
+
+  // Nudge each rerun through a different part of the quality pool while preserving rank.
+  if(rerun&&candidates.length>count){
+    const shift=(run.runs*count)%candidates.length;
+    candidates=[...candidates.slice(shift),...candidates.slice(0,shift)];
+  }
+  const picked=candidates.slice(0,count);
+  run.last=picked.map(a=>a.id);
+  run.seen=[...new Set([...(run.seen||[]),...run.last])];
+  if(run.seen.length>=pool.length)run.seen=[...run.last];
+  run.runs=(run.runs||0)+1;
+  state.recommendationRuns[key]=run;
+  return picked;
+}
+async function runRecommendations(forcedTag=null,mode='now',options={}){
   const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);
   if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else if(!isFloridaContext())await seedLocalDiscovery();
   const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);if(mode==='tomorrow'&&forcedTag==='chill')candidates.push(stayHomeRecommendation);
@@ -648,6 +689,10 @@ async function runRecommendations(forcedTag=null,mode='now'){
   }
   list.sort((a,b)=>b.score-a.score);
   if(mode==='tomorrow'&&forcedTag)list=shapeMoodResults(list,forcedTag);
+  const rerun=!!options.rerun;
+  const runKey=recommendationRunKey(forcedTag,mode,targetDate);
+  const displayCount=mode==='tomorrow'?5:4;
+  const displayList=rotatingShortlist(list,displayCount,runKey,rerun);
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
   if(mode==='tomorrow'){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
@@ -656,17 +701,17 @@ async function runRecommendations(forcedTag=null,mode='now'){
       $('#tomorrowResultsEyebrow').textContent=forcedTag?`${mood.toUpperCase()} · TOMORROW`:'BEST OVERALL · TOMORROW';
       $('#tomorrowResultsTitle').textContent=t?.departureDay?'Best fit for departure day':(forcedTag?`${mood} for tomorrow`:(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow'));
       $('#tomorrowResultsContext').textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} in the diary`:''}. I’ve filtered out places already visited unless you marked them Repeat.`;
-      $('#tomorrowResults').classList.remove('hidden');$('#tomorrowRecommendationList').innerHTML=list.length?list.slice(0,5).map((a,i)=>placeCard(a,true,i===0)).join(''):'<div class="error-card"><b>No strong matches for that mood yet.</b><br/>Try another mood or Best overall.</div>';wirePlaceActions($('#tomorrowRecommendationList'));$('#tomorrowResults').scrollIntoView({behavior:'smooth',block:'start'});return;
+      $('#tomorrowResults').classList.remove('hidden');$('#tomorrowRecommendationList').innerHTML=displayList.length?displayList.map((a,i)=>placeCard(a,true,i===0)).join(''):'<div class="error-card"><b>No strong matches for that mood yet.</b><br/>Try another mood or Best overall.</div>';wirePlaceActions($('#tomorrowRecommendationList'));$('#tomorrowResults').scrollIntoView({behavior:'smooth',block:'start'});return;
     }
     eyebrow.textContent='PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow');copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
   }else{eyebrow.textContent=context.label;title.textContent=context.title;copy.textContent=context.copy+' I’m also checking trip progress, fixed plans and places you’ve already done. Drive times are planning estimates, not live traffic.';}
-  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
+  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=displayList.map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#whatNowBtn').addEventListener('click',()=>{if(tripContext()?.before){$('#prepSection').scrollIntoView({behavior:'smooth',block:'start'});return;}runRecommendations(null,'now');});
-$('#tomorrowBtn').addEventListener('click',openTomorrowPlanner);$('#rerunBtn').addEventListener('click',()=>runRecommendations());
+$('#tomorrowBtn').addEventListener('click',openTomorrowPlanner);$('#rerunBtn').addEventListener('click',()=>runRecommendations(null,'now',{rerun:true}));
 $$('.tomorrow-mood').forEach(b=>b.addEventListener('click',()=>runRecommendations(b.dataset.tomorrowMood,'tomorrow')));
 $('#tomorrowBestOverall').addEventListener('click',()=>runRecommendations(null,'tomorrow'));
-$('#tomorrowRerunBtn').addEventListener('click',()=>runRecommendations(state.tomorrowMood||null,'tomorrow'));
+$('#tomorrowRerunBtn').addEventListener('click',()=>runRecommendations(state.tomorrowMood||null,'tomorrow',{rerun:true}));
 $('#openTripBtn').addEventListener('click',()=>setView('saved'));$('#quickEssentialsLink').addEventListener('click',()=>setView('essentials'));
 $$('.quick-card').forEach(b=>b.addEventListener('click',()=>{
   const q=b.dataset.quick,t=tripContext();
