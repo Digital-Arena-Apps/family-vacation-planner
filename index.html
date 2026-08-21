@@ -39,6 +39,11 @@
             <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" />
             <small>Handy later when we compare “from here” with “from home base”.</small>
           </label>
+          <div class="setup-grid trip-date-grid">
+            <label>Arrival date<input id="setupArrivalDate" type="date" /></label>
+            <label>Departure date<input id="setupDepartureDate" type="date" /></label>
+          </div>
+          <small class="field-help">Trip dates let the planner understand how many days you have left and when a “save it for tomorrow” answer actually makes sense.</small>
           <button class="primary-btn full setup-next" type="button">Meet the crew →</button>
         </section>
 
@@ -79,12 +84,13 @@
       <div class="brand-lockup">
         <div class="brand-badge" aria-hidden="true">☀</div>
         <div>
-          <div class="brand-kicker">FLORIDA BETA · V1.8</div>
+          <div class="brand-kicker">FLORIDA BETA · V2.0</div>
           <h1>Family Vacation Planner</h1>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
     </header>
+    <div id="offlineBanner" class="offline-banner hidden">Offline mode — your trip plan still works, but live weather, waits and nearby searches may be unavailable.</div>
 
     <main id="main" class="main-content">
       <section class="view active" data-view="today">
@@ -98,6 +104,10 @@
           <span id="locationLabel">Finding your location…</span>
           <button id="refreshLocation" class="text-btn">Refresh</button>
         </div>
+        <section id="tripPulse" class="trip-pulse hidden">
+          <div><div class="eyebrow">YOUR TRIP</div><b id="tripPulseTitle">Add your vacation dates</b><small id="tripPulseCopy">I’ll use them to pace the rest of the holiday.</small></div>
+          <button id="openTripBtn" class="text-btn" type="button">Trip →</button>
+        </section>
 
         <section id="weatherCard" class="hero-card weather-card loading-card">
           <div class="skeleton wide"></div><div class="skeleton medium"></div><div class="skeleton short"></div>
@@ -106,10 +116,13 @@
         <section class="decision-card">
           <div>
             <div class="eyebrow light">DECISION ENGINE</div>
-            <h2>What should we do now?</h2>
-            <p>I’ll weigh up weather, distance, budget, energy and who is actually in your family.</p>
+            <h2 id="decisionTitle">What should we do now?</h2>
+            <p id="decisionCopy">I’ll weigh up weather, distance, budget, energy, trip progress and your next fixed plan.</p>
           </div>
-          <button id="whatNowBtn" class="primary-btn">What Now?</button>
+          <div class="decision-actions">
+            <button id="whatNowBtn" class="primary-btn">What Now?</button>
+            <button id="tomorrowBtn" class="secondary-btn hidden" type="button">Plan tomorrow</button>
+          </div>
         </section>
 
         <section id="recommendations" class="section-block hidden">
@@ -206,8 +219,27 @@
       </section>
 
       <section class="view" data-view="saved">
-        <div class="page-heading"><div class="eyebrow">YOUR TRIP</div><h2>Saved places</h2><p>Keep the family shortlist in one place. Saved on this device for the beta.</p></div>
-        <div id="savedList" class="card-list"></div>
+        <div class="page-heading trip-heading"><div class="eyebrow">YOUR TRIP</div><h2>Plan, progress & memories</h2><p>Keep fixed plans, must-dos and places you’ve already done in one place.</p></div>
+        <section id="tripSummary" class="trip-summary"></section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">FIXED PLANS</div><h2>Bookings & commitments</h2></div></div>
+          <form id="planForm" class="mini-plan-form">
+            <input id="planTitle" type="text" maxlength="60" placeholder="Dinner reservation, flight, show…" required />
+            <div class="plan-grid"><input id="planDate" type="date" required /><input id="planTime" type="time" /></div>
+            <input id="planLocation" type="text" maxlength="80" placeholder="Location (optional)" />
+            <button class="secondary-btn full" type="submit">+ Add fixed plan</button>
+          </form>
+          <div id="plansList" class="trip-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">SHORTLIST</div><h2>Places for this trip</h2></div></div>
+          <p class="trip-help">Mark places Must do, Want to go, Been, Repeat, or Skip. “Been” and “Skip” won’t be recommended again.</p>
+          <div id="savedList" class="card-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">MEMORIES</div><h2>Where you’ve been</h2></div></div>
+          <div id="memoriesList" class="trip-list"></div>
+        </section>
       </section>
 
       <section class="view" data-view="family">
@@ -215,11 +247,14 @@
         <form id="familyForm" class="form-card">
           <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
           <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
+          <div class="setup-grid trip-date-grid"><label>Arrival date<input id="arrivalDate" type="date" /></label><label>Departure date<input id="departureDate" type="date" /></label></div>
           <div class="setup-heading"><b>Family members</b><button id="addMember" class="text-btn" type="button">+ Add person</button></div>
           <div id="familyMembers" class="member-list"></div>
           <label>How far are you prepared to travel?<select id="maxDrive"><option value="15">About 15 miles</option><option value="30">About 30 miles</option><option value="60">About 60 miles</option><option value="100">Up to 100 miles</option></select></label>
           <label>Budget mood<select id="budget"><option value="low">Keep costs down</option><option value="medium">Reasonable</option><option value="high">Holiday mode</option></select></label>
+          <label>Optional holiday budget remaining ($)<input id="budgetRemaining" type="number" min="0" step="25" placeholder="e.g. 600" /></label>
           <label>Energy level<select id="energy"><option value="low">Easy day</option><option value="medium">Balanced</option><option value="high">Full-on day</option></select></label>
+          <label>Walking tolerance<select id="walkingTolerance"><option value="low">Keep walking light</option><option value="medium">Normal holiday walking</option><option value="high">Happy with big walking days</option></select></label>
           <label>Dietary / access notes<input id="familyNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" /></label>
           <fieldset><legend>Family interests</legend><div class="check-grid">
             <label class="check"><input type="checkbox" name="interests" value="rides" /> Rides</label><label class="check"><input type="checkbox" name="interests" value="food" /> Food</label><label class="check"><input type="checkbox" name="interests" value="shopping" /> Shopping</label><label class="check"><input type="checkbox" name="interests" value="beach" /> Beaches</label><label class="check"><input type="checkbox" name="interests" value="indoor" /> Indoor</label><label class="check"><input type="checkbox" name="interests" value="nature" /> Nature</label>
@@ -232,7 +267,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small>Parks</small></button><button class="nav-item" data-target="saved"><span>♡</span><small>Saved</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
+      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small>Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
     </nav>
   </div>
   <div id="toast" class="toast hidden"></div>

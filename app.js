@@ -1,4 +1,4 @@
-// Family Vacation Planner V1.8 — time-to-value recommendations
+// Family Vacation Planner V2.0 — trip-aware decision engine
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -8,14 +8,14 @@ const defaultMembers = () => [
 ];
 const defaultProfile = {
   familyName:'', homeBase:'', members:defaultMembers(), maxDrive:30, budget:'medium', energy:'medium',
-  interests:['rides','food','shopping','beach','indoor'], heatAware:true, notes:''
+  interests:['rides','food','shopping','beach','indoor'], heatAware:true, notes:'', arrivalDate:'', departureDate:'', budgetRemaining:'', walkingTolerance:'medium'
 };
 const savedProfile = JSON.parse(localStorage.getItem('ffvp_profile') || 'null');
 const state = {
   coords:null, weather:null,
   unit:localStorage.getItem('ffvp_unit') || (navigator.language?.toLowerCase().includes('us') ? 'f' : 'c'),
   profile:{...defaultProfile, ...(savedProfile || {}), members:(savedProfile?.members?.length ? savedProfile.members : defaultMembers())},
-  saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), deferredInstall:null, filter:'all'
+  saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), tripStatuses:JSON.parse(localStorage.getItem('ffvp_trip_statuses') || '{}'), plans:JSON.parse(localStorage.getItem('ffvp_plans') || '[]'), parkSchedules:{}, deferredInstall:null, filter:'all'
 };
 
 const activities = [
@@ -125,12 +125,39 @@ const childMembers=()=>memberSummary().filter(m=>(+m.age||0)<18);
 const smallerVisitors=()=>childMembers().filter(m=>(+m.age||0)<8 || (+m.height||999)<48);
 const lowThrill=()=>memberSummary().filter(m=>m.thrill==='low').length;
 function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1900);}
+function dateOnly(s){if(!s)return null;const [y,m,d]=String(s).split('-').map(Number);return y&&m&&d?new Date(y,m-1,d,12,0,0,0):null;}
+function localDateKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function tripContext(date=new Date()){
+  const a=dateOnly(state.profile.arrivalDate), dep=dateOnly(state.profile.departureDate);
+  if(!a||!dep||dep<a)return null;
+  const day=new Date(date.getFullYear(),date.getMonth(),date.getDate(),12), ms=86400000;
+  const total=Math.max(1,Math.round((dep-a)/ms)), index=Math.floor((day-a)/ms)+1;
+  const daysUntilDeparture=Math.ceil((dep-day)/ms),departureDay=localDateKey(day)===localDateKey(dep);
+  return {arrival:a,departure:dep,total,index,daysUntilDeparture,departureDay,inTrip:day>=a&&day<dep,before:day<a,after:day>dep,fullDaysRemaining:Math.max(0,daysUntilDeparture-1)};
+}
+function plansForDate(d){const key=localDateKey(d);return state.plans.filter(x=>x.date===key).sort((a,b)=>(a.time||'23:59').localeCompare(b.time||'23:59'));}
+function nextFixedPlan(now=new Date()){
+  return state.plans.map(x=>({...x,when:new Date(`${x.date}T${x.time||'23:59'}:00`)})).filter(x=>x.when>=now).sort((a,b)=>a.when-b.when)[0]||null;
+}
+function updateTripPulse(){
+  const box=$('#tripPulse'),title=$('#tripPulseTitle'),copy=$('#tripPulseCopy');if(!box)return;
+  box.classList.remove('hidden');const t=tripContext();
+  if(!t){title.textContent='Add your vacation dates';copy.textContent='I’ll use them to pace recommendations and know when tomorrow matters.';return;}
+  if(t.before){title.textContent=`${Math.abs(t.index-1)} days until the trip`;copy.textContent='Your planner is ready for the countdown.';return;}
+  if(t.after){title.textContent='Trip complete';copy.textContent='Your visited places are waiting in Trip memories.';return;}
+  if(t.departureDay){title.textContent='Departure day';copy.textContent='I’ll favour short, nearby plans that fit around checkout and travel.';return;}
+  title.textContent=`Day ${t.index} of ${t.total} · ${t.daysUntilDeparture} day${t.daysUntilDeparture===1?'':'s'} until departure`;
+  const next=nextFixedPlan();
+  copy.textContent=next&&next.date===localDateKey()?`Next fixed plan: ${next.title}${next.time?` at ${formatPlanTime(next.time)}`:''}.`:`${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} remain after today.`;
+}
 function updateGreeting(){
   const h=new Date().getHours(),part=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   const family=state.profile.familyName?.trim();
   const title=$('#todayGreeting'),copy=$('#todayGreetingCopy');
   if(title)title.textContent=family?`${part}, ${family}`:part;
-  if(copy)copy.textContent='Here’s what looks smartest for your crew right now.';
+  const t=tripContext();
+  if(copy)copy.textContent=t?.inTrip?`Day ${t.index} of ${t.total}. Here’s what looks smartest for your crew.`:'Here’s what looks smartest for your crew right now.';
+  updateTripPulse();refreshDecisionCard();
 }
 function mapsSearch(q){window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`,'_blank','noopener');}
 
@@ -138,7 +165,7 @@ function setView(name){
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
   $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target===name));
   window.scrollTo({top:0,behavior:'smooth'});
-  if(name==='explore')renderExplore(); if(name==='saved')renderSaved(); if(name==='parks'&&!$('#parksList').children.length)loadParks();
+  if(name==='explore')renderExplore(); if(name==='saved')renderTripHub(); if(name==='parks'&&!$('#parksList').children.length)loadParks();
   if(name==='essentials')renderEssentials(); if(name==='food')loadFood(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm();
 }
 $$('.nav-item').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.target)));
@@ -184,6 +211,55 @@ const stayHomeRecommendation = {
   internalView:'stayin', transient:true, minVisit:30
 };
 
+
+function tripStatusObj(id){const v=state.tripStatuses[id];return typeof v==='string'?{status:v}:v||{status:''};}
+function tripStatus(id){return tripStatusObj(id).status||'';}
+function saveTripStatuses(){localStorage.setItem('ffvp_trip_statuses',JSON.stringify(state.tripStatuses));}
+function setTripStatus(id,status){
+  const prev=tripStatusObj(id), next={...prev,status};
+  if(status==='visited'&&!next.visitedAt)next.visitedAt=localDateKey();
+  if(status!=='visited'&&status!=='repeat'&&prev.status==='visited')next.visitedAt=prev.visitedAt;
+  state.tripStatuses[id]=next;saveTripStatuses();renderExplore();renderTripHub();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();showToast(statusLabel(status)||'Trip status cleared');
+}
+function setTripRating(id,rating){state.tripStatuses[id]={...tripStatusObj(id),rating:+rating||0};saveTripStatuses();renderTripHub();}
+function statusLabel(s){return ({want:'Want to go',must:'Must do',visited:'Been there',repeat:'Happy to repeat',skip:'Don’t suggest again'})[s]||'';}
+function activityStatusSelect(a){
+  const s=tripStatus(a.id);
+  return `<select class="trip-status-select" aria-label="Trip status for ${escapeHtml(a.name)}"><option value="" ${!s?'selected':''}>Trip status…</option><option value="must" ${s==='must'?'selected':''}>⭐ Must do</option><option value="want" ${s==='want'?'selected':''}>♡ Want to go</option><option value="visited" ${s==='visited'?'selected':''}>✓ Been there</option><option value="repeat" ${s==='repeat'?'selected':''}>↻ Happy to repeat</option><option value="skip" ${s==='skip'?'selected':''}>× Don’t suggest</option></select>`;
+}
+function roughSpendTier(a){const n=memberSummary().length||2;return a.cost===3?Math.max(120,n*45):a.cost===2?Math.max(60,n*25):Math.max(20,n*12);}
+function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
+function refreshDecisionCard(){
+  const h=new Date().getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn');if(!title)return;
+  if(h>=22){title.textContent='Call it a night or plan tomorrow?';copy.textContent='I’ll heavily favour nearby, low-effort options tonight — or build a stronger plan for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
+  else if(h>=20){title.textContent='Tonight or tomorrow?';copy.textContent='I’ll compare what is still worth doing now with the value of saving your energy for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
+  else if(h>=17){title.textContent='What works this evening?';copy.textContent='Travel time, closing windows and your next fixed plan matter much more now.';nowBtn.textContent='This evening';tomorrow.classList.remove('hidden');}
+  else{title.textContent='What should we do now?';copy.textContent='I’ll weigh up weather, distance, budget, energy, trip progress and your next fixed plan.';nowBtn.textContent='What Now?';tomorrow.classList.add('hidden');}
+}
+function weatherForDate(target){
+  const w=state.weather;if(!w)return null;const today=localDateKey(),key=localDateKey(target),idx=key===today?0:1;
+  return {rain:w.daily?.precipitation_probability_max?.[idx]||0,high:w.daily?.temperature_2m_max?.[idx],low:w.daily?.temperature_2m_min?.[idx],feels:idx===0?w.current?.apparent_temperature:null};
+}
+function tripUrgencyBoost(a,targetDate){
+  const t=tripContext(targetDate),s=tripStatus(a.id);if(!t?.inTrip)return 0;
+  if(s==='must')return t.daysUntilDeparture<=3?34:22;
+  if(s==='want')return t.daysUntilDeparture<=3?18:10;
+  return 0;
+}
+function planFit(targetDate,travel,visit,mode){
+  const plans=plansForDate(targetDate);if(!plans.length)return {adjust:0,reason:''};
+  if(mode==='now'){
+    const now=new Date(),next=plans.map(p=>({...p,when:new Date(`${p.date}T${p.time||'23:59'}:00`)})).filter(p=>p.when>now).sort((a,b)=>a.when-b.when)[0];
+    if(!next||travel==null)return {adjust:0,reason:''};
+    const mins=(next.when-now)/60000,commit=travel*2+visit+30;
+    if(commit>mins)return {adjust:-42,reason:`doesn’t fit comfortably before ${next.title}`};
+    if(commit>mins-60)return {adjust:-16,reason:`tight before ${next.title}`};
+    return {adjust:4,reason:`fits before ${next.title}`};
+  }
+  const timed=plans.filter(p=>p.time);if(!timed.length)return {adjust:-3,reason:'you already have a fixed plan tomorrow'};
+  if(visit>=180&&timed.some(p=>{const h=+p.time.slice(0,2);return h>=11&&h<=17;}))return {adjust:-24,reason:`a fixed plan splits tomorrow`};
+  return {adjust:-5,reason:'planned around tomorrow’s booking'};
+}
 function dayPhase(date=new Date()){
   const h=date.getHours();
   if(h<11)return 'morning'; if(h<15)return 'midday'; if(h<18)return 'afternoon'; if(h<21)return 'evening'; return 'late';
@@ -223,104 +299,115 @@ function familyFitReason(a){
   if(a.familyStyle==='broad') return 'Broad family mix, but check individual attraction requirements.';
   return '';
 }
-function recommendationScore(a){
-  let score=60,reasons=[];const d=distMiles(a),p=state.profile,w=state.weather;
-  const windowInfo=recommendationWindow(),hour=windowInfo.now.getHours(),phase=windowInfo.phase;
-  const travel=estimatedTravelMinutes(a),visit=minimumVisitMinutes(a);
+const parkActivityMap={'magic-kingdom':'Magic Kingdom','epcot':'EPCOT','hollywood':'Hollywood Studios','animal-kingdom':'Animal Kingdom','universal-studios':'Universal Studios','islands':'Islands of Adventure','epic':'Epic Universe','seaworld':'SeaWorld Orlando'};
+function parkDefinitionForActivity(a){const name=parkActivityMap[a.id];return name?parks.find(p=>p.name===name):null;}
+async function hydrateRecommendationSchedules(targetDate){await Promise.all(activities.filter(a=>a.category==='park').map(a=>{const p=parkDefinitionForActivity(a);return p?loadParkSchedule(p,targetDate):null;}));}
+function scheduleForActivity(a,targetDate){const p=parkDefinitionForActivity(a);return p?state.parkSchedules[`${p.id}:${localDateKey(targetDate)}`]||null:null;}
+function recommendationScore(a,options={}){
+  let score=60,reasons=[];const d=distMiles(a),p=state.profile;
+  const targetDate=options.targetDate||new Date(), mode=options.mode||'now', windowInfo=recommendationWindow(), hour=windowInfo.now.getHours(), phase=windowInfo.phase;
+  const travel=estimatedTravelMinutes(a),visit=minimumVisitMinutes(a),status=tripStatus(a.id),wx=weatherForDate(targetDate);
+  const schedule=a.category==='park'?scheduleForActivity(a,targetDate):null;
+  if(status==='skip'||status==='visited')return {score:-999,reason:status==='visited'?'already visited this trip':'hidden for this trip',travelMinutes:travel};
+  if(status==='repeat'){score+=12;reasons.push('you marked it worth repeating');}
+  score+=tripUrgencyBoost(a,targetDate);if(status==='must')reasons.push('one of your must-dos');else if(status==='want')reasons.push('on your want-to-go list');
 
-  if(d!=null){
-    score+=Math.max(-25,18-(d*.55));
-    if(d>p.maxDrive){score-=30;reasons.push('further than your usual travel range');}
-    else if(d<15)reasons.push('fairly close');
-  }
-  if(travel!=null){
-    // Travel starts to matter much more as the usable day disappears.
+  if(d!=null){score+=Math.max(-25,18-(d*.55));if(d>p.maxDrive){score-=30;reasons.push('further than your usual travel range');}else if(d<15)reasons.push('fairly close');}
+  if(travel!=null&&mode==='now'){
     if(travel>25)score-=Math.min(20,(travel-25)*.7);
-    if(phase==='evening'&&travel>25){score-=10;reasons.push(`about ${travel} min away`);}
-    if(phase==='late'&&travel>15){score-=Math.min(38,(travel-15)*1.25);reasons.push(`~${travel} min each way this late`);}
-
-    const usableEnd=23*60+30;
-    const remaining=Math.max(0,usableEnd-windowInfo.mins);
-    const commitment=travel*2+visit;
-    if(hour>=17&&commitment>remaining){
-      score-=Math.min(38,Math.max(8,(commitment-remaining)/5));
-      reasons.push('not much useful time left after travel');
-    }
+    if(phase==='evening'&&travel>25){score-=10;reasons.push(`about ${travel} min away`);} if(phase==='late'&&travel>15){score-=Math.min(38,(travel-15)*1.25);reasons.push(`~${travel} min each way this late`);}
+    const usableEnd=23*60+30,remaining=Math.max(0,usableEnd-windowInfo.mins),commitment=travel*2+visit;
+    if(hour>=17&&commitment>remaining){score-=Math.min(38,Math.max(8,(commitment-remaining)/5));reasons.push('not much useful time left after travel');}
   }
 
   if(a.tags.some(t=>p.interests.includes(t)))score+=10;
   if(a.energy>({low:1,medium:2,high:3}[p.energy])){score-=9;reasons.push('a bigger-energy option');}
+  if(p.walkingTolerance==='low'&&(a.category==='park'||a.category==='beach')){score-=13;reasons.push('a bigger walking day');}
   const budgetLevel={low:1,medium:2,high:3}[p.budget];if(a.cost>budgetLevel){score-=13;reasons.push('above your preferred spend');}
-  if(a.familyStyle==='thrill'&&smallerVisitors().length){score-=12;reasons.push('mixed fit for younger/smaller visitors');}
-  if(a.familyStyle==='thrill'&&lowThrill()){score-=8;reasons.push('not everyone is thrill-focused');}
-  if(a.familyStyle==='young'&&childMembers().some(m=>(+m.age||0)<=11)){score+=12;reasons.push('good younger-child fit');}
+  const remaining=Number(p.budgetRemaining);if(Number.isFinite(remaining)&&remaining>0&&roughSpendTier(a)>remaining*.35){score-=18;reasons.push('uses a large share of the remaining budget');}
+  if(a.familyStyle==='thrill'&&smallerVisitors().length){score-=12;reasons.push('mixed fit for younger/smaller visitors');} if(a.familyStyle==='thrill'&&lowThrill()){score-=8;reasons.push('not everyone is thrill-focused');} if(a.familyStyle==='young'&&childMembers().some(m=>(+m.age||0)<=11)){score+=12;reasons.push('good younger-child fit');}
 
-  if(w){
-    const rain=w.daily.precipitation_probability_max?.[0]||0,feels=w.current.apparent_temperature,indoor=a.tags.includes('indoor')||a.category==='shopping'||a.category==='stayin',outdoor=['beach','park'].includes(a.category);
-    if(rain>=55&&indoor){score+=18;reasons.push('good rain fallback');}
-    if(rain>=55&&a.category==='beach'){score-=35;reasons.push('weather works against an outdoor day');}
-    if(feels>=34&&p.heatAware&&indoor){score+=14;reasons.push('keeps you out of the heat');}
-    if(feels>=36&&p.heatAware&&outdoor){score-=12;reasons.push('hard work in the heat');}
-  }
+  if(wx){const indoor=a.tags.includes('indoor')||a.category==='shopping'||a.category==='stayin',outdoor=['beach','park'].includes(a.category);if(wx.rain>=55&&indoor){score+=18;reasons.push(mode==='tomorrow'?'good fallback for tomorrow’s rain':'good rain fallback');}if(wx.rain>=55&&a.category==='beach'){score-=35;reasons.push('weather works against an outdoor day');}if(wx.feels>=34&&p.heatAware&&indoor){score+=14;reasons.push('keeps you out of the heat');}if(wx.feels>=36&&p.heatAware&&outdoor){score-=12;reasons.push('hard work in the heat');}}
 
-  // Strong daypart behaviour: the same place should score very differently at 9am and 9:30pm.
-  if(a.category==='park'){
-    if(phase==='afternoon'){score-=10;reasons.push('late for a full park day');}
-    if(phase==='evening'){score-=34;reasons.push('limited park time left');}
-    if(phase==='late'){score-=72;reasons.push('too late to justify a park journey');}
-  }
-  if(a.category==='beach'){
-    if(hour>=18){score-=48;reasons.push('too late for a worthwhile beach trip');}
-    else if(hour>=16)score-=16;
-  }
-  if(a.category==='shopping'){
-    if(phase==='evening'){score+=10;reasons.push('easy evening option');}
-    if(phase==='late'){score-=4;reasons.push('check closing time before leaving');}
-  }
-  if(a.category==='food'&&hour>=16){score+=(travel!=null&&travel<=20?20:8);reasons.push(travel!=null&&travel<=20?'nearby food fits the evening':'food still fits the evening');}
-  if(a.category==='stayin'){
-    if(phase==='evening')score+=22;
-    if(phase==='late'){score+=52;reasons.push('zero travel at this time of night');}
+  if(schedule?.open&&schedule?.close&&travel!=null){
+    if(mode==='now'){
+      const arrival=new Date(Date.now()+travel*60000),usable=(schedule.close-arrival)/60000;
+      if(arrival>=schedule.close){score-=85;reasons.push(`would arrive after the park closes`);}
+      else if(usable<visit){score-=48;reasons.push(`only ~${Math.max(0,Math.round(usable))} useful minutes before closing`);}
+      else if(usable<visit+90){score-=14;reasons.push(`closing at ${timeLabel(schedule.close)} limits the value`);}
+      else reasons.push(`open until ${timeLabel(schedule.close)}`);
+    } else {
+      const operating=(schedule.close-schedule.open)/60000;if(operating>=visit+120)score+=5;reasons.push(`${timeLabel(schedule.open)}–${timeLabel(schedule.close)} tomorrow`);
+    }
   }
 
-  return {score:Math.max(1,Math.min(99,Math.round(score))),reason:reasons.slice(0,2).join(' · ')||familyFitReason(a)||a.note,travelMinutes:travel};
+  if(mode==='now'){
+    if(a.category==='park'){if(phase==='afternoon'){score-=10;reasons.push('late for a full park day');}if(phase==='evening'){score-=34;reasons.push('limited park time left');}if(phase==='late'){score-=72;reasons.push('too late to justify a park journey');}}
+    if(a.category==='beach'){if(hour>=18){score-=48;reasons.push('too late for a worthwhile beach trip');}else if(hour>=16)score-=16;}
+    if(a.category==='shopping'){if(phase==='evening'){score+=10;reasons.push('easy evening option');}if(phase==='late'){score-=4;reasons.push('check closing time before leaving');}}
+    if(a.category==='food'&&hour>=16){score+=(travel!=null&&travel<=20?20:8);reasons.push(travel!=null&&travel<=20?'nearby food fits the evening':'food still fits the evening');}
+    if(a.category==='stayin'){if(phase==='evening')score+=22;if(phase==='late'){score+=52;reasons.push('zero travel at this time of night');}}
+  } else {
+    if(a.category==='park')score+=10;if(a.category==='stayin')score-=20;
+    const t=tripContext(targetDate);if(t?.daysUntilDeparture<=2&&status==='must')score+=10;
+  }
+  const tc=tripContext(targetDate);if(tc?.departureDay){if(a.category==='park'){score-=75;reasons.push('departure day is poor value for a full park');}else if(a.category==='beach'){score-=60;reasons.push('too much travel for departure day');}else if(visit>=120){score-=25;reasons.push('a long commitment for departure day');}else if(['food','shopping'].includes(a.category)){score+=12;reasons.push('easier to fit around departure day');}}
+  const pf=planFit(targetDate,travel,visit,mode);score+=pf.adjust;if(pf.reason)reasons.push(pf.reason);
+  const commitment=travel==null?null:travel*2+visit;
+  return {score:Math.max(-999,Math.min(99,Math.round(score))),reason:reasons.slice(0,3).join(' · ')||familyFitReason(a)||a.note,travelMinutes:travel,commitmentMinutes:commitment};
 }
-function runRecommendations(forcedTag=null){
-  const context=recommendationWindow();
-  let candidates=[...activities];
-  if(!forcedTag)candidates.push(stayHomeRecommendation);
-  let list=candidates.map(a=>({...a,...recommendationScore(a)}));
-  if(forcedTag)list=list.filter(a=>a.category===forcedTag||a.tags.includes(forcedTag));
-  list.sort((a,b)=>b.score-a.score);
+async function runRecommendations(forcedTag=null,mode='now'){
+  const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);
+  const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=[...activities];if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);
+  let list=candidates.map(a=>({...a,...recommendationScore(a,{targetDate,mode})})).filter(a=>a.score>-500);
+  if(forcedTag)list=list.filter(a=>a.category===forcedTag||a.tags.includes(forcedTag));list.sort((a,b)=>b.score-a.score);
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
-  if(eyebrow)eyebrow.textContent=context.label;
-  if(title)title.textContent=context.title;
-  if(copy)copy.textContent=context.copy+' Drive times are planning estimates, not live traffic.';
-  $('#recommendations').classList.remove('hidden');
-  $('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');
-  wirePlaceActions($('#recommendationList'));
-  $('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
+  if(mode==='tomorrow'){
+    const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate);
+    eyebrow.textContent='PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow');
+    const weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
+    copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
+  }else{eyebrow.textContent=context.label;title.textContent=context.title;copy.textContent=context.copy+' I’m also checking trip progress, fixed plans and places you’ve already done. Drive times are planning estimates, not live traffic.';}
+  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
-$('#whatNowBtn').addEventListener('click',()=>runRecommendations());$('#rerunBtn').addEventListener('click',()=>runRecommendations());
+$('#whatNowBtn').addEventListener('click',()=>runRecommendations(null,'now'));$('#tomorrowBtn').addEventListener('click',()=>runRecommendations(null,'tomorrow'));$('#rerunBtn').addEventListener('click',()=>runRecommendations());
+$('#openTripBtn').addEventListener('click',()=>setView('saved'));
 $$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='family'){showOnboarding();return;}if(q==='food'||q==='essentials'||q==='stayin'){setView(q);return;}runRecommendations(q);}));
 
 function placeCard(a,withScore=false,hero=false){
   const d=distMiles(a),saved=!a.transient&&state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),travel=a.travelMinutes??estimatedTravelMinutes(a);
-  const distanceMeta=d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi · ~${travel} min drive`:(a.category==='stayin'?'No travel':null);
-  const meta=[distanceMeta,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a);
+  const distanceMeta=d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi · ~${travel} min drive`:(a.category==='stayin'?'No travel':null),commit=a.commitmentMinutes?`~${Math.round(a.commitmentMinutes/15)*15} min total commitment`:null;
+  const meta=[distanceMeta,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a),s=tripStatus(a.id);
   const saveAction=a.transient?'':`<button class="small-btn save-btn">${saved?'♥ Saved':'♡ Save'}</button>`;
   const primaryAction=a.internalView?`<button class="small-btn primary-small internal-view-btn" data-view="${a.internalView}">See ideas</button>`:`<button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button>`;
-  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div><div class="reason">${withScore?(a.reason||a.note):a.note}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div><div class="place-actions">${saveAction}${primaryAction}</div></article>`;
+  const tripTools=a.transient?'':`<div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div>`;
+  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div><div class="reason">${withScore?`<b>Why:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">${commit} including return travel + useful visit time.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${tripTools}<div class="place-actions">${saveAction}${primaryAction}</div></article>`;
 }
 function wirePlaceActions(root){
-  $$('.save-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderExplore();renderSaved();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();}));
+  $$('.save-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderExplore();renderTripHub();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();}));
   $$('.directions-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id,a=activities.find(x=>x.id===id);if(!a)return;const q=a.search?`${a.search} near me`:a.destination;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener');}));
   $$('.internal-view-btn',root).forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  $$('.trip-status-select',root).forEach(s=>s.addEventListener('change',()=>setTripStatus(s.closest('.place-card').dataset.id,s.value)));
 }
 function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));showToast(state.saved.includes(id)?'Saved to your trip':'Removed from saved');}
 function renderExplore(){let list=activities.map(a=>({...a,...recommendationScore(a)}));if(state.filter!=='all'){if(state.filter==='lowcost')list=list.filter(a=>a.cost===1);else list=list.filter(a=>a.category===state.filter||a.tags.includes(state.filter));}list.sort((a,b)=>(distMiles(a)??999)-(distMiles(b)??999));$('#exploreList').innerHTML=list.map(a=>placeCard(a,false)).join('');wirePlaceActions($('#exploreList'));}
 $$('#exploreFilters .chip').forEach(c=>c.addEventListener('click',()=>{state.filter=c.dataset.filter;$$('#exploreFilters .chip').forEach(x=>x.classList.toggle('active',x===c));renderExplore();}));
-function renderSaved(){const list=activities.filter(a=>state.saved.includes(a.id)).map(a=>({...a,...recommendationScore(a)}));$('#savedList').innerHTML=list.length?list.map(a=>placeCard(a,false)).join(''):'<div class="error-card"><b>Nothing saved yet.</b><br/>Use the heart button while exploring to build the family shortlist.</div>';wirePlaceActions($('#savedList'));}
+function renderSaved(){renderTripHub();}
+function renderTripHub(){
+  const summary=$('#tripSummary');if(!summary)return;const t=tripContext(),remaining=Number(state.profile.budgetRemaining);
+  if(t?.inTrip)summary.innerHTML=`<div class="trip-summary-main"><div><span class="trip-day-big">Day ${t.index}</span><small>of ${t.total}</small></div><div><b>${t.daysUntilDeparture} day${t.daysUntilDeparture===1?'':'s'} to departure</b><small>${t.fullDaysRemaining} full days after today</small></div>${remaining>0?`<div><b>$${Math.round(remaining)}</b><small>budget remaining</small></div>`:''}</div>`;else if(t?.departureDay)summary.innerHTML=`<div class="trip-summary-main"><div><span class="trip-day-big">Departure</span><small>day</small></div><div><b>Keep it flexible</b><small>Short, nearby options rank higher today</small></div>${remaining>0?`<div><b>$${Math.round(remaining)}</b><small>budget remaining</small></div>`:''}</div>`;
+  else summary.innerHTML=`<div class="trip-empty"><b>${t?.before?'Trip countdown ready':'Add your vacation dates'}</b><small>${t?.before?`${Math.abs(t.index-1)} days until arrival.`:'Set arrival and departure in Family so recommendations understand the length of your stay.'}</small></div>`;
+  renderPlans();
+  const ids=new Set([...state.saved,...Object.keys(state.tripStatuses).filter(id=>tripStatus(id))]);const list=activities.filter(a=>ids.has(a.id)).map(a=>({...a,...recommendationScore(a)}));
+  $('#savedList').innerHTML=list.length?list.map(a=>placeCard(a,false)).join(''):'<div class="error-card"><b>No trip places yet.</b><br/>Save a place or give it a trip status while exploring.</div>';wirePlaceActions($('#savedList'));
+  const visited=activities.filter(a=>['visited','repeat'].includes(tripStatus(a.id))).sort((a,b)=>(tripStatusObj(b.id).visitedAt||'').localeCompare(tripStatusObj(a.id).visitedAt||''));
+  $('#memoriesList').innerHTML=visited.length?visited.map(a=>{const o=tripStatusObj(a.id);return `<article class="memory-row" data-id="${a.id}"><div><b>${a.name}</b><small>${o.visitedAt?new Date(`${o.visitedAt}T12:00:00`).toLocaleDateString([], {month:'short',day:'numeric'}):'This trip'} · ${tripStatus(a.id)==='repeat'?'Happy to repeat':'Done'}</small></div><label>Family rating<select class="memory-rating"><option value="0">—</option>${[5,4,3,2,1].map(n=>`<option value="${n}" ${o.rating===n?'selected':''}>${'★'.repeat(n)}</option>`).join('')}</select></label></article>`;}).join(''):'<div class="trip-empty"><b>No memories logged yet.</b><small>Mark a place “Been there” and it will appear here.</small></div>';
+  $$('.memory-rating',$('#memoriesList')).forEach(s=>s.addEventListener('change',()=>setTripRating(s.closest('.memory-row').dataset.id,s.value)));
+}
+function savePlans(){localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));updateTripPulse();}
+function renderPlans(){const root=$('#plansList');if(!root)return;const nowKey=localDateKey();const list=[...state.plans].sort((a,b)=>(a.date+(a.time||'23:59')).localeCompare(b.date+(b.time||'23:59')));root.innerHTML=list.length?list.map(p=>`<article class="plan-row ${p.date<nowKey?'past':''}" data-id="${p.id}"><div><b>${escapeHtml(p.title)}</b><small>${new Date(`${p.date}T12:00:00`).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})}${p.time?` · ${formatPlanTime(p.time)}`:''}${p.location?` · ${escapeHtml(p.location)}`:''}</small></div><button class="icon-btn remove-plan" aria-label="Remove plan">×</button></article>`).join(''):'<div class="trip-empty"><b>No fixed plans yet.</b><small>Add reservations, flights, shows or anything the decision engine needs to work around.</small></div>';$$('.remove-plan',root).forEach(b=>b.addEventListener('click',()=>{state.plans=state.plans.filter(p=>p.id!==b.closest('.plan-row').dataset.id);savePlans();renderTripHub();}));}
+$('#planForm').addEventListener('submit',e=>{e.preventDefault();const title=$('#planTitle').value.trim(),date=$('#planDate').value;if(!title||!date)return;state.plans.push({id:crypto.randomUUID?.()||String(Date.now()),title,date,time:$('#planTime').value,location:$('#planLocation').value.trim()});savePlans();e.target.reset();renderTripHub();showToast('Fixed plan added');});
+
 
 function renderEssentials(){
   $('#essentialsList').innerHTML=essentials.map(e=>`<button type="button" class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i class="essential-chevron" aria-hidden="true">›</i></button>`).join('');
@@ -438,19 +525,17 @@ function renderStayIn(){
   $$('.stay-search').forEach(b=>b.addEventListener('click',()=>mapsSearch(b.dataset.search)));
 }
 
-async function loadParkSchedule(p){
+async function loadParkSchedule(p,targetDate=new Date()){
   try{
+    const key=localDateKey(targetDate),cacheKey=`${p.id}:${key}`;if(state.parkSchedules[cacheKey])return state.parkSchedules[cacheKey];
     const r=await fetch(`https://api.themeparks.wiki/v1/entity/${p.id}/schedule`);if(!r.ok)return null;
     const data=await r.json(),entries=Array.isArray(data)?data:(data.schedule||[]);
-    const today=new Date(),key=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const operating=entries.find(e=>String(e.date||'').slice(0,10)===key&&String(e.type||'OPERATING').toUpperCase()==='OPERATING')||entries.find(e=>String(e.date||'').slice(0,10)===key);
     if(!operating)return null;
-    const openRaw=operating.openingTime||operating.opening_time||operating.startTime||operating.start;
-    const closeRaw=operating.closingTime||operating.closing_time||operating.endTime||operating.end;
-    const open=openRaw?new Date(openRaw):null,close=closeRaw?new Date(closeRaw):null,now=new Date();
-    let status='UNKNOWN';
-    if(open&&close){if(now<open)status='NOT_OPEN_YET';else if(now>=close)status='CLOSED';else if((close-now)/60000<=60)status='CLOSING_SOON';else status='OPEN';}
-    return {open,close,status};
+    const openRaw=operating.openingTime||operating.opening_time||operating.startTime||operating.start,closeRaw=operating.closingTime||operating.closing_time||operating.endTime||operating.end;
+    const open=openRaw?new Date(openRaw):null,close=closeRaw?new Date(closeRaw):null,now=new Date();let status='UPCOMING';
+    if(key===localDateKey(now)&&open&&close){if(now<open)status='NOT_OPEN_YET';else if(now>=close)status='CLOSED';else if((close-now)/60000<=60)status='CLOSING_SOON';else status='OPEN';}
+    const result={open,close,status};state.parkSchedules[cacheKey]=result;return result;
   }catch(e){return null;}
 }
 function timeLabel(d){return d?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'—';}
@@ -515,23 +600,26 @@ function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>({id:r
 function addMemberTo(rootId){const root=$(rootId);root.insertAdjacentHTML('beforeend',memberRow(newMember()));const row=root.lastElementChild;$('.member-remove',row).addEventListener('click',()=>row.remove());}
 $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));$('#addSetupMember').addEventListener('click',()=>addMemberTo('#setupMembers'));
 
-function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#homeBase').value=p.homeBase||'';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
-$('#familyForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#familyName').value.trim(),homeBase:$('#homeBase').value.trim(),members:collectMembers('#familyMembers'),maxDrive:+$('#maxDrive').value,budget:$('#budget').value,energy:$('#energy').value,interests:$$('input[name=interests]:checked').map(x=>x.value),heatAware:$('#heatAware').checked,notes:$('#familyNotes').value.trim()};saveProfile();$('#saveProfileMsg').classList.remove('hidden');setTimeout(()=>$('#saveProfileMsg').classList.add('hidden'),1600);renderExplore();});
-function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));updateGreeting();}
+function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#homeBase').value=p.homeBase||'';$('#arrivalDate').value=p.arrivalDate||'';$('#departureDate').value=p.departureDate||'';$('#budgetRemaining').value=p.budgetRemaining||'';$('#walkingTolerance').value=p.walkingTolerance||'medium';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
+$('#familyForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#familyName').value.trim(),homeBase:$('#homeBase').value.trim(),arrivalDate:$('#arrivalDate').value,departureDate:$('#departureDate').value,budgetRemaining:$('#budgetRemaining').value,walkingTolerance:$('#walkingTolerance').value,members:collectMembers('#familyMembers'),maxDrive:+$('#maxDrive').value,budget:$('#budget').value,energy:$('#energy').value,interests:$$('input[name=interests]:checked').map(x=>x.value),heatAware:$('#heatAware').checked,notes:$('#familyNotes').value.trim()};saveProfile();$('#saveProfileMsg').classList.remove('hidden');setTimeout(()=>$('#saveProfileMsg').classList.add('hidden'),1600);renderExplore();renderTripHub();});
+function saveProfile(){localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));updateGreeting();renderTripHub();}
 function updateUnits(){$('#unitC').classList.toggle('active',state.unit==='c');$('#unitF').classList.toggle('active',state.unit==='f');if(state.weather)renderWeather();}
 $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.dataset.unit;localStorage.setItem('ffvp_unit',state.unit);updateUnits();}));
 
 let setupStep=0;
 function showSetupStep(n){setupStep=Math.max(0,Math.min(2,n));$$('.setup-step').forEach((x,i)=>x.classList.toggle('active',i===setupStep));$$('.setup-progress span').forEach((x,i)=>x.classList.toggle('active',i<=setupStep));$('.skip-setup').classList.toggle('hidden',setupStep>0);}
 function showOnboarding(){
-  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupHomeBase').value=p.homeBase||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
+  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
 }
 $$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep+1)));$$('.setup-back').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep-1)));
-$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),homeBase:$('#setupHomeBase').value.trim(),maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
+$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
+function updateOnlineState(){const b=$('#offlineBanner');if(!b)return;b.classList.toggle('hidden',navigator.onLine);}
+window.addEventListener('online',updateOnlineState);window.addEventListener('offline',updateOnlineState);updateOnlineState();
+setInterval(()=>{updateGreeting();},60000);
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstall=e;$('#installBtn').classList.remove('hidden');});
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-loadProfileForm();updateGreeting();renderExplore();renderSaved();renderEssentials();requestLocation();if(!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+loadProfileForm();updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(!localStorage.getItem('ffvp_onboarded'))showOnboarding();

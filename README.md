@@ -1,106 +1,53 @@
-# Family Vacation Planner — Florida Beta V1.6
+# Family Vacation Planner — Florida Beta V2.0
 
-## V1.8 — time-to-value recommendations
+Mobile-first PWA prototype for a trip-aware family vacation decision engine.
 
-The What Now? engine now factors in the current local time and current GPS distance, not just category/weather fit.
+## V2.0 — Trip Awareness
 
-- estimates driving time from current location (planning estimate; not live traffic)
-- increasingly penalises long journeys as the day gets later
-- accounts for the minimum useful duration of an activity
-- heavily de-ranks theme parks and beaches when there is too little useful day left
-- boosts nearby food, short evening options and Stay In at night
-- allows **Stay in & reset** to win the main What Now? recommendation when that is genuinely the smartest use of the evening
-- changes recommendation headings/copy by daypart (morning / afternoon / evening / late evening)
-- displays approximate drive time on recommendation cards
-- keeps Food recommendations inside the app and, when Google Places is enabled, prioritises restaurants known to be open in the evening
+V2.0 moves the product from “nearby holiday ideas” toward an assistant that understands where the family is in the trip.
 
-A future production version should replace the drive-time estimate with a licensed live routing/traffic provider.
+### Trip context
+- Arrival and departure dates in onboarding and Family settings.
+- Day-of-trip and days-remaining summary on Today and Trip.
+- Late-day Decision Engine changes automatically from “What Now?” to “Tonight or tomorrow?”.
+- A dedicated **Plan tomorrow** path uses tomorrow’s weather, fixed plans, trip progress and remaining must-dos.
 
+### Trip statuses and memories
+Every curated place can be marked:
+- Must do
+- Want to go
+- Been there
+- Happy to repeat
+- Don’t suggest again
 
-Mobile-first PWA prototype for family vacation decision support.
+Places marked **Been there** or **Don’t suggest again** are removed from What Now recommendations. Must-do items gain urgency as departure approaches. Visited/repeat places appear in Trip Memories and can be given a simple family star rating.
 
-## What changed in V1.6
+### Fixed plans / bookings
+The Trip screen can store dated commitments such as dining reservations, flights, shows and ticketed events. The decision engine penalises suggestions that do not fit comfortably before the next commitment and considers tomorrow’s bookings during tomorrow planning.
 
-### Nearby essentials: server-backed
-The browser no longer calls public map infrastructure directly.
+### Time-to-value
+Recommendations consider:
+- current device time
+- current location and planning drive estimate
+- round-trip travel + minimum worthwhile activity time
+- weather
+- family energy and walking tolerance
+- budget mood and optional remaining trip budget
+- trip status / visited history
+- remaining vacation days
+- fixed plans
 
-`/api/nearby` is now a small Vercel Node function that:
-- accepts the user's current coordinates and an essentials category
-- checks OpenStreetMap / Overpass server-side
-- falls back to a bounded OpenStreetMap Nominatim lookup
-- normalises and distance-sorts results before sending a small shortlist back to the app
-- keeps Google Maps as a directions/fallback action rather than the discovery experience
+The app explains why a recommendation ranks well and shows an approximate total commitment time. Drive times remain planning estimates rather than live traffic in this beta.
 
-This is a more appropriate beta architecture and avoids the browser-side CORS/reliability problem seen in V1.2–V1.4.
+### Offline / degraded mode
+The static PWA shell remains service-worker cached. V2.0 adds an offline banner so users know that saved trip information still works while live weather, wait times and nearby searches may not.
 
-For commercial launch, replace the public OSM fallback stack with a contracted places provider or another production-grade data source with suitable terms/SLA.
-
-### Park Pressure
-The Parks screen now combines:
-- live average and median standby waits
-- a colour-coded live wait temperature
-- a beta crowd outlook
-- a “better / worse than expected” value signal
-- tomorrow's crowd outlook
-- the existing family-fit steer
-
-Important: the crowd outlook is **not official park attendance or capacity**. V1.6 uses a transparent beta heuristic based on season, day-of-week, weather and a small park-specific pressure modifier. This is intentionally separated from the live wait feed so a licensed historical source or our own recorded history can replace it later without redesigning the feature.
-
-ThemeParks.wiki live data is suitable for wait-time products under its current public API terms, and its terms allow derived analysis and recording your own history. Its maintained historical archive is moving toward paid access, so a commercial launch should use licensed history or a first-party history store rather than scrape third-party crowd calendars.
-
-### Design-system refresh
-V1.6 applies the supplied Family Vacation Planner design guidance:
-- warm `#F8F9FA` canvas
-- deep slate `#0F172A`
-- coral `#FF6B6B` primary CTA
-- semantic colours for parks, rest, food and logistics
-- Plus Jakarta Sans headings + Inter UI text
-- larger outdoor-friendly tap targets
-- softer card elevation
-- stronger “Today” hierarchy
-- traffic-light park-pressure components
+## Existing data sources
+- Live theme-park waits and schedules: ThemeParks.wiki.
+- Weather: Open-Meteo in the prototype.
+- Food: Google Places API (New) when `GOOGLE_PLACES_API_KEY` is configured; OpenStreetMap fallback otherwise.
+- Nearby essentials: OpenStreetMap public infrastructure for beta only.
+- Crowd outlook: transparent beta heuristic, not official capacity.
 
 ## Deployment
-
-The project remains deployable directly from the GitHub repo to Vercel.
-
-V1.6 adds one new root file:
-
-- `nearby.js`
-
-`vercel.json` uses Vercel's legacy `builds` routing for this beta so the function can stay at the repository root, which makes mobile GitHub uploads easier. `/api/nearby` routes to that function.
-
-Upload the V1.6 files to the existing repository and commit to `main`; the connected Vercel project should redeploy automatically.
-
-## Data/product notes
-
-- Live theme-park waits: ThemeParks.wiki.
-- Weather: Open-Meteo in the prototype; commercial usage terms/provider should be formalised before launch.
-- Nearby places: OpenStreetMap public infrastructure for beta only.
-- Crowd outlook: our own transparent beta heuristic, not official capacity.
-- Maps: used only for final directions/fallback.
-
-
-## V1.6 food ratings
-
-The Food page works without a paid key using the OpenStreetMap fallback, but ratings and provider price levels require Google Places API (New).
-
-To enable them in Vercel:
-
-1. Enable **Places API (New)** in a Google Cloud project with billing enabled.
-2. Create an API key and restrict that key to the Places API.
-3. In the Vercel project, add an environment variable named `GOOGLE_PLACES_API_KEY`.
-4. Redeploy the project.
-
-The key stays server-side in `food.js`; it is never shipped to the browser. Family spend amounts shown by the app are estimates derived from the provider's price band and the saved family profile.
-
-V1.6 also reads park schedule data from ThemeParks.wiki so closed parks no longer appear as LIVE with missing waits.
-
-## V1.8 UX polish
-
-- Weather now displays Celsius and Fahrenheit side-by-side and adds a likely rain/storm time window from the hourly forecast.
-- Weather card is shorter and its sub-card labels use higher-contrast slate tones for bright outdoor conditions.
-- The Decision Engine is more compact so the coral `What Now?` CTA sits higher on the first screen.
-- Quick Start is now a tighter 2×3 primary grid using consistent inline vector icons; secondary discovery remains available through Explore and Family navigation.
-- Essentials uses simpler user-facing copy, neutral slate price notes and a single chevron because the whole row is tappable.
-- Bottom navigation has a stronger filled active state.
+Upload the V2.0 update files to the existing GitHub repository root and commit to `main`. The connected Vercel project should redeploy automatically. Fully close/reopen the installed PWA after deployment so the new service-worker cache takes effect.
