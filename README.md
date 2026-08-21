@@ -183,3 +183,16 @@ The landing screen now follows the selected mobile mockup: the scenic family art
 - Removes the separate logo-card overlay and extra image zoom.
 - Uses top-anchored minimal cropping so the full scenic composition retains more sky, coastline and breathing room.
 - Bumps the service-worker cache to `ffvp-v2-2-7-3`.
+
+## V2.2.8 onboarding polish
+
+The onboarding flow has been reworked for faster mobile setup and better keyboard behaviour:
+
+- Step 1 keeps a compact branded header; Steps 2 and 3 collapse to a minimal `STEP X OF 3` progress header.
+- Progress bars now distinguish completed and current steps correctly.
+- Setup field labels sit above controls rather than using card-like/floating label backgrounds.
+- Family-member height entry supports centimetres or feet/inches while keeping a normalized height internally for ride-fit logic.
+- Member avatars are assigned automatically from age and can be changed with a single tap.
+- Common family requirements can be added with quick-select chips: gluten free, stroller required, motion sickness, early risers, accessibility needs and low walking tolerance.
+- All forward onboarding CTAs use the same coral pill treatment.
+- Mobile spacing is tighter so key controls remain higher above the soft keyboard and screen fold.

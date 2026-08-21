@@ -1,14 +1,17 @@
-// Family Vacation Planner V2.2.6 — strict semantic place classification + branded trip-aware beta
+// Family Vacation Planner V2.2.8 — onboarding UX polish + branded trip-aware beta
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
+const defaultHeightUnit = () => navigator.language?.toLowerCase().startsWith('en-us') ? 'imperial' : 'metric';
+const autoAvatar = age => (+age||0)<6 ? '🧒' : (+age||0)<13 ? '👦' : (+age||0)<18 ? '🧑' : '🙂';
+const avatarChoices = ['🙂','🧑','👩','👨','🧔','🧒','👦','👧','👵','👴','🧑‍🦽'];
 const defaultMembers = () => [
-  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, thrill:'medium'},
-  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, thrill:'medium'}
+  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, heightUnit:defaultHeightUnit(), avatar:'🙂', thrill:'medium'},
+  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, heightUnit:defaultHeightUnit(), avatar:'👦', thrill:'medium'}
 ];
 const defaultProfile = {
   familyName:'', homeBase:'', destinationPreset:'orlando', members:defaultMembers(), maxDrive:30, budget:'medium', energy:'medium',
-  interests:['rides','food','shopping','beach','indoor'], heatAware:true, notes:'', arrivalDate:'', departureDate:'', budgetRemaining:'', walkingTolerance:'medium'
+  interests:['rides','food','shopping','beach','indoor'], heatAware:true, notes:'', quickNotes:[], arrivalDate:'', departureDate:'', budgetRemaining:'', walkingTolerance:'medium'
 };
 const savedProfile = JSON.parse(localStorage.getItem('ffvp_profile') || 'null');
 const state = {
@@ -980,12 +983,23 @@ async function loadParks(){
 }
 $('#refreshParks').addEventListener('click',loadParks);
 
-function newMember(seed={}){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name||'',age:seed.age??'',height:seed.height??'',thrill:seed.thrill||'medium'};}
-function memberRow(m,scope){return `<div class="member-row crew-card" data-id="${m.id}"><div class="crew-avatar">${(+m.age||0)<13?'🧒':'😎'}</div><div class="crew-fields"><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/><button class="member-remove" type="button" aria-label="Remove">×</button></div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" value="${m.age}"></label><label>Height (in)<input class="member-height" type="number" min="20" max="90" value="${m.height}"></label><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>🙂 Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>🎢 Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>🚀 Bring it on</option></select></label></div></div></div>`;}
+function newMember(seed={}){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name||'',age:seed.age??'',height:seed.height??'',heightUnit:seed.heightUnit||defaultHeightUnit(),avatar:seed.avatar||autoAvatar(seed.age),thrill:seed.thrill||'medium'};}
+function memberRow(m,scope){
+  const unit=m.heightUnit||defaultHeightUnit(), inches=+m.height||0, cm=inches?Math.round(inches*2.54):'', feet=inches?Math.floor(inches/12):'', rem=inches?Math.round(inches-(Math.floor(inches/12)*12)):'';
+  const avatar=m.avatar||autoAvatar(m.age);
+  return `<div class="member-row crew-card" data-id="${m.id}"><button class="crew-avatar crew-avatar-btn" type="button" data-avatar="${avatar}" aria-label="Change avatar" title="Tap to change avatar">${avatar}</button><div class="crew-fields"><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/><button class="member-remove" type="button" aria-label="Remove">×</button></div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label><div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>🙂 Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>🎢 Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>🚀 Bring it on</option></select></label></div></div></div>`;
+}
 function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function renderMemberEditor(rootId,members){const root=$(rootId);root.innerHTML=members.map(m=>memberRow(m)).join('');$$('.member-remove',root).forEach(b=>b.addEventListener('click',()=>{if(root.children.length<=1){showToast('Keep at least one family member');return;}b.closest('.member-row').remove();}));}
-function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>({id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:+$('.member-height',r).value||0,thrill:$('.member-thrill',r).value}));}
-function addMemberTo(rootId){const root=$(rootId);root.insertAdjacentHTML('beforeend',memberRow(newMember()));const row=root.lastElementChild;$('.member-remove',row).addEventListener('click',()=>row.remove());}
+function wireMemberRow(row){
+  $('.member-remove',row)?.addEventListener('click',()=>{const root=row.parentElement;if(root.children.length<=1){showToast('Keep at least one family member');return;}row.remove();});
+  const avatar=$('.crew-avatar-btn',row);avatar?.addEventListener('click',()=>{const current=avatar.dataset.avatar||avatar.textContent.trim();const i=avatarChoices.indexOf(current);const next=avatarChoices[(i+1+avatarChoices.length)%avatarChoices.length];avatar.dataset.avatar=next;avatar.textContent=next;row.dataset.avatarCustomized='1';});
+  $('.member-age',row)?.addEventListener('change',e=>{if(row.dataset.avatarCustomized==='1')return;const next=autoAvatar(e.target.value);avatar.dataset.avatar=next;avatar.textContent=next;});
+  const unit=$('.member-height-unit',row);const syncHeightUnit=()=>{const metric=unit.value==='metric';$('.height-metric',row).classList.toggle('hidden',!metric);$('.height-imperial',row).classList.toggle('hidden',metric);};
+  unit?.addEventListener('change',syncHeightUnit);syncHeightUnit();
+}
+function renderMemberEditor(rootId,members){const root=$(rootId);root.innerHTML=members.map(m=>memberRow(m)).join('');$$('.member-row',root).forEach(wireMemberRow);}
+function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightUnit:unit,avatar:$('.crew-avatar-btn',r)?.dataset.avatar||autoAvatar($('.member-age',r).value),thrill:$('.member-thrill',r).value};});}
+function addMemberTo(rootId){const root=$(rootId);root.insertAdjacentHTML('beforeend',memberRow(newMember()));wireMemberRow(root.lastElementChild);}
 $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));$('#addSetupMember').addEventListener('click',()=>addMemberTo('#setupMembers'));
 
 function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#destinationPreset').value=p.destinationPreset||'orlando';$('#homeBase').value=p.homeBase||'';$('#arrivalDate').value=p.arrivalDate||'';$('#departureDate').value=p.departureDate||'';$('#budgetRemaining').value=p.budgetRemaining||'';$('#walkingTolerance').value=p.walkingTolerance||'medium';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
@@ -995,12 +1009,23 @@ function updateUnits(){$('#unitC').classList.toggle('active',state.unit==='c');$
 $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.dataset.unit;localStorage.setItem('ffvp_unit',state.unit);updateUnits();}));
 
 let setupStep=0;
-function showSetupStep(n){setupStep=Math.max(0,Math.min(2,n));$$('.setup-step').forEach((x,i)=>x.classList.toggle('active',i===setupStep));$$('.setup-progress span').forEach((x,i)=>x.classList.toggle('active',i<=setupStep));$('.skip-setup').classList.toggle('hidden',setupStep>0);}
-function showOnboarding(){
-  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
+let setupQuickNotes=new Set();
+function renderSetupQuickNotes(){$$('.note-chip').forEach(b=>b.classList.toggle('active',setupQuickNotes.has(b.dataset.note)));}
+function showSetupStep(n){
+  setupStep=Math.max(0,Math.min(2,n));
+  const onboarding=$('#onboarding');onboarding.dataset.setupStep=String(setupStep);
+  $$('.setup-step').forEach((x,i)=>x.classList.toggle('active',i===setupStep));
+  $$('.setup-progress span').forEach((x,i)=>{x.classList.toggle('completed',i<setupStep);x.classList.toggle('active',i===setupStep);});
+  const progress=$('#setupProgressText');if(progress)progress.textContent=`STEP ${setupStep+1} OF 3`;
+  $('.skip-setup').classList.toggle('hidden',setupStep>0);
+  onboarding.scrollTop=0;
 }
+function showOnboarding(){
+  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';setupQuickNotes=new Set(p.quickNotes||[]);renderSetupQuickNotes();renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
+}
+$$('.note-chip').forEach(b=>b.addEventListener('click',()=>{const note=b.dataset.note;if(setupQuickNotes.has(note))setupQuickNotes.delete(note);else setupQuickNotes.add(note);renderSetupQuickNotes();}));
 $$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep+1)));$$('.setup-back').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep-1)));
-$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
+$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),quickNotes:[...setupQuickNotes],members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
 function showLanding(){

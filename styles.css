@@ -504,3 +504,99 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
 @media(max-width:430px){.landing-actions{padding-left:18px;padding-right:18px}.landing-primary{min-height:58px;border-radius:20px}}
 @media(max-height:690px){.landing-actions{padding-top:7px;padding-bottom:calc(9px + env(safe-area-inset-bottom))}.landing-primary{min-height:54px;font-size:17px}.landing-secondary{min-height:40px;margin-top:1px}}
 
+
+/* V2.2.8 — faster, compact onboarding */
+.onboarding{padding:8px 10px calc(14px + var(--safe-bottom));}
+.adventure-onboarding{margin:6px auto;max-width:620px;overflow:hidden;}
+.onboarding-hero.brand-onboarding-hero{padding:14px 18px 12px;transition:padding .2s ease;}
+.onboarding-brand-logo{width:min(178px,52vw);max-height:132px;margin:0 auto 0;border-radius:18px;}
+.onboarding-tagline{font-size:17px;margin-top:0;}
+.onboarding-script{font-size:12px;margin-top:1px;}
+.onboarding-hero.brand-onboarding-hero p{font-size:11px;line-height:1.35;margin-top:5px;}
+.setup-progress-wrap{margin-top:10px;}
+.setup-progress-text{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:9px;font-weight:800;letter-spacing:.16em;color:#64748B;text-align:center;}
+.onboarding-hero .setup-progress{margin-top:6px;gap:6px;}
+.onboarding-hero .setup-progress span{width:34px;height:4px;background:#DDE4E8;}
+.onboarding-hero .setup-progress span.active{width:44px;background:#FF6B6B;}
+.onboarding-hero .setup-progress span.completed{width:34px;background:#FF9A94;}
+.onboarding[data-setup-step="1"] .onboarding-hero.brand-onboarding-hero,
+.onboarding[data-setup-step="2"] .onboarding-hero.brand-onboarding-hero{padding:11px 18px 9px;background:#FFFEFB;border-bottom:1px solid rgba(47,58,69,.08);}
+.onboarding[data-setup-step="1"] .onboarding-brand-logo,
+.onboarding[data-setup-step="2"] .onboarding-brand-logo,
+.onboarding[data-setup-step="1"] .onboarding-tagline,
+.onboarding[data-setup-step="2"] .onboarding-tagline,
+.onboarding[data-setup-step="1"] .onboarding-script,
+.onboarding[data-setup-step="2"] .onboarding-script,
+.onboarding[data-setup-step="1"] .onboarding-hero.brand-onboarding-hero p,
+.onboarding[data-setup-step="2"] .onboarding-hero.brand-onboarding-hero p{display:none;}
+.onboarding[data-setup-step="1"] .setup-progress-wrap,
+.onboarding[data-setup-step="2"] .setup-progress-wrap{margin-top:0;}
+.adventure-form{padding:15px 18px 17px;}
+.setup-step h3{font-size:24px;margin:3px 0 4px;}
+.step-copy{font-size:12px;line-height:1.4;margin-bottom:13px;}
+.step-kicker{font-size:9px;}
+/* Field labels sit cleanly above controls — no pseudo floating-label blocks. */
+.adventure-form label.field-group,
+.adventure-form .member-fields label{display:block;background:transparent;border:0;box-shadow:none;padding:0;border-radius:0;margin-bottom:12px;color:#334155;}
+.adventure-form .field-label,.member-field-label{display:block;font-size:10px;font-weight:800;letter-spacing:.045em;text-transform:uppercase;color:#64748B;margin:0 0 5px;}
+.adventure-form label.field-group input,
+.adventure-form label.field-group select,
+.adventure-form .member-fields input,
+.adventure-form .member-fields select{margin-top:0;border:1px solid #CBD5E1;background:#fff;border-radius:13px;padding:11px 12px;box-shadow:none;color:#0F172A;}
+.adventure-form label.field-group small{font-size:9px;line-height:1.35;margin-top:5px;color:#64748B;}
+.field-help{display:block;font-size:9px;color:#64748B;line-height:1.4;margin:-3px 0 12px;}
+.trip-date-grid{margin-bottom:3px;}
+/* Fast family setup */
+.crew-card{grid-template-columns:46px 1fr;gap:10px;padding:11px;border-radius:17px;}
+.crew-avatar-btn{border:0;cursor:pointer;min-height:46px;padding:0;color:inherit;box-shadow:none;}
+.crew-avatar-btn:active{transform:scale(.96);}
+.crew-card .member-fields{grid-template-columns:.58fr 1.22fr 1.35fr;align-items:end;}
+.member-fields label{font-size:10px;text-transform:none;letter-spacing:0;}
+.member-fields label>input,.member-fields label>select{margin-top:4px!important;}
+.member-field-label{margin-bottom:4px;}
+.height-field{min-width:0;margin-bottom:12px;}
+.height-control{display:grid;grid-template-columns:76px minmax(0,1fr);gap:6px;align-items:center;}
+.height-control>.member-height-unit{min-width:0;padding-left:8px!important;padding-right:6px!important;}
+.height-entry{min-width:0;}
+.height-metric input{width:100%;}
+.height-imperial{display:grid;grid-template-columns:minmax(42px,1fr) auto minmax(42px,1fr) auto;gap:3px;align-items:center;}
+.height-imperial input{min-width:0;width:100%;padding-left:8px!important;padding-right:8px!important;text-align:center;}
+.height-imperial span{font-weight:800;color:#64748B;}
+.quick-note-block{margin:-2px 0 13px;}
+.quick-note-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.note-chip{min-height:38px;border:1px solid #DDE4E8;background:#fff;color:#475569;border-radius:999px;padding:7px 10px;font-size:10px;font-weight:750;box-shadow:none;}
+.note-chip.active{background:#E8F8F6;border-color:#22C1B5;color:#0F766E;}
+.setup-heading{gap:10px;margin-top:4px;}
+.add-person-btn{min-height:40px;padding:8px 11px;}
+.launch-card{padding:12px;margin:12px 0;}
+/* Unified onboarding advance buttons */
+.adventure-form .primary-btn{background:#FF6B6B;color:#fff;border:0;border-radius:999px;box-shadow:0 4px 12px rgba(255,107,107,.25);min-height:50px;}
+.adventure-form .secondary-btn{border-radius:999px;min-height:50px;}
+.setup-actions{margin-top:8px;}
+@media(max-width:430px){
+  .onboarding{padding:4px 6px calc(8px + var(--safe-bottom));}
+  .adventure-onboarding{margin:2px auto;border-radius:22px;}
+  .onboarding-hero.brand-onboarding-hero{padding:10px 14px 9px;}
+  .onboarding-brand-logo{width:min(142px,42vw);max-height:104px;}
+  .onboarding-tagline{font-size:15px;}
+  .onboarding-script{font-size:11px;}
+  .onboarding-hero.brand-onboarding-hero p{font-size:10px;max-width:330px;}
+  .adventure-form{padding:13px 14px 15px;}
+  .setup-step h3{font-size:22px;}
+  .setup-grid{gap:8px;}
+  .crew-card{grid-template-columns:42px 1fr;}
+  .crew-avatar-btn{min-height:42px;width:42px;height:42px;font-size:21px;}
+  .crew-card .member-fields{grid-template-columns:.58fr 1.42fr;}
+  .crew-card .member-fields>label:last-child{grid-column:1/-1;}
+  .height-field{margin-bottom:12px;}
+  .height-control{grid-template-columns:70px minmax(0,1fr);}
+  .quick-note-chips{gap:6px;}
+  .note-chip{font-size:9px;padding:7px 9px;}
+}
+@media(max-height:720px){
+  .onboarding-brand-logo{width:min(128px,38vw);max-height:92px;}
+  .onboarding-tagline{font-size:14px;}
+  .onboarding-script,.onboarding-hero.brand-onboarding-hero p{display:none;}
+  .setup-progress-wrap{margin-top:5px;}
+  .adventure-form{padding-top:11px;}
+}
