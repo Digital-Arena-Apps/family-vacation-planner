@@ -1,13 +1,17 @@
-// Family Vacation Planner V2.2.8 — onboarding UX polish + branded trip-aware beta
+// Family Vacation Planner V2.2.9 — count-first crew onboarding + clean profile avatars
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
 const defaultHeightUnit = () => navigator.language?.toLowerCase().startsWith('en-us') ? 'imperial' : 'metric';
-const autoAvatar = age => (+age||0)<6 ? '🧒' : (+age||0)<13 ? '👦' : (+age||0)<18 ? '🧑' : '🙂';
-const avatarChoices = ['🙂','🧑','👩','👨','🧔','🧒','👦','👧','👵','👴','🧑‍🦽'];
+const memberRole = m => m?.role || ((+m?.age||0) < 18 ? 'child' : 'adult');
+const memberInitial = (name='', role='adult', index=0) => {
+  const cleaned=String(name).trim();
+  if(cleaned){const parts=cleaned.split(/\s+/).filter(Boolean);return (parts.length>1?(parts[0][0]+parts.at(-1)[0]):parts[0][0]).toUpperCase();}
+  return role==='child'?`C${index+1}`:`A${index+1}`;
+};
 const defaultMembers = () => [
-  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, heightUnit:defaultHeightUnit(), avatar:'🙂', thrill:'medium'},
-  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, heightUnit:defaultHeightUnit(), avatar:'👦', thrill:'medium'}
+  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, heightUnit:defaultHeightUnit(), role:'adult', thrill:'medium'},
+  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, heightUnit:defaultHeightUnit(), role:'child', thrill:'medium'}
 ];
 const defaultProfile = {
   familyName:'', homeBase:'', destinationPreset:'orlando', members:defaultMembers(), maxDrive:30, budget:'medium', energy:'medium',
@@ -983,24 +987,29 @@ async function loadParks(){
 }
 $('#refreshParks').addEventListener('click',loadParks);
 
-function newMember(seed={}){return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name||'',age:seed.age??'',height:seed.height??'',heightUnit:seed.heightUnit||defaultHeightUnit(),avatar:seed.avatar||autoAvatar(seed.age),thrill:seed.thrill||'medium'};}
-function memberRow(m,scope){
-  const unit=m.heightUnit||defaultHeightUnit(), inches=+m.height||0, cm=inches?Math.round(inches*2.54):'', feet=inches?Math.floor(inches/12):'', rem=inches?Math.round(inches-(Math.floor(inches/12)*12)):'';
-  const avatar=m.avatar||autoAvatar(m.age);
-  return `<div class="member-row crew-card" data-id="${m.id}"><button class="crew-avatar crew-avatar-btn" type="button" data-avatar="${avatar}" aria-label="Change avatar" title="Tap to change avatar">${avatar}</button><div class="crew-fields"><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/><button class="member-remove" type="button" aria-label="Remove">×</button></div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label><div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>🙂 Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>🎢 Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>🚀 Bring it on</option></select></label></div></div></div>`;
+function newMember(seed={}){
+  const role=seed.role||((seed.age!=='' && seed.age!=null && +seed.age<18)?'child':'adult');
+  const defaultAge=role==='child'?10:35, defaultHeight=role==='child'?54:68;
+  return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name??'',age:seed.age??defaultAge,height:seed.height??defaultHeight,heightUnit:seed.heightUnit||defaultHeightUnit(),role,thrill:seed.thrill||'medium'};
+}
+function memberRow(m,scope='profile',index=0){
+  const role=m.role||memberRole(m), unit=m.heightUnit||defaultHeightUnit(), inches=+m.height||0, cm=inches?Math.round(inches*2.54):'', feet=inches?Math.floor(inches/12):'', rem=inches?Math.round(inches-(Math.floor(inches/12)*12)):'';
+  const initial=memberInitial(m.name,role,index), roleLabel=role==='child'?'Child':'Adult', remove=scope==='setup'?'':`<button class="member-remove" type="button" aria-label="Remove ${roleLabel.toLowerCase()}">×</button>`;
+  return `<div class="member-row crew-card" data-id="${m.id}" data-role="${role}" data-role-index="${index}"><div class="crew-avatar crew-avatar-initial ${role}" aria-hidden="true">${escapeHtml(initial)}</div><div class="crew-fields"><div class="crew-role-line"><span>${roleLabel} ${index+1}</span></div><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/>${remove}</div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label><div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div><label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>Bring it on</option></select></label></div></div></div>`;
 }
 function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function wireMemberRow(row){
   $('.member-remove',row)?.addEventListener('click',()=>{const root=row.parentElement;if(root.children.length<=1){showToast('Keep at least one family member');return;}row.remove();});
-  const avatar=$('.crew-avatar-btn',row);avatar?.addEventListener('click',()=>{const current=avatar.dataset.avatar||avatar.textContent.trim();const i=avatarChoices.indexOf(current);const next=avatarChoices[(i+1+avatarChoices.length)%avatarChoices.length];avatar.dataset.avatar=next;avatar.textContent=next;row.dataset.avatarCustomized='1';});
-  $('.member-age',row)?.addEventListener('change',e=>{if(row.dataset.avatarCustomized==='1')return;const next=autoAvatar(e.target.value);avatar.dataset.avatar=next;avatar.textContent=next;});
+  const avatar=$('.crew-avatar-initial',row), name=$('.member-name',row);
+  const refreshInitial=()=>{if(avatar)avatar.textContent=memberInitial(name?.value,row.dataset.role||'adult',+row.dataset.roleIndex||0);};
+  name?.addEventListener('input',refreshInitial);
   const unit=$('.member-height-unit',row);const syncHeightUnit=()=>{const metric=unit.value==='metric';$('.height-metric',row).classList.toggle('hidden',!metric);$('.height-imperial',row).classList.toggle('hidden',metric);};
   unit?.addEventListener('change',syncHeightUnit);syncHeightUnit();
 }
-function renderMemberEditor(rootId,members){const root=$(rootId);root.innerHTML=members.map(m=>memberRow(m)).join('');$$('.member-row',root).forEach(wireMemberRow);}
-function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightUnit:unit,avatar:$('.crew-avatar-btn',r)?.dataset.avatar||autoAvatar($('.member-age',r).value),thrill:$('.member-thrill',r).value};});}
-function addMemberTo(rootId){const root=$(rootId);root.insertAdjacentHTML('beforeend',memberRow(newMember()));wireMemberRow(root.lastElementChild);}
-$('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));$('#addSetupMember').addEventListener('click',()=>addMemberTo('#setupMembers'));
+function renderMemberEditor(rootId,members,scope='profile'){const root=$(rootId);const roleCounts={adult:0,child:0};root.innerHTML=members.map(m=>{const role=m.role||memberRole(m),i=roleCounts[role]++;return memberRow({...m,role},scope,i);}).join('');$$('.member-row',root).forEach(wireMemberRow);}
+function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightUnit:unit,role:r.dataset.role||'adult',thrill:$('.member-thrill',r).value};});}
+function addMemberTo(rootId){const root=$(rootId);const m=newMember({role:'adult'});root.insertAdjacentHTML('beforeend',memberRow(m,'profile',$$('.member-row[data-role="adult"]',root).length));wireMemberRow(root.lastElementChild);}
+$('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));
 
 function loadProfileForm(){const p=state.profile;$('#familyName').value=p.familyName||'';$('#destinationPreset').value=p.destinationPreset||'orlando';$('#homeBase').value=p.homeBase||'';$('#arrivalDate').value=p.arrivalDate||'';$('#departureDate').value=p.departureDate||'';$('#budgetRemaining').value=p.budgetRemaining||'';$('#walkingTolerance').value=p.walkingTolerance||'medium';$('#maxDrive').value=p.maxDrive;$('#budget').value=p.budget;$('#energy').value=p.energy;$('#heatAware').checked=p.heatAware;$('#familyNotes').value=p.notes||'';renderMemberEditor('#familyMembers',p.members);$$('input[name=interests]').forEach(i=>i.checked=p.interests.includes(i.value));updateUnits();}
 $('#familyForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#familyName').value.trim(),destinationPreset:$('#destinationPreset').value,homeBase:$('#homeBase').value.trim(),arrivalDate:$('#arrivalDate').value,departureDate:$('#departureDate').value,budgetRemaining:$('#budgetRemaining').value,walkingTolerance:$('#walkingTolerance').value,members:collectMembers('#familyMembers'),maxDrive:+$('#maxDrive').value,budget:$('#budget').value,energy:$('#energy').value,interests:$$('input[name=interests]:checked').map(x=>x.value),heatAware:$('#heatAware').checked,notes:$('#familyNotes').value.trim()};saveProfile();$('#saveProfileMsg').classList.remove('hidden');setTimeout(()=>$('#saveProfileMsg').classList.add('hidden'),1600);renderExplore();renderTripHub();});
@@ -1010,7 +1019,36 @@ $$('.segmented button').forEach(b=>b.addEventListener('click',()=>{state.unit=b.
 
 let setupStep=0;
 let setupQuickNotes=new Set();
+let setupCrewDraft={adult:[],child:[]};
+let setupCrewCounts={adult:1,child:1};
 function renderSetupQuickNotes(){$$('.note-chip').forEach(b=>b.classList.toggle('active',setupQuickNotes.has(b.dataset.note)));}
+function normalizeCrewDraft(members=[]){
+  setupCrewDraft={adult:[],child:[]};
+  members.forEach(m=>{const role=m.role||memberRole(m);setupCrewDraft[role].push({...m,role});});
+  if(!setupCrewDraft.adult.length)setupCrewDraft.adult.push(newMember({role:'adult',name:'Adult 1'}));
+  setupCrewCounts={adult:Math.max(1,setupCrewDraft.adult.length),child:setupCrewDraft.child.length};
+}
+function captureSetupCrew(){
+  if(!$('#setupMembers')?.children.length)return;
+  const current=collectMembers('#setupMembers'), next={adult:[],child:[]};
+  current.forEach(m=>next[m.role||memberRole(m)].push(m));
+  ['adult','child'].forEach(role=>{next[role].forEach((m,i)=>setupCrewDraft[role][i]=m);});
+}
+function ensureCrewDraft(role,count){
+  while(setupCrewDraft[role].length<count){const i=setupCrewDraft[role].length;setupCrewDraft[role].push(newMember({role,name:`${role==='adult'?'Adult':'Child'} ${i+1}`}));}
+}
+function renderSetupCrew(){
+  ensureCrewDraft('adult',setupCrewCounts.adult);ensureCrewDraft('child',setupCrewCounts.child);
+  const members=[...setupCrewDraft.adult.slice(0,setupCrewCounts.adult),...setupCrewDraft.child.slice(0,setupCrewCounts.child)];
+  renderMemberEditor('#setupMembers',members,'setup');
+  if($('#setupAdultCount'))$('#setupAdultCount').textContent=setupCrewCounts.adult;
+  if($('#setupChildCount'))$('#setupChildCount').textContent=setupCrewCounts.child;
+  const total=setupCrewCounts.adult+setupCrewCounts.child, summary=$('#setupCrewSummary');if(summary)summary.textContent=`${total} profile${total===1?'':'s'} ready`;
+  $$('.count-stepper').forEach(stepper=>{const role=stepper.dataset.countRole;$('.count-btn[data-count-change="-1"]',stepper).disabled=role==='adult'?setupCrewCounts.adult<=1:setupCrewCounts.child<=0;});
+}
+function changeSetupCrewCount(role,delta){
+  captureSetupCrew();const min=role==='adult'?1:0,max=10;setupCrewCounts[role]=Math.max(min,Math.min(max,setupCrewCounts[role]+delta));renderSetupCrew();
+}
 function showSetupStep(n){
   setupStep=Math.max(0,Math.min(2,n));
   const onboarding=$('#onboarding');onboarding.dataset.setupStep=String(setupStep);
@@ -1021,11 +1059,12 @@ function showSetupStep(n){
   onboarding.scrollTop=0;
 }
 function showOnboarding(){
-  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';setupQuickNotes=new Set(p.quickNotes||[]);renderSetupQuickNotes();renderMemberEditor('#setupMembers',p.members?.length?p.members:defaultMembers());showSetupStep(0);$('#onboarding').classList.remove('hidden');
+  const p=state.profile;$('#setupFamilyName').value=p.familyName||'';$('#setupDestinationPreset').value=p.destinationPreset||'orlando';$('#setupHomeBase').value=p.homeBase||'';$('#setupArrivalDate').value=p.arrivalDate||'';$('#setupDepartureDate').value=p.departureDate||'';$('#setupMaxDrive').value=p.maxDrive||30;$('#setupBudget').value=p.budget||'medium';$('#setupNotes').value=p.notes||'';setupQuickNotes=new Set(p.quickNotes||[]);renderSetupQuickNotes();normalizeCrewDraft(p.members?.length?p.members:defaultMembers());renderSetupCrew();showSetupStep(0);$('#onboarding').classList.remove('hidden');
 }
+$$('.count-stepper .count-btn').forEach(b=>b.addEventListener('click',()=>{const stepper=b.closest('.count-stepper');changeSetupCrewCount(stepper.dataset.countRole,+b.dataset.countChange||0);}));
 $$('.note-chip').forEach(b=>b.addEventListener('click',()=>{const note=b.dataset.note;if(setupQuickNotes.has(note))setupQuickNotes.delete(note);else setupQuickNotes.add(note);renderSetupQuickNotes();}));
 $$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep+1)));$$('.setup-back').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupStep-1)));
-$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),quickNotes:[...setupQuickNotes],members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
+$('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();captureSetupCrew();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),quickNotes:[...setupQuickNotes],members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
 function showLanding(){

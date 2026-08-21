@@ -184,7 +184,7 @@ The landing screen now follows the selected mobile mockup: the scenic family art
 - Uses top-anchored minimal cropping so the full scenic composition retains more sky, coastline and breathing room.
 - Bumps the service-worker cache to `ffvp-v2-2-7-3`.
 
-## V2.2.8 onboarding polish
+## V2.2.9 onboarding polish
 
 The onboarding flow has been reworked for faster mobile setup and better keyboard behaviour:
 
@@ -196,3 +196,10 @@ The onboarding flow has been reworked for faster mobile setup and better keyboar
 - Common family requirements can be added with quick-select chips: gluten free, stroller required, motion sickness, early risers, accessibility needs and low walking tolerance.
 - All forward onboarding CTAs use the same coral pill treatment.
 - Mobile spacing is tighter so key controls remain higher above the soft keyboard and screen fold.
+
+
+## V2.2.9 crew onboarding
+
+Step 2 is now count-first: the user selects the number of adults and children before completing individual profiles. The app creates the required cards immediately and preserves existing details where possible if the counts change. The onboarding Add person control has been removed.
+
+Profile emoji avatars have been replaced by clean initial circles, with subtle adult/child styling. Initials update as names are entered. Height remains localised to cm or ft/in and is normalised internally for ride-height logic.

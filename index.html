@@ -75,7 +75,29 @@
 
         <section class="setup-step" data-setup-step="1">
           <div class="step-kicker">02 · YOUR CREW</div>
-          <div class="setup-heading adventure-heading"><div><h3>Who’s coming along?</h3><p class="step-copy">Age, height and ride vibe help us suggest days everyone can actually enjoy.</p></div><button id="addSetupMember" class="add-person-btn" type="button">＋ Add person</button></div>
+          <div class="setup-heading adventure-heading"><div><h3>Who’s coming along?</h3><p class="step-copy">Choose the crew size first. We’ll build the profiles underneath ready for the useful details.</p></div></div>
+          <div class="crew-count-panel" aria-label="Choose the number of adults and children">
+            <div class="crew-count-intro"><b>Build your crew</b><small>You can fine-tune names, ages, heights and ride preferences below.</small></div>
+            <div class="crew-count-grid">
+              <div class="crew-count-card">
+                <div><span class="crew-count-label">Adults</span><small>18+</small></div>
+                <div class="count-stepper" data-count-role="adult">
+                  <button type="button" class="count-btn" data-count-change="-1" aria-label="Remove an adult">−</button>
+                  <output id="setupAdultCount" aria-live="polite">1</output>
+                  <button type="button" class="count-btn" data-count-change="1" aria-label="Add an adult">＋</button>
+                </div>
+              </div>
+              <div class="crew-count-card">
+                <div><span class="crew-count-label">Children</span><small>Under 18</small></div>
+                <div class="count-stepper" data-count-role="child">
+                  <button type="button" class="count-btn" data-count-change="-1" aria-label="Remove a child">−</button>
+                  <output id="setupChildCount" aria-live="polite">1</output>
+                  <button type="button" class="count-btn" data-count-change="1" aria-label="Add a child">＋</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="crew-details-heading"><b>Tell us about them</b><small id="setupCrewSummary">2 profiles ready</small></div>
           <div id="setupMembers" class="member-list"></div>
           <label class="field-group"><span class="field-label">Anything useful to know?</span>
             <input id="setupNotes" type="text" maxlength="120" placeholder="Anything else we should know?" autocomplete="off" />
@@ -123,7 +145,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.8</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.9</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
