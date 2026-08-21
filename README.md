@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.17
+# Family Vacation Planner — Destination Beta V2.2.18
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -281,3 +281,17 @@ This is an internationalisation foundation, not a claim that every legacy senten
 The destination finder is no longer seeded with the same three active priorities or limited to the original nine test destinations. Users start with a blank brief, choose up to three priorities, then refine by budget, trip length, climate and setting. The beta comparison library now covers a much broader mix of city, beach, wildlife, nature and theme-park destinations.
 
 Scoring now rewards destinations that satisfy the whole selected brief and heavily penalises destinations that are weak against a chosen must-have. `Show me different ideas` rotates through further suitable matches rather than returning the same shortlist. This is still a curated beta destination intelligence layer; it is deliberately separated from the UI so it can later be replaced or augmented with a live destination data service without redesigning the flow.
+
+
+## V2.2.18 — Budget + trip-length guardrails
+
+Destination Finder now treats **budget as total-trip affordability**, not just destination prices.
+
+- Adds **Travelling from** so a budget recommendation understands journey cost/distance.
+- Value-conscious searches hard-filter implausibly expensive combinations.
+- Trip length penalises or rejects journeys that consume too much of a short break.
+- `Show me different ideas` rotates only inside a strong-match pool; it no longer pages down into poor matches.
+- Destination cards now show `Why it fits` across the whole brief and flag material trade-offs such as long-haul travel.
+- If the strong pool is exhausted, the app asks the user to loosen a filter instead of padding results with bad options.
+
+The travel-cost model is deliberately a beta planning heuristic, not live airfare pricing.
