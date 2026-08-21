@@ -115,7 +115,7 @@ const weatherCode = code => {
   if([45,48].includes(code))return ['Foggy','🌫']; if([51,53,55,56,57].includes(code))return ['Drizzle','🌦'];
   if([61,63,65,66,67,80,81,82].includes(code))return ['Rain','🌧']; if([95,96,99].includes(code))return ['Thunderstorms','⛈']; return ['Mixed weather','🌤'];
 };
-const toF=c=>(c*9/5)+32, temp=c=>state.unit==='f'?`${Math.round(toF(c))}°F`:`${Math.round(c)}°C`, miles=km=>km*.621371;
+const toF=c=>(c*9/5)+32, temp=c=>state.unit==='f'?`${Math.round(toF(c))}°F`:`${Math.round(c)}°C`, bothTemp=c=>`${Math.round(c)}°C / ${Math.round(toF(c))}°F`, miles=km=>km*.621371;
 const haversine=(a,b,c,d)=>{const R=6371,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,q=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));};
 const distMiles=a=>state.coords&&a.lat?miles(haversine(state.coords.lat,state.coords.lon,a.lat,a.lon)):null;
 const money=n=>'$'.repeat(n);
@@ -157,11 +157,24 @@ async function loadWeather(){
   const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,precipitation&hourly=precipitation_probability,weather_code,temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=celsius&timezone=auto&forecast_days=2`;
   try{const r=await fetch(u);if(!r.ok)throw new Error();state.weather=await r.json();renderWeather();}catch(e){$('#weatherCard').className='hero-card weather-card';$('#weatherCard').innerHTML='<b>Weather unavailable right now.</b><p style="color:#d7e7e4;margin-top:8px">The planner still works, but weather-aware scoring is paused.</p>';}
 }
+function formatWeatherHour(iso){
+  if(!iso)return ''; const d=new Date(iso); return d.toLocaleTimeString([], {hour:'numeric',minute:undefined});
+}
+function rainWindow(w){
+  const times=w.hourly?.time||[], probs=w.hourly?.precipitation_probability||[]; if(!times.length)return null;
+  const now=new Date(w.current?.time||Date.now()).getTime(); let start=times.findIndex(t=>new Date(t).getTime()>=now); if(start<0)start=0;
+  const end=Math.min(times.length,start+12); let best=start,bestP=-1;
+  for(let i=start;i<end;i++){const p=Number(probs[i]||0);if(p>bestP){bestP=p;best=i;}}
+  if(bestP<20)return {prob:bestP,label:'low next 12h'};
+  const lo=Math.max(start,best-1), hi=Math.min(end-1,best+1);
+  return {prob:bestP,label:`${formatWeatherHour(times[lo])}–${formatWeatherHour(times[hi])}`};
+}
 function renderWeather(){
-  const w=state.weather;if(!w)return;const c=w.current,d=w.daily,[summary,icon]=weatherCode(c.weather_code),maxRain=d.precipitation_probability_max?.[0]||0;
-  let alert=maxRain>=55?'Rain risk is meaningful — indoor options get a boost.':'Weather looks usable for a mixed day.';
-  if([95,96,99].includes(c.weather_code))alert='Thunderstorms nearby — stay out of pools and exposed outdoor areas.'; else if(c.apparent_temperature>=34)alert='Feels very hot — shorter outdoor spells and air-conditioned options may be smarter.';
-  $('#weatherCard').className='hero-card weather-card'; $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${temp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${temp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${temp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${temp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${Math.round(maxRain)}%</b></div></div><div class="weather-alert">${alert}</div>`;
+  const w=state.weather;if(!w)return;const c=w.current,d=w.daily,[summary,icon]=weatherCode(c.weather_code),maxRain=d.precipitation_probability_max?.[0]||0,rain=rainWindow(w);
+  const rainText=rain&&rain.prob>=20?`${Math.round(rain.prob)}% · ${rain.label}`:`${Math.round(maxRain)}% · low nearby`;
+  let alert=rain&&rain.prob>=55?`Best storm window: ${rain.label}. Indoor options get a boost.`:'Weather looks usable for a mixed day.';
+  if([95,96,99].includes(c.weather_code))alert='Thunderstorms nearby now — stay out of pools and exposed outdoor areas.'; else if(c.apparent_temperature>=34)alert='Feels very hot — shorter outdoor spells and air-conditioned options may be smarter.';
+  $('#weatherCard').className='hero-card weather-card'; $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${bothTemp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${bothTemp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${alert}</div>`;
 }
 
 function foodEstimate(tier){
@@ -215,7 +228,7 @@ $$('#exploreFilters .chip').forEach(c=>c.addEventListener('click',()=>{state.fil
 function renderSaved(){const list=activities.filter(a=>state.saved.includes(a.id)).map(a=>({...a,...recommendationScore(a)}));$('#savedList').innerHTML=list.length?list.map(a=>placeCard(a,false)).join(''):'<div class="error-card"><b>Nothing saved yet.</b><br/>Use the heart button while exploring to build the family shortlist.</div>';wirePlaceActions($('#savedList'));}
 
 function renderEssentials(){
-  $('#essentialsList').innerHTML=essentials.map(e=>`<button type="button" class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i>See nearby →</i></button>`).join('');
+  $('#essentialsList').innerHTML=essentials.map(e=>`<button type="button" class="essential-card" data-essential="${e.id}"><span>${e.icon}</span><div><b>${e.name}</b><small>${e.sub}</small><em>${e.cost} · ${e.costNote}</em></div><i class="essential-chevron" aria-hidden="true">›</i></button>`).join('');
   $$('.essential-card',$('#essentialsList')).forEach(b=>b.addEventListener('click',()=>openEssential(b.dataset.essential)));
 }
 function openEssential(id){

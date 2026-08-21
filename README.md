@@ -78,3 +78,12 @@ To enable them in Vercel:
 The key stays server-side in `food.js`; it is never shipped to the browser. Family spend amounts shown by the app are estimates derived from the provider's price band and the saved family profile.
 
 V1.6 also reads park schedule data from ThemeParks.wiki so closed parks no longer appear as LIVE with missing waits.
+
+## V1.7 UX polish
+
+- Weather now displays Celsius and Fahrenheit side-by-side and adds a likely rain/storm time window from the hourly forecast.
+- Weather card is shorter and its sub-card labels use higher-contrast slate tones for bright outdoor conditions.
+- The Decision Engine is more compact so the coral `What Now?` CTA sits higher on the first screen.
+- Quick Start is now a tighter 2×3 primary grid using consistent inline vector icons; secondary discovery remains available through Explore and Family navigation.
+- Essentials uses simpler user-facing copy, neutral slate price notes and a single chevron because the whole row is tappable.
+- Bottom navigation has a stronger filled active state.
