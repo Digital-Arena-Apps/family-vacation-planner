@@ -218,3 +218,7 @@ Profile emoji avatars have been replaced by clean initial circles, with subtle a
 The app copy now reacts to daypart and trip stage as well as recommendation data. Overnight mode encourages rest and, when a Tomorrow Planner mood has been chosen, references the kind of day being planned. Countdown wording uses more human milestones such as sleeps-to-go, while early/mid/final-trip wording changes the tone of the dashboard and Quick Start prompts.
 
 Selected Tomorrow Planner mood is persisted locally so a late-night/overnight return to the app can say what the family is resting for.
+
+
+## V2.2.11.1 overnight planner wording
+The Tomorrow Planner now switches all user-facing labels to 'later today' during the 00:00–04:59 overnight planning window, including the page eyebrow, heading, helper copy, snapshot and Best Overall action.

@@ -219,13 +219,13 @@
       <section class="view tomorrow-planner-view" data-view="tomorrow-planner">
         <div class="page-heading tomorrow-planner-heading">
           <button class="text-btn inline-back" data-back="today">← Today</button>
-          <div class="eyebrow">PLAN TOMORROW</div>
-          <h2>How should tomorrow feel?</h2>
+          <div id="tomorrowPlannerEyebrow" class="eyebrow">PLAN TOMORROW</div>
+          <h2 id="tomorrowPlannerTitle">How should tomorrow feel?</h2>
           <p id="tomorrowPlannerContext">Choose the mood first. I’ll use it to build a shortlist for the following day.</p>
         </div>
         <div id="tomorrowSnapshot" class="tomorrow-snapshot"></div>
         <section class="section-block compact tomorrow-mood-section">
-          <div class="section-title-row"><div><div class="eyebrow">CHOOSE A MOOD</div><h2>What sounds good?</h2><p class="quick-start-copy">The options below shape tomorrow’s recommendations — not what to do right now.</p></div></div>
+          <div class="section-title-row"><div><div class="eyebrow">CHOOSE A MOOD</div><h2>What sounds good?</h2><p id="tomorrowMoodCopy" class="quick-start-copy">The options below shape tomorrow’s recommendations — not what to do right now.</p></div></div>
           <div class="quick-grid tomorrow-mood-grid">
             <button class="quick-card quick-relax tomorrow-mood" data-tomorrow-mood="chill"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Chill & Recharge</b><small>Slower pace, lighter effort</small></button>
             <button class="quick-card quick-indoor tomorrow-mood" data-tomorrow-mood="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor & Easy</b><small>Weather-proof, lower-stress ideas</small></button>

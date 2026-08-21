@@ -696,9 +696,13 @@ function renderTomorrowPlannerContext(){
   const target=tomorrowTargetDate(),t=tripContext(target),wx=weatherForDate(target),plans=plansForDate(target),dest=destinationPreset();
   const bits=[];if(t?.departureDay)bits.push('Departure day');else if(t?.inTrip)bits.push(`Day ${t.index} of ${t.total}`);
   if(wx)bits.push(`${Math.round(wx.high)}°C high`,`${wx.rain}% rain risk`);if(plans.length)bits.push(`${plans.length} fixed plan${plans.length===1?'':'s'}`);
-  const planLabel=nextPlanningLabel();
+  const planLabel=nextPlanningLabel(),overnight=planLabel==='later today';
+  $('#tomorrowPlannerEyebrow').textContent=overnight?'PLAN LATER TODAY':'PLAN TOMORROW';
+  $('#tomorrowPlannerTitle').textContent=overnight?'How should later today feel?':'How should tomorrow feel?';
   $('#tomorrowPlannerContext').textContent=`Choose the mood first and I’ll rank experiences for ${dest.short||dest.name} using ${planLabel}’s conditions, travel time and your trip progress.`;
-  $('#tomorrowSnapshot').innerHTML=`<div><span>${planLabel==='later today'?'Later today':'Tomorrow'}</span><b>${bits[0]||'A fresh day'}</b></div><div><span>Conditions</span><b>${wx?`${Math.round(wx.high)}°C · ${wx.rain}% rain`:'Forecast loading'}</b></div><div><span>Diary</span><b>${plans.length?`${plans.length} fixed plan${plans.length===1?'':'s'}`:'Wide open'}</b></div>`;
+  $('#tomorrowMoodCopy').textContent=overnight?'These choices shape recommendations for the coming daytime — not something to head out and do at 1am.':'The options below shape tomorrow’s recommendations — not what to do right now.';
+  $('#tomorrowBestOverall').textContent=overnight?'Surprise me — best overall for later today':'Surprise me — best overall for tomorrow';
+  $('#tomorrowSnapshot').innerHTML=`<div><span>${overnight?'Later today':'Tomorrow'}</span><b>${bits[0]||'A fresh day'}</b></div><div><span>Conditions</span><b>${wx?`${Math.round(wx.high)}°C · ${wx.rain}% rain`:'Forecast loading'}</b></div><div><span>Diary</span><b>${plans.length?`${plans.length} fixed plan${plans.length===1?'':'s'}`:'Wide open'}</b></div>`;
 }
 function openTomorrowPlanner(){
   if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}
