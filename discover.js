@@ -7,7 +7,9 @@ const CATEGORY_TYPES = {
   outdoors: ['park','city_park','state_park','national_park','botanical_garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','scenic_spot'],
   // Leisure shopping only. Supermarkets, hypermarkets and generic stores are Essentials.
   shopping: ['shopping_mall','market','farmers_market','flea_market','gift_shop','clothing_store','book_store','toy_store','jewelry_store','shoe_store','sporting_goods_store','thrift_store','cosmetics_store'],
-  sights: ['historical_landmark','cultural_landmark','historical_place','monument','castle','observation_deck','visitor_center']
+  sights: ['historical_landmark','cultural_landmark','historical_place','monument','castle','observation_deck','visitor_center'],
+  wildlife: ['zoo','wildlife_park','wildlife_refuge','nature_preserve','national_park'],
+  beaches: ['beach']
 };
 const OSM_FILTERS = {
   chill: ['[\"natural\"=\"beach\"]','[\"leisure\"=\"spa\"]','[\"tourism\"=\"viewpoint\"]'],
@@ -15,7 +17,9 @@ const OSM_FILTERS = {
   indoor: ['["tourism"="museum"]','["tourism"="aquarium"]','["amenity"="cinema"]','["leisure"="bowling_alley"]','["leisure"="amusement_arcade"]'],
   outdoors: ['["leisure"="park"]','["tourism"="zoo"]','["leisure"="nature_reserve"]','["tourism"="viewpoint"]','["leisure"="garden"]'],
   shopping: ['["shop"="mall"]','["shop"="gift"]','["shop"="clothes"]','["amenity"="marketplace"]'],
-  sights: ['["tourism"="attraction"]','["tourism"="museum"]','["tourism"="viewpoint"]','["historic"]','["leisure"="park"]']
+  sights: ['["tourism"="attraction"]','["tourism"="museum"]','["tourism"="viewpoint"]','["historic"]','["leisure"="park"]'],
+  wildlife: ['["tourism"="zoo"]','["leisure"="nature_reserve"]','["boundary"="protected_area"]'],
+  beaches: ['["natural"="beach"]']
 };
 function haversine(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,q=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));}
 function priceLevel(v){const m={PRICE_LEVEL_FREE:0,PRICE_LEVEL_INEXPENSIVE:1,PRICE_LEVEL_MODERATE:2,PRICE_LEVEL_EXPENSIVE:3,PRICE_LEVEL_VERY_EXPENSIVE:4};return m[v] ?? null;}
@@ -26,7 +30,7 @@ function visitorExperienceAllowed(x,category){
   if(!x)return false;
   if(String(x.businessStatus||'').toUpperCase()==='CLOSED_PERMANENTLY')return false;
   if(['private','no','customers'].includes(String(x.access||'').toLowerCase()))return false;
-  if(category!=='outdoors')return true;
+  if(!['outdoors','wildlife'].includes(category))return true;
   const type=String(x.typeKey||x.type||'').toLowerCase();
   const name=String(x.name||'');
   if(BUSINESSISH_NAME.test(name))return false;
@@ -71,7 +75,7 @@ function experienceDescription(category,x){
     flea_market:'Casual browsing through independent stalls and bargain finds rather than conventional mall shopping.',
     market:'A browse-first stop with multiple stalls or vendors; good for a lighter few hours rather than a major day out.'
   };
-  return copy[t]||({chill:'A lower-effort option for slowing the pace and giving everyone a bit of breathing room.',thrills:'A higher-energy experience aimed at excitement rather than a quiet day.',indoor:'A weather-proof indoor option for a few easier hours.',outdoors:'An outdoor family experience focused on nature, open space or animals.',shopping:'A leisure-shopping option for browsing rather than practical groceries or essentials.',sights:'A visitor-focused local sight that may be worth building into the trip.'}[category]||'A nearby visitor experience that fits this part of your trip.');
+  return copy[t]||({chill:'A lower-effort option for slowing the pace and giving everyone a bit of breathing room.',thrills:'A higher-energy experience aimed at excitement rather than a quiet day.',indoor:'A weather-proof indoor option for a few easier hours.',outdoors:'An outdoor family experience focused on nature, open space or animals.',shopping:'A leisure-shopping option for browsing rather than practical groceries or essentials.',sights:'A visitor-focused local sight that may be worth building into the trip.',wildlife:'A visitor-focused wildlife experience where animals, habitat or safari-style exploring are the main reason to go.',beaches:'A beach or coastal stop for sand, water and a slower pace.'}[category]||'A nearby visitor experience that fits this part of your trip.');
 }
 async function googlePlaces(category,lat,lon,radius){
   const key=process.env.GOOGLE_PLACES_API_KEY;if(!key)return null;
@@ -109,6 +113,8 @@ function filterShopping(results){
 }
 function resultSubtype(r,category){
   const t=String(r.typeKey||r.type||'').toLowerCase();
+  if(category==='wildlife'){if(t.includes('zoo'))return 'zoo';if(t.includes('wildlife'))return 'wildlife';if(t.includes('refuge')||t.includes('preserve'))return 'reserve';if(t.includes('national_park'))return 'national-park';}
+  if(category==='beaches')return 'beach';
   if(category==='outdoors'){
     if(t.includes('playground'))return 'playground';
     if(t.includes('zoo')||t.includes('wildlife'))return 'wildlife';
@@ -153,6 +159,6 @@ module.exports=async function handler(req,res){
     if(!results?.length){results=await overpass(category,lat,lon,radius);source='OpenStreetMap fallback';}
     res.setHeader('Cache-Control','s-maxage=300, stale-while-revalidate=600');
     if(category==='shopping')results=filterShopping(results);results=dedupeResults(results);results=diversifyResults(results,category);
-    res.status(200).json({category,source,results:(results||[]).slice(0,['outdoors','chill'].includes(category)?16:10)});
+    res.status(200).json({category,source,results:(results||[]).slice(0,['outdoors','chill','wildlife','beaches'].includes(category)?16:10)});
   }catch(e){res.status(503).json({error:'Discovery temporarily unavailable'});}
 };

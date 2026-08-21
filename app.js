@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.14 — diverse experience shortlists
+// Family Vacation Planner V2.2.15 — destination-aware specialist module
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -56,7 +56,10 @@ const locationPresets = {
   winsford:{name:'Winsford / Cheshire',short:'Cheshire',lat:53.1914,lon:-2.5234,region:'cheshire'},
   london:{name:'London',short:'London',lat:51.5074,lon:-0.1278,region:'london'},
   paris:{name:'Paris',short:'Paris',lat:48.8566,lon:2.3522,region:'paris'},
-  manchester:{name:'Manchester',short:'Manchester',lat:53.4808,lon:-2.2426,region:'manchester'}
+  manchester:{name:'Manchester',short:'Manchester',lat:53.4808,lon:-2.2426,region:'manchester'},
+  nairobi:{name:'Nairobi',short:'Nairobi',lat:-1.2864,lon:36.8172,region:'nairobi'},
+  anaheim:{name:'Anaheim / Orange County',short:'Anaheim',lat:33.8366,lon:-117.9143,region:'anaheim'},
+  maui:{name:'Maui',short:'Maui',lat:20.7984,lon:-156.3319,region:'maui'}
 };
 function presetFor(key){return locationPresets[key]||null;}
 function destinationPreset(){return presetFor(state.profile.destinationPreset)||locationPresets.orlando;}
@@ -68,6 +71,34 @@ function locationRegion(){
   return checks[0]?.d<80?checks[0].x.region:'local';
 }
 function isFloridaContext(){return locationRegion()==='florida';}
+
+const specialistModules={
+  florida:{label:'Parks',icon:'◉',kind:'parks-live',category:'thrills',eyebrow:'PARK INTELLIGENCE'},
+  anaheim:{label:'Parks',icon:'◉',kind:'discover',category:'thrills',eyebrow:'THEME PARKS & THRILLS',title:'Parks and big-energy experiences',copy:'Theme parks lead here, backed up by other high-energy family attractions within your travel range.'},
+  nairobi:{label:'Wildlife',icon:'◈',kind:'discover',category:'wildlife',eyebrow:'WILDLIFE & SAFARI',title:'Wildlife worth making time for',copy:'Safari, wildlife, zoo and reserve experiences become the specialist lens for this destination.'},
+  'new-york':{label:'Sights',icon:'◆',kind:'discover',category:'sights',eyebrow:'CITY SIGHTS',title:'New York sights worth your time',copy:'Landmarks, viewpoints and visitor experiences that make sense around the city.'},
+  london:{label:'Sights',icon:'◆',kind:'discover',category:'sights',eyebrow:'CITY SIGHTS',title:'London sights worth your time',copy:'Landmarks, viewpoints and visitor experiences that make sense around the city.'},
+  paris:{label:'Highlights',icon:'✦',kind:'discover',category:'sights',eyebrow:'PARIS HIGHLIGHTS',title:'Paris highlights worth planning around',copy:'Landmarks and visitor experiences that deserve a place on a Paris trip rather than a generic attraction list.'},
+  maui:{label:'Beaches',icon:'≈',kind:'discover',category:'beaches',eyebrow:'BEACHES & COAST',title:'Beach and coast options',copy:'Visitor-friendly beaches near your base, weighted by travel range so the coast feels useful rather than generic.'},
+  cheshire:{label:'Days Out',icon:'◇',kind:'discover',category:'sights',eyebrow:'FAMILY DAYS OUT',title:'Family days out nearby',copy:'Visitor attractions and local highlights that make sense as an actual family day out.'},
+  manchester:{label:'Days Out',icon:'◇',kind:'discover',category:'sights',eyebrow:'FAMILY DAYS OUT',title:'Family days out nearby',copy:'Visitor attractions and local highlights that make sense as an actual family day out.'},
+  local:{label:'Discover',icon:'⌕',kind:'discover',category:'sights',eyebrow:'DESTINATION DISCOVERY',title:'What is special around here?',copy:'A destination-neutral discovery view until the app has enough confidence to activate a specialist module.'}
+};
+function specialistContextRegion(){
+  const t=tripContext?.();
+  if(t?.before)return destinationPreset().region;
+  return locationRegion();
+}
+function specialistModule(){return specialistModules[specialistContextRegion()]||specialistModules.local;}
+function renderSpecialistNav(){
+  const m=specialistModule(),label=$('#parksNavLabel'),icon=$('#specialistNavIcon');
+  if(label)label.textContent=m.label;if(icon)icon.textContent=m.icon;
+}
+function openSpecialistModule(){
+  const m=specialistModule();
+  if(m.kind==='parks-live'){setView('parks');return;}
+  loadDiscover(m.category,{specialist:true});
+}
 
 const activities = [
   {id:'disney-springs',name:'Disney Springs',icon:'✨',category:'shopping',tags:['shopping','food','indoor'],cost:1,energy:1,lat:28.3703,lon:-81.5194,destination:'Disney Springs, Lake Buena Vista, FL',note:'Food, shops and entertainment with no theme-park admission.'},
@@ -184,6 +215,15 @@ const quickMoodCopy={
   paris:{title:'What are you in the mood for?',copy:'The same moods, translated into what makes sense around Paris.',items:[
     ['stayin','Chill & Recharge','Hotel reset or a slower café break'],['indoor','Indoor & Easy','Museums, galleries & covered ideas'],['food','Food & Treats','Nearby ratings + family spend'],['outdoors','Outdoors & Explore','Parks, river walks & open-air sights'],['thrills','Thrills & Excitement','Big attractions & energetic experiences'],['shopping','Shop & Browse','Markets, boutiques & shopping centres']
   ]},
+  nairobi:{title:'What are you in the mood for?',copy:'Wildlife and outdoor experiences matter more here, so the mix shifts with the destination.',items:[
+    ['stayin','Chill & Recharge','Hotel or lodge reset and a slower pace'],['indoor','Indoor & Easy','Museums and weather-proof options'],['food','Food & Treats','Nearby ratings + family spend'],['outdoors','Outdoors & Explore','Nature, parks and open-air experiences'],['thrills','Thrills & Excitement','Adventure and energetic experiences'],['shopping','Shop & Browse','Markets, malls and local shopping']
+  ]},
+  anaheim:{title:'What are you in the mood for?',copy:'Theme-park country, but the mood still comes first.',items:[
+    ['stayin','Chill & Recharge','Pool, hotel or easy reset'],['indoor','Indoor & Easy','Weather-proof family ideas'],['food','Food & Treats','Nearby ratings + family spend'],['outdoors','Outdoors & Explore','Parks and outdoor escapes'],['thrills','Thrills & Excitement','Theme parks, rides and high-energy fun'],['shopping','Shop & Browse','Malls, outlets and retail']
+  ]},
+  maui:{title:'What are you in the mood for?',copy:'Island time changes the mix — coast, nature and slower days deserve more weight.',items:[
+    ['stayin','Chill & Recharge','Resort, pool or beach reset'],['indoor','Indoor & Easy','Lower-effort weather-proof ideas'],['food','Food & Treats','Nearby ratings + family spend'],['outdoors','Outdoors & Explore','Nature, coast and scenic exploring'],['thrills','Thrills & Excitement','Water and adventure experiences'],['shopping','Shop & Browse','Markets, shops and local finds']
+  ]},
   manchester:{title:'What are you in the mood for?',copy:'Urban and regional family ideas within the range you choose.',items:[
     ['stayin','Chill & Recharge','Keep it easy and local'],['indoor','Indoor & Easy','Museums, play & weather-proof ideas'],['food','Food & Treats','Nearby ratings + family spend'],['outdoors','Outdoors & Explore','Parks, trails & outdoor ideas'],['thrills','Thrills & Excitement','Karting, adventure & big-energy fun'],['shopping','Shop & Browse','City centre, markets & malls']
   ]},
@@ -227,7 +267,7 @@ function renderQuickMoods(){
   const label=state.locationName||(state.locationMode==='gps'?'Near you':presetFor(state.locationMode)?.name)||destinationLabel();
   if(t?.before){const dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;$('#todayLocationEyebrow').textContent=nearDest?`PLANNING ${dest.name.toUpperCase()}`:`COUNTDOWN TO ${dest.name.toUpperCase()}`;}
   else $('#todayLocationEyebrow').textContent=label==='Near you'?'TODAY NEAR YOU':`TODAY IN ${String(label).toUpperCase()}`;
-  $('#parksNavLabel').textContent=isFloridaContext()?'Parks':'Thrills';
+  renderSpecialistNav();
 }
 
 const essentials = [
@@ -421,25 +461,26 @@ function updateGreeting(){
 function mapsSearch(q){window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`,'_blank','noopener');}
 
 function setView(name){
-  if(name==='parks'&&!isFloridaContext()){loadDiscover('thrills');return;}
+  if(name==='specialist'){openSpecialistModule();return;}
+  if(name==='parks'&&!isFloridaContext()){openSpecialistModule();return;}
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
-  $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.target===name));
+  $$('.nav-item').forEach(n=>n.classList.toggle('active',name==='parks'?n.dataset.target==='specialist':n.dataset.target===name));
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='explore')renderExplore(); if(name==='saved')renderTripHub(); if(name==='parks'&&!$('#parksList').children.length)loadParks();
   if(name==='essentials')renderEssentials(); if(name==='food')loadFood(); if(name==='stayin')renderStayIn(); if(name==='family')loadProfileForm(); if(name==='tomorrow-planner')renderTomorrowPlannerContext();
 }
-$$('.nav-item').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.target==='explore'&&!isFloridaContext()){loadDiscover('sights');return;}setView(b.dataset.target);}));
+$$('.nav-item').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.target==='specialist'){openSpecialistModule();return;}setView(b.dataset.target);}));
 $$('[data-back]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.back)));
 function applyPresetLocation(key,{persist=true}={}){
-  const p=presetFor(key);if(!p)return false;state.locationMode=key;state.coords={lat:p.lat,lon:p.lon};state.locationName=p.name;if(persist){localStorage.setItem('ffvp_test_location',key);$('#testLocationSelect').value=key;}$('#locationLabel').textContent=`Testing from ${p.name}`;loadWeather();renderExplore();renderQuickMoods();if($('.view.active')?.dataset.view==='parks'&&!isFloridaContext())loadDiscover('thrills');return true;
+  const p=presetFor(key);if(!p)return false;state.locationMode=key;state.coords={lat:p.lat,lon:p.lon};state.locationName=p.name;if(persist){localStorage.setItem('ffvp_test_location',key);$('#testLocationSelect').value=key;}$('#locationLabel').textContent=`Testing from ${p.name}`;loadWeather();renderExplore();renderQuickMoods();renderSpecialistNav();if($('.nav-item[data-target="specialist"]')?.classList.contains('active'))openSpecialistModule();return true;
 }
 async function requestLocation(){
   if(state.locationMode!=='gps'&&applyPresetLocation(state.locationMode,{persist:false}))return;
   $('#locationLabel').textContent='Finding your location…';state.locationMode='gps';$('#testLocationSelect').value='gps';localStorage.setItem('ffvp_test_location','gps');
-  if(!navigator.geolocation){const d=destinationPreset();state.coords={lat:d.lat,lon:d.lon};state.locationName=d.name;$('#locationLabel').textContent=`Location unavailable — previewing ${d.name}`;loadWeather();renderQuickMoods();return;}
+  if(!navigator.geolocation){const d=destinationPreset();state.coords={lat:d.lat,lon:d.lon};state.locationName=d.name;$('#locationLabel').textContent=`Location unavailable — previewing ${d.name}`;loadWeather();renderQuickMoods();renderSpecialistNav();return;}
   navigator.geolocation.getCurrentPosition(async pos=>{
-    state.coords={lat:pos.coords.latitude,lon:pos.coords.longitude};state.locationName='Near you'; $('#locationLabel').textContent='Using your current location'; await loadWeather(); renderExplore();renderQuickMoods();
-  },()=>{const d=destinationPreset();state.coords={lat:d.lat,lon:d.lon};state.locationName=d.name;$('#locationLabel').textContent=`Location off — previewing ${d.name}`;loadWeather();renderExplore();renderQuickMoods();},{enableHighAccuracy:false,timeout:9000,maximumAge:300000});
+    state.coords={lat:pos.coords.latitude,lon:pos.coords.longitude};state.locationName='Near you'; $('#locationLabel').textContent='Using your current location'; await loadWeather(); renderExplore();renderQuickMoods();renderSpecialistNav();
+  },()=>{const d=destinationPreset();state.coords={lat:d.lat,lon:d.lon};state.locationName=d.name;$('#locationLabel').textContent=`Location off — previewing ${d.name}`;loadWeather();renderExplore();renderQuickMoods();renderSpecialistNav();},{enableHighAccuracy:false,timeout:9000,maximumAge:300000});
 }
 $('#refreshLocation').addEventListener('click',requestLocation);
 $('#testLocationSelect').addEventListener('change',e=>{const key=e.target.value;if(key==='gps'){state.locationMode='gps';localStorage.setItem('ffvp_test_location','gps');requestLocation();}else applyPresetLocation(key);});
@@ -874,7 +915,9 @@ const discoveryMeta={
   indoor:{eyebrow:'INDOOR & EASY',title:'Good ideas under cover',copy:'Museums, aquariums, entertainment and other weather-proof family options around you.',icon:'☂',category:'indoor',tags:['indoor']},
   outdoors:{eyebrow:'OUTDOORS & EXPLORE',title:'Get outside',copy:'Public parks, zoos, nature, trails and genuinely visitor-friendly outdoor experiences that make sense from here.',icon:'🌿',category:'outdoors',tags:['nature']},
   shopping:{eyebrow:'SHOP & BROWSE',title:'Shopping nearby',copy:'Malls, markets and browse-worthy retail without assuming every destination has Florida-style outlets.',icon:'🛍',category:'shopping',tags:['shopping','indoor']},
-  sights:{eyebrow:'EXPLORE LOCALLY',title:'What is worth seeing nearby?',copy:'A broad local mix of landmarks, museums, views, parks and family attractions.',icon:'📍',category:'activity',tags:['nature','indoor']}
+  sights:{eyebrow:'EXPLORE LOCALLY',title:'What is worth seeing nearby?',copy:'A broad local mix of landmarks, museums, views, parks and family attractions.',icon:'📍',category:'activity',tags:['nature','indoor']},
+  wildlife:{eyebrow:'WILDLIFE & SAFARI',title:'Wildlife worth making time for',copy:'Visitor-focused wildlife, safari, zoo and reserve experiences that make sense from this destination.',icon:'🦒',category:'outdoors',tags:['nature']},
+  beaches:{eyebrow:'BEACHES & COAST',title:'Best coast and beach options',copy:'Visitor-friendly beaches and coastal stops, ranked around your travel range rather than generic nearby pins.',icon:'🌊',category:'beach',tags:['relax']}
 };
 function discoveredActivity(x,category){
   const m=discoveryMeta[category]||discoveryMeta.sights,level=x.priceLevel==null?2:Math.max(1,Math.min(3,x.priceLevel||1));
@@ -891,17 +934,19 @@ function discoveryCard(x,category){
 }
 function wireDiscover(root){
   $$('.discover-save',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderTripHub();b.textContent=state.saved.includes(id)?'♥ Saved':'♡ Save';}));
-  $$('.trip-status-select',root).forEach(sel=>sel.addEventListener('change',()=>{const id=sel.closest('.place-card').dataset.id;setTripStatus(id,sel.value);loadDiscover(state.discoveryCategory);}));
+  $$('.trip-status-select',root).forEach(sel=>sel.addEventListener('change',()=>{const id=sel.closest('.place-card').dataset.id;setTripStatus(id,sel.value);loadDiscover(state.discoveryCategory,{specialist:!!state.discoverySpecialist});}));
 }
-async function loadDiscover(category='sights'){
-  state.discoveryCategory=category;const meta=discoveryMeta[category]||discoveryMeta.sights;
-  $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view==='discover'));$$('.nav-item').forEach(n=>n.classList.toggle('active',(category==='thrills'&&n.dataset.target==='parks')||(category!=='thrills'&&n.dataset.target==='explore')));window.scrollTo({top:0,behavior:'smooth'});
+async function loadDiscover(category='sights',opts={}){
+  state.discoveryCategory=category;const specialist=!!opts.specialist;state.discoverySpecialist=specialist;
+  const baseMeta=discoveryMeta[category]||discoveryMeta.sights,sm=specialist?specialistModule():null;
+  const meta=sm?{...baseMeta,eyebrow:sm.eyebrow||baseMeta.eyebrow,title:sm.title||baseMeta.title,copy:sm.copy||baseMeta.copy}:baseMeta;
+  $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view==='discover'));$$('.nav-item').forEach(n=>n.classList.toggle('active',specialist?n.dataset.target==='specialist':n.dataset.target==='explore'));window.scrollTo({top:0,behavior:'smooth'});
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} Search centre: ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding local options…</b><small>Checking places inside your travel range.</small></div>';$('#discoverResults').innerHTML='';
   try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
     $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} varied ideas around ${escapeHtml(state.locationName||'your location')}</b><small>${escapeHtml(data.source||'Places')} · I’ll mix experience types before repeating the same kind.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
-  }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Local discovery is taking a break</b><small>Try again in a moment. Your saved trip plan still works.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">I couldn’t get a reliable local shortlist just now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category));}
+  }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Local discovery is taking a break</b><small>Try again in a moment. Your saved trip plan still works.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">I couldn’t get a reliable local shortlist just now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category,{specialist:!!state.discoverySpecialist}));}
 }
 
 function placeCard(a,withScore=false,hero=false){

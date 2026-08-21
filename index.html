@@ -57,7 +57,7 @@
               <option value="winsford">Winsford / Cheshire</option>
               <option value="london">London</option>
               <option value="paris">Paris</option>
-              <option value="manchester">Manchester</option>
+              <option value="manchester">Manchester</option><option value="nairobi">Nairobi</option><option value="anaheim">Anaheim / Orange County</option><option value="maui">Maui</option>
             </select>
             <small>This temporary beta list lets us test how the planner adapts to different destinations.</small>
           </label>
@@ -145,7 +145,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.2.14</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2.15</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -168,7 +168,7 @@
             <option value="winsford">Winsford / Cheshire</option>
             <option value="london">London</option>
             <option value="paris">Paris</option>
-            <option value="manchester">Manchester</option>
+            <option value="manchester">Manchester</option><option value="nairobi">Nairobi</option><option value="anaheim">Anaheim / Orange County</option><option value="maui">Maui</option>
           </select></label>
         </div>
         <section id="tripPulse" class="trip-pulse hidden">
@@ -352,7 +352,7 @@
         <div class="page-heading"><div class="eyebrow">YOUR VACATION CREW</div><h2>Everyone gets a better holiday</h2><p>Tell us who loves coasters, who would rather not, and who is still waiting to hit those ride-height markers.</p></div>
         <form id="familyForm" class="form-card">
           <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
-          <label>Trip destination<select id="destinationPreset"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="winsford">Winsford / Cheshire</option><option value="london">London</option><option value="paris">Paris</option><option value="manchester">Manchester</option></select></label>
+          <label>Trip destination<select id="destinationPreset"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="winsford">Winsford / Cheshire</option><option value="london">London</option><option value="paris">Paris</option><option value="manchester">Manchester</option><option value="nairobi">Nairobi</option><option value="anaheim">Anaheim / Orange County</option><option value="maui">Maui</option></select></label>
           <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
           <div class="setup-grid trip-date-grid"><label>Arrival date<input id="arrivalDate" type="date" /></label><label>Departure date<input id="departureDate" type="date" /></label></div>
           <div class="setup-heading"><b>Family members</b><button id="addMember" class="text-btn" type="button">+ Add person</button></div>
@@ -388,7 +388,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
+      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
     </nav>
   </div>
   <div id="toast" class="toast hidden"></div>

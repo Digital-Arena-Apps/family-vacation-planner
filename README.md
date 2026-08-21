@@ -244,3 +244,20 @@ Discovery and mood recommendations now diversify by **experience subtype**, not 
 For Outdoors & Explore, Google Places discovery now builds its candidate pool by popularity within the selected travel radius, then keeps the nearest candidate inside each subtype. This gives the app a better chance of finding meaningful visitor experiences instead of filling the top of the list with the nearest residential playgrounds.
 
 The same round-robin diversity principle is applied to Indoor, Thrills, Chill and Shopping where possible. If the local area genuinely has only one or two suitable subtypes, repeats are still allowed after the distinct options have been shown.
+
+
+## V2.2.15 — Destination-aware specialist tab
+
+The centre bottom-nav slot is now destination-aware rather than permanently labelled Parks.
+
+Beta mappings for testing:
+- Orlando / Central Florida → Parks (live park-pressure screen)
+- Anaheim / Orange County → Parks (local theme-park / thrills discovery)
+- Nairobi → Wildlife
+- New York / London → Sights
+- Paris → Highlights
+- Maui → Beaches
+- Cheshire / Manchester → Days Out
+- Unknown locations → Discover
+
+The temporary Test Location and destination selectors include Nairobi, Anaheim and Maui so the behaviour can be tested directly.
