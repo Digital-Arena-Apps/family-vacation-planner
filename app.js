@@ -337,11 +337,11 @@ function updateTripPulse(){
   copy.textContent=next&&next.date===localDateKey()?`Next fixed plan: ${next.title}${next.time?` at ${formatPlanTime(next.time)}`:''}.`:`${t.fullDaysRemaining} full day${t.fullDaysRemaining===1?'':'s'} remain after today.`;renderPrep();
 }
 function updateGreeting(){
-  const h=new Date().getHours(),part=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const h=new Date().getHours(),part=h<5?'Still up?':h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   const family=state.profile.familyName?.trim();
   const title=$('#todayGreeting'),copy=$('#todayGreetingCopy'),t=tripContext();
   if(t?.before){const days=daysUntilArrival(t);if(title)title.textContent=days===0?'Trip day is here!':(family?`${days} days to go, ${family}`:`${days} days to go`);if(copy)copy.textContent=`Your ${destinationPreset().name} trip is in countdown mode.`;}
-  else{if(title)title.textContent=family?`${part}, ${family}`:part;if(copy)copy.textContent=t?.inTrip?`Day ${t.index} of ${t.total}. Here’s what looks smartest for your crew.`:'Here’s what looks smartest for your crew right now.';}
+  else{if(title)title.textContent=h<5?(family?`Still up, ${family}?`:'Still up?'):(family?`${part}, ${family}`:part);if(copy)copy.textContent=t?.inTrip?`Day ${t.index} of ${t.total}. Here’s what looks smartest for your crew.`:'Here’s what looks smartest for your crew right now.';}
   updateTripPulse();refreshDecisionCard();renderQuickMoods();
 }
 function mapsSearch(q){window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q+' near me')}`,'_blank','noopener');}
@@ -425,8 +425,9 @@ function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(
 function refreshDecisionCard(){
   const h=new Date().getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn'),t=tripContext();if(!title)return;
   if(t?.before){const days=daysUntilArrival(t);title.textContent=days<=1?'Ready for the adventure?':`${days} days to go — let’s get trip-ready`;copy.textContent=`Use countdown mode to prep the essentials, discover ${destinationPreset().short} ideas and build a shortlist before you arrive.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Build trip ideas';tomorrow.classList.remove('hidden');return;}
-  tomorrow.textContent='Plan tomorrow';
-  if(h>=22){title.textContent='Call it a night or plan tomorrow?';copy.textContent='I’ll heavily favour nearby, low-effort options tonight — or build a stronger plan for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
+  tomorrow.textContent=h<5?'Plan later today':'Plan tomorrow';
+  if(h<5){title.textContent='Still up? Keep it easy or plan later today';copy.textContent='It’s after midnight, so I’ll treat this as late night — nearby, low-effort options only, or plan the coming daytime instead.';nowBtn.textContent='Something now';tomorrow.classList.remove('hidden');}
+  else if(h>=22){title.textContent='Call it a night or plan tomorrow?';copy.textContent='I’ll heavily favour nearby, low-effort options tonight — or build a stronger plan for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
   else if(h>=20){title.textContent='Tonight or tomorrow?';copy.textContent='I’ll compare what is still worth doing now with the value of saving your energy for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
   else if(h>=17){title.textContent='What works this evening?';copy.textContent='Travel time, closing windows and your next fixed plan matter much more now.';nowBtn.textContent='This evening';tomorrow.classList.remove('hidden');}
   else{title.textContent='What should we do now?';copy.textContent='I’ll weigh up weather, distance, budget, energy, trip progress and your next fixed plan.';nowBtn.textContent='What Now?';tomorrow.classList.add('hidden');}
@@ -457,8 +458,13 @@ function planFit(targetDate,travel,visit,mode){
 }
 function dayPhase(date=new Date()){
   const h=date.getHours();
-  if(h<11)return 'morning'; if(h<15)return 'midday'; if(h<18)return 'afternoon'; if(h<21)return 'evening'; return 'late';
+  if(h<5)return 'late'; if(h<11)return 'morning'; if(h<15)return 'midday'; if(h<18)return 'afternoon'; if(h<21)return 'evening'; return 'late';
 }
+function isOvernightWindow(date=new Date()){return date.getHours()<5;}
+function nextPlanningDate(date=new Date()){const d=new Date(date);if(!isOvernightWindow(d))d.setDate(d.getDate()+1);return d;}
+function nextPlanningLabel(date=new Date()){return isOvernightWindow(date)?'later today':'tomorrow';}
+function nextPlanningEyebrow(date=new Date()){return isOvernightWindow(date)?'LATER TODAY':'TOMORROW';}
+
 function estimatedTravelMinutes(a){
   const d=distMiles(a); if(d==null){if(a.category==='stayin')return 0;if(a.internalView==='food')return 10;return null;}
   const roadMiles=d*1.22; // simple road-vs-straight-line allowance for beta
@@ -480,6 +486,7 @@ function recommendationWindow(){
     evening:'Nearby food, shopping and shorter entertainment get priority over big day trips.',
     late:'We’re heavily favouring nearby options that are still worth the journey — or staying in.'
   };
+  if(isOvernightWindow(now))return {now,phase:'late',mins,label:'LATE NIGHT',title:'Keep it easy',copy:'It’s after midnight — only genuinely useful nearby options should compete with calling it a night and planning later today.'};
   return {now,phase,mins,label:labels[phase],title:titles[phase],copy:copies[phase]};
 }
 function foodEstimate(tier){
@@ -534,7 +541,7 @@ function recommendationScore(a,options={}){
       else if(usable<visit+90){score-=14;reasons.push(`closing at ${timeLabel(schedule.close)} limits the value`);}
       else reasons.push(`open until ${timeLabel(schedule.close)}`);
     } else {
-      const operating=(schedule.close-schedule.open)/60000;if(operating>=visit+120)score+=5;reasons.push(`${timeLabel(schedule.open)}–${timeLabel(schedule.close)} tomorrow`);
+      const operating=(schedule.close-schedule.open)/60000;if(operating>=visit+120)score+=5;reasons.push(`${timeLabel(schedule.open)}–${timeLabel(schedule.close)} ${nextPlanningLabel()}`);
     }
   }
 
@@ -558,7 +565,7 @@ async function seedLocalDiscovery(){
   try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)return;const data=await r.json();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){}
 }
 
-function tomorrowTargetDate(){const d=new Date();d.setDate(d.getDate()+1);return d;}
+function tomorrowTargetDate(){return nextPlanningDate(new Date());}
 function tomorrowMoodTitle(mood){return ({chill:'Chill & Recharge',indoor:'Indoor & Easy',food:'Food & Treats',outdoors:'Outdoors & Explore',thrills:'Thrills & Excitement',shopping:'Shop & Browse'}[mood]||'Best overall');}
 function tomorrowMoodMatches(a,mood){
   if(!mood)return true;
@@ -638,8 +645,9 @@ function renderTomorrowPlannerContext(){
   const target=tomorrowTargetDate(),t=tripContext(target),wx=weatherForDate(target),plans=plansForDate(target),dest=destinationPreset();
   const bits=[];if(t?.departureDay)bits.push('Departure day');else if(t?.inTrip)bits.push(`Day ${t.index} of ${t.total}`);
   if(wx)bits.push(`${Math.round(wx.high)}°C high`,`${wx.rain}% rain risk`);if(plans.length)bits.push(`${plans.length} fixed plan${plans.length===1?'':'s'}`);
-  $('#tomorrowPlannerContext').textContent=`Choose the mood first and I’ll rank experiences for ${dest.short||dest.name} using tomorrow’s conditions, travel time and your trip progress.`;
-  $('#tomorrowSnapshot').innerHTML=`<div><span>Tomorrow</span><b>${bits[0]||'A fresh day'}</b></div><div><span>Conditions</span><b>${wx?`${Math.round(wx.high)}°C · ${wx.rain}% rain`:'Forecast loading'}</b></div><div><span>Diary</span><b>${plans.length?`${plans.length} fixed plan${plans.length===1?'':'s'}`:'Wide open'}</b></div>`;
+  const planLabel=nextPlanningLabel();
+  $('#tomorrowPlannerContext').textContent=`Choose the mood first and I’ll rank experiences for ${dest.short||dest.name} using ${planLabel}’s conditions, travel time and your trip progress.`;
+  $('#tomorrowSnapshot').innerHTML=`<div><span>${planLabel==='later today'?'Later today':'Tomorrow'}</span><b>${bits[0]||'A fresh day'}</b></div><div><span>Conditions</span><b>${wx?`${Math.round(wx.high)}°C · ${wx.rain}% rain`:'Forecast loading'}</b></div><div><span>Diary</span><b>${plans.length?`${plans.length} fixed plan${plans.length===1?'':'s'}`:'Wide open'}</b></div>`;
 }
 function openTomorrowPlanner(){
   if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}
@@ -687,7 +695,7 @@ function rotatingShortlist(list,count,key,rerun=false){
   return picked;
 }
 async function runRecommendations(forcedTag=null,mode='now',options={}){
-  const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);
+  const now=new Date(),targetDate=mode==='tomorrow'?nextPlanningDate(now):new Date(now);
   if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else if(!isFloridaContext())await seedLocalDiscovery();
   const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);if(mode==='tomorrow'&&forcedTag==='chill')candidates.push(stayHomeRecommendation);
   let list=candidates.map(a=>({...a,...recommendationScore(a,{targetDate,mode})})).filter(a=>a.score>-500);
@@ -706,12 +714,13 @@ async function runRecommendations(forcedTag=null,mode='now',options={}){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
     if($('.view.active')?.dataset.view==='tomorrow-planner'){
       state.tomorrowMood=forcedTag||null;const mood=tomorrowMoodTitle(forcedTag);
-      $('#tomorrowResultsEyebrow').textContent=forcedTag?`${mood.toUpperCase()} · TOMORROW`:'BEST OVERALL · TOMORROW';
-      $('#tomorrowResultsTitle').textContent=t?.departureDay?'Best fit for departure day':(forcedTag?`${mood} for tomorrow`:(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow'));
+      const planLabel=nextPlanningLabel(now),planEyebrow=nextPlanningEyebrow(now);
+      $('#tomorrowResultsEyebrow').textContent=forcedTag?`${mood.toUpperCase()} · ${planEyebrow}`:`BEST OVERALL · ${planEyebrow}`;
+      $('#tomorrowResultsTitle').textContent=t?.departureDay?'Best fit for departure day':(forcedTag?`${mood} for ${planLabel}`:(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:`Best bets for ${planLabel}`));
       $('#tomorrowResultsContext').textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} in the diary`:''}. I’ve filtered out places already visited unless you marked them Repeat.`;
       $('#tomorrowResults').classList.remove('hidden');$('#tomorrowRecommendationList').innerHTML=displayList.length?displayList.map((a,i)=>placeCard(a,true,i===0)).join(''):'<div class="error-card"><b>No strong matches for that mood yet.</b><br/>Try another mood or Best overall.</div>';wirePlaceActions($('#tomorrowRecommendationList'));$('#tomorrowResults').scrollIntoView({behavior:'smooth',block:'start'});return;
     }
-    eyebrow.textContent='PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:'Best bets for tomorrow');copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
+    const planLabel=nextPlanningLabel(now);eyebrow.textContent=isOvernightWindow(now)?'PLAN LATER TODAY':'PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`Best bets for day ${t.index} of ${t.total}`:`Best bets for ${planLabel}`);copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
   }else{eyebrow.textContent=context.label;title.textContent=context.title;copy.textContent=context.copy+' I’m also checking trip progress, fixed plans and places you’ve already done. Drive times are planning estimates, not live traffic.';}
   $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=displayList.map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }

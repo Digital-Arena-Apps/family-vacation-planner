@@ -203,3 +203,11 @@ The onboarding flow has been reworked for faster mobile setup and better keyboar
 Step 2 is now count-first: the user selects the number of adults and children before completing individual profiles. The app creates the required cards immediately and preserves existing details where possible if the counts change. The onboarding Add person control has been removed.
 
 Profile emoji avatars have been replaced by clean initial circles, with subtle adult/child styling. Initials update as names are entered. Height remains localised to cm or ft/in and is normalised internally for ride-height logic.
+
+
+## V2.2.10 overnight daypart fix
+
+- Midnight–04:59 is treated as late night rather than morning.
+- The decision card switches to a late-night context after midnight.
+- At that time the planning action says `Plan later today` and targets the coming daylight hours, avoiding the post-midnight off-by-one-day problem.
+- Greeting and recommendation headings no longer say `Good morning` / `Best this morning` at 00:xx.
