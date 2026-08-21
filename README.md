@@ -1,4 +1,4 @@
-# Family Vacation Planner — Florida Beta V2.0
+# Family Vacation Planner — Florida Beta V2.0.1
 
 Mobile-first PWA prototype for a trip-aware family vacation decision engine.
 
@@ -51,3 +51,8 @@ The static PWA shell remains service-worker cached. V2.0 adds an offline banner 
 
 ## Deployment
 Upload the V2.0 update files to the existing GitHub repository root and commit to `main`. The connected Vercel project should redeploy automatically. Fully close/reopen the installed PWA after deployment so the new service-worker cache takes effect.
+
+
+## V2.0.1 layout patch
+
+Fixes the late-evening Decision Engine card on narrow mobile screens. The heading and explanatory copy now use the full card width, with Tonight / Tomorrow actions arranged in a clean row underneath. No recommendation logic or saved trip data model changed.

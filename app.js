@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.0 — trip-aware decision engine
+// Family Vacation Planner V2.0.1 — trip-aware decision engine + responsive layout patch
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
