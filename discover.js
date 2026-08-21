@@ -1,7 +1,7 @@
 const CATEGORY_TYPES = {
   thrills: ['amusement_park','adventure_sports_center','amusement_center','go_karting_venue','miniature_golf_course','bowling_alley','observation_deck'],
   indoor: ['museum','aquarium','art_gallery','movie_theater','bowling_alley','indoor_playground','amusement_center'],
-  outdoors: ['park','botanical_garden','hiking_area','zoo','playground','national_park'],
+  outdoors: ['park','city_park','state_park','national_park','botanical_garden','garden','hiking_area','zoo','wildlife_park','wildlife_refuge','playground','picnic_ground','cycling_park'],
   shopping: ['shopping_mall','market','department_store','gift_shop','store'],
   sights: ['historical_landmark','museum','observation_deck','aquarium','zoo','art_gallery','park','amusement_park','amusement_center','shopping_mall']
 };
@@ -16,7 +16,7 @@ function haversine(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,
 function priceLevel(v){const m={PRICE_LEVEL_FREE:0,PRICE_LEVEL_INEXPENSIVE:1,PRICE_LEVEL_MODERATE:2,PRICE_LEVEL_EXPENSIVE:3,PRICE_LEVEL_VERY_EXPENSIVE:4};return m[v] ?? null;}
 async function googlePlaces(category,lat,lon,radius){
   const key=process.env.GOOGLE_PLACES_API_KEY;if(!key)return null;
-  const body={includedTypes:CATEGORY_TYPES[category],maxResultCount:12,rankPreference:'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
+  const body={includedTypes:CATEGORY_TYPES[category],maxResultCount:20,rankPreference:category==='outdoors'?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
   const fields=['places.id','places.displayName','places.formattedAddress','places.location','places.rating','places.userRatingCount','places.priceLevel','places.primaryType','places.primaryTypeDisplayName','places.currentOpeningHours','places.businessStatus','places.googleMapsUri'].join(',');
   const r=await fetch('https://places.googleapis.com/v1/places:searchNearby',{method:'POST',headers:{'Content-Type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':fields},body:JSON.stringify(body)});
   if(!r.ok)throw new Error(`Google Places ${r.status}`);
@@ -24,7 +24,7 @@ async function googlePlaces(category,lat,lon,radius){
   return (data.places||[]).map(p=>({
     id:`gp:${p.id}`,providerId:p.id,name:p.displayName?.text||'Nearby place',address:p.formattedAddress||'',lat:p.location?.latitude,lon:p.location?.longitude,
     rating:Number.isFinite(p.rating)?p.rating:null,ratingCount:p.userRatingCount||0,priceLevel:priceLevel(p.priceLevel),type:p.primaryTypeDisplayName?.text||'',typeKey:p.primaryType||'',openNow:typeof p.currentOpeningHours?.openNow==='boolean'?p.currentOpeningHours.openNow:null,businessStatus:p.businessStatus||'',mapsUrl:p.googleMapsUri||'',source:'Google Places'
-  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon)}));
+  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon)})).sort((a,b)=>category==='outdoors'?a.distance-b.distance:0);
 }
 async function overpass(category,lat,lon,radius){
   const filters=OSM_FILTERS[category]||[];if(!filters.length)return [];
@@ -45,6 +45,6 @@ module.exports=async function handler(req,res){
     try{results=await googlePlaces(category,lat,lon,radius);if(results?.length)source='Google Places';}catch(e){}
     if(!results?.length){results=await overpass(category,lat,lon,radius);source='OpenStreetMap fallback';}
     res.setHeader('Cache-Control','s-maxage=300, stale-while-revalidate=600');
-    res.status(200).json({category,source,results:(results||[]).slice(0,10)});
+    res.status(200).json({category,source,results:(results||[]).slice(0,category==='outdoors'?16:10)});
   }catch(e){res.status(503).json({error:'Discovery temporarily unavailable'});}
 };

@@ -134,3 +134,11 @@ Mood fit is now a semantic gate first, then distance, weather, trip status, time
 - Shopping, malls, markets and retail are explicitly classified as Shop & Browse and cannot leak into Outdoors.
 - Previously cached/discovered places are reclassified at runtime from their provider place type, so users do not need to clear saved app data.
 - Broad Explore-locally results no longer receive generic `nature` tags.
+
+
+## V2.2.4 — local outdoor discovery and diversity
+- Outdoors & Explore now queries live nearby outdoor places in Florida as well as other destinations.
+- Google Places outdoor discovery is ranked by distance instead of popularity.
+- Expanded outdoor types include city/state parks, gardens, zoos, wildlife parks/refuges, playgrounds, picnic grounds and cycling parks.
+- Tomorrow outdoor recommendations prefer options inside the family's chosen travel range when at least three are available.
+- Result shaping limits repeated subtypes (especially beaches) so the shortlist is more varied.

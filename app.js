@@ -552,8 +552,34 @@ function tomorrowMoodAffinity(a,mood){
   if(mood==='shopping'&&a.category==='shopping')return 12;
   return 0;
 }
+
+function outdoorSubtype(a){
+  if(a.category==='beach')return 'beach';
+  const t=String(a.placeType||'').toLowerCase();
+  if(t.includes('zoo')||t.includes('wildlife'))return 'wildlife';
+  if(t.includes('garden'))return 'garden';
+  if(t.includes('hiking')||t.includes('trail'))return 'trail';
+  if(t.includes('park')||t.includes('playground')||t.includes('picnic'))return 'park';
+  return 'other-outdoors';
+}
+function shapeMoodResults(list,mood){
+  if(mood!=='outdoors')return list;
+  const maxMiles=state.profile.maxDrive||30;
+  const inRange=list.filter(a=>{const d=distMiles(a);return d==null||d<=maxMiles;});
+  const primary=inRange.length>=3?inRange:list;
+  const rest=inRange.length>=3?list.filter(a=>!inRange.includes(a)):[];
+  const diversify=(items)=>{
+    const picked=[],deferred=[],counts={};
+    for(const a of items){
+      const key=outdoorSubtype(a),cap=key==='beach'?1:2;
+      if((counts[key]||0)<cap){picked.push(a);counts[key]=(counts[key]||0)+1;}else deferred.push(a);
+    }
+    return [...picked,...deferred];
+  };
+  return [...diversify(primary),...diversify(rest)];
+}
 async function seedMoodDiscovery(mood){
-  if(isFloridaContext()||!state.coords)return;
+  if(!state.coords)return;
   const category=({chill:'outdoors',indoor:'indoor',outdoors:'outdoors',thrills:'thrills',shopping:'shopping'}[mood]||'sights');
   if(mood==='food')return;
   const key=`${category}:${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}`;state.moodSeedKeys=state.moodSeedKeys||{};if(state.moodSeedKeys[key])return;
@@ -572,7 +598,7 @@ function openTomorrowPlanner(){
 }
 async function runRecommendations(forcedTag=null,mode='now'){
   const now=new Date(),targetDate=new Date(now);if(mode==='tomorrow')targetDate.setDate(targetDate.getDate()+1);
-  if(!isFloridaContext()){if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else await seedLocalDiscovery();}
+  if(mode==='tomorrow'&&forcedTag)await seedMoodDiscovery(forcedTag);else if(!isFloridaContext())await seedLocalDiscovery();
   const context=recommendationWindow();await hydrateRecommendationSchedules(targetDate);let candidates=allTripPlaces();if(!forcedTag&&mode==='now')candidates.push(stayHomeRecommendation);if(mode==='tomorrow'&&forcedTag==='chill')candidates.push(stayHomeRecommendation);
   let list=candidates.map(a=>({...a,...recommendationScore(a,{targetDate,mode})})).filter(a=>a.score>-500);
   if(forcedTag){
@@ -580,6 +606,7 @@ async function runRecommendations(forcedTag=null,mode='now'){
     if(mode==='tomorrow')list=list.map(a=>({...a,score:Math.min(99,a.score+tomorrowMoodAffinity(a,forcedTag))}));
   }
   list.sort((a,b)=>b.score-a.score);
+  if(mode==='tomorrow'&&forcedTag)list=shapeMoodResults(list,forcedTag);
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
   if(mode==='tomorrow'){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
