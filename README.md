@@ -1,10 +1,10 @@
-# Family Vacation Planner — Destination Beta V2.1
+# Family Vacation Planner — Destination Beta V2.2
 
 Mobile-first PWA prototype for family vacation decision support.
 
-## V2.1 — Destination awareness
+## V2.2 — Destination awareness
 
-V2.1 removes the assumption that every trip is a Florida theme-park holiday.
+V2.2 removes the assumption that every trip is a Florida theme-park holiday.
 
 ### Mood-led Quick Start
 
@@ -37,7 +37,7 @@ The selected test location is used by weather, Food, Essentials and local discov
 
 ### Local discovery API
 
-V2.1 adds `/api/discover`, implemented by the new root `discover.js` Vercel function.
+V2.2 adds `/api/discover`, implemented by the new root `discover.js` Vercel function.
 
 It uses Google Places API (New) when `GOOGLE_PLACES_API_KEY` is configured and falls back to OpenStreetMap / Overpass. It supports discovery categories for thrills, indoor ideas, outdoors, shopping and broad local sights. Results include distance and, when supplied by Google, ratings, review counts and current open state.
 
@@ -73,10 +73,35 @@ Weather shown while previewing a destination well ahead of the trip is explicitl
 
 ## Deployment
 
-V2.1 adds one new root file:
+V2.2 adds one new root file:
 
 - `discover.js`
 
-It also changes `vercel.json` to build that function and route `/api/discover` to it. Upload the V2.1 update files to `main`; the connected Vercel project should redeploy automatically.
+It also changes `vercel.json` to build that function and route `/api/discover` to it. Upload the V2.2 update files to `main`; the connected Vercel project should redeploy automatically.
 
 The PWA cache is `ffvp-v2-1`; fully close/reopen the installed app after deployment.
+
+
+## V2.2 — Brand refresh + countdown-mode refinement
+
+V2.2 adopts the selected Family Vacation Planner identity concept:
+- family-road-wave app mark
+- coral, peach, aqua, sky blue, sunshine and dark-slate palette
+- refreshed sticky app header
+- branded onboarding hero
+- replacement PWA install icons
+
+Countdown mode now has a different job from on-trip mode:
+- the Quick Start area becomes **Build your trip**
+- cards are destination-planning categories such as Must-do experiences, Thrills & Excitement, Food worth planning and Indoor backups
+- tapping those cards searches around the trip destination rather than the user's current home location
+- Essentials is hidden before arrival
+- the live weather card is hidden before arrival to avoid presenting today's destination weather as the trip forecast
+
+Temporary beta testing controls are available under **Family → Testing tools**:
+- Force onboarding on launch (enabled by default during beta)
+- Restart onboarding with current details pre-filled
+- Start as new user (clears trip/profile data)
+- Reset all app data
+
+Remove or disable the testing section and forced-onboarding default before production launch.

@@ -42,6 +42,14 @@
     {
       "src": "icon-512.png",
       "use": "@vercel/static"
+    },
+    {
+      "src": "brand-mark.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "brand-logo.png",
+      "use": "@vercel/static"
     }
   ],
   "routes": [

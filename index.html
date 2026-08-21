@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0F172A" />
+  <meta name="theme-color" content="#2F3A45" />
   <meta name="description" content="A family-aware vacation decision helper that adapts to destination, time and trip progress." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Family Planner" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
@@ -20,11 +20,11 @@
 <body>
   <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
     <div class="onboarding-card adventure-onboarding">
-      <div class="onboarding-hero">
-        <div class="holiday-orbit" aria-hidden="true"><span>☀️</span><span>🌴</span><span>🎢</span><span>🍦</span></div>
-        <div class="eyebrow light">YOUR HOLIDAY STARTS HERE</div>
-        <h2>Build your vacation crew</h2>
-        <p>A few fun details now means fewer “what are we doing today?” debates later.</p>
+      <div class="onboarding-hero brand-onboarding-hero">
+        <img class="onboarding-brand-logo" src="brand-logo.png" alt="Family Vacation Planner" />
+        <div class="onboarding-tagline">Plan better. Travel together.</div>
+        <div class="onboarding-script">Make it unforgettable.</div>
+        <p>A few useful details now help us shape the trip around your actual family — before you go and while you’re there.</p>
         <div class="setup-progress" aria-label="Setup progress"><span class="active"></span><span></span><span></span></div>
       </div>
       <form id="onboardingForm" class="setup-form adventure-form">
@@ -91,12 +91,13 @@
   </div>
 
   <div id="app" class="app-shell">
-    <header class="topbar topbar-v15">
+    <header class="topbar topbar-v15 brand-topbar">
       <div class="brand-lockup">
-        <div class="brand-badge" aria-hidden="true">☀</div>
-        <div>
-          <div class="brand-kicker">DESTINATION BETA · V2.1</div>
-          <h1>Family Vacation Planner</h1>
+        <img class="brand-mark" src="brand-mark.png" alt="" aria-hidden="true" />
+        <div class="brand-wordmark" aria-label="Family Vacation Planner">
+          <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
+          <span class="brand-planner">PLANNER</span>
+          <span class="brand-kicker">DESTINATION BETA · V2.2</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -294,6 +295,18 @@
           <button class="primary-btn full" type="submit">Save family profile</button><div id="saveProfileMsg" class="save-msg hidden">Saved ✓</div>
         </form>
         <section class="section-block compact"><div class="setting-row"><div><b>Temperature</b><small>Used throughout the app</small></div><div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div></div></section>
+
+        <section class="section-block compact beta-tools">
+          <div class="section-title-row"><div><div class="eyebrow">BETA TESTING</div><h2>Testing tools</h2><p>Temporary controls — these disappear before launch.</p></div></div>
+          <div class="testing-card">
+            <label class="toggle-row"><span><b>Force onboarding on launch</b><small>Show onboarding every time the app is freshly opened.</small></span><input id="forceOnboarding" type="checkbox" /></label>
+            <div class="testing-actions">
+              <button id="restartOnboarding" class="secondary-btn" type="button">Restart onboarding</button>
+              <button id="newUserTest" class="secondary-btn" type="button">Start as new user</button>
+              <button id="resetAppData" class="danger-btn" type="button">Reset all app data</button>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
 

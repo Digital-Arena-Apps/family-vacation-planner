@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.1 — destination-aware discovery + pre-trip countdown
+// Family Vacation Planner V2.2 — branded trip-aware beta + destination discovery
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -19,6 +19,18 @@ const state = {
   discovered:JSON.parse(localStorage.getItem('ffvp_discovered') || '{}'), prepDone:JSON.parse(localStorage.getItem('ffvp_prep_done') || '{}'),
   locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all'
 };
+const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
+
+const quickIconSvg = {
+  stayin:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>',
+  indoor:'<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg>',
+  food:'<svg viewBox="0 0 24 24"><path d="M7 3v8"/><path d="M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M15 3c3 1 4.5 3.5 4.5 6S18 13 15 13"/></svg>',
+  outdoors:'<svg viewBox="0 0 24 24"><circle cx="17" cy="6" r="2.5"/><path d="M3 19h18"/><path d="m5 19 5-9 3 5 2-3 4 7"/></svg>',
+  thrills:'<svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7z"/></svg>',
+  shopping:'<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>',
+  sights:'<svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 19v-8l6-5 6 5v8"/><path d="M9 19v-5h6v5"/><path d="m18 4 .6 1.4L20 6l-1.4.6L18 8l-.6-1.4L16 6l1.4-.6Z"/></svg>'
+};
+
 const locationPresets = {
   orlando:{name:'Orlando / Central Florida',short:'Orlando',lat:28.3772,lon:-81.5707,region:'florida'},
   'new-york':{name:'New York City',short:'New York',lat:40.7580,lon:-73.9855,region:'new-york'},
@@ -91,11 +103,33 @@ const quickMoodCopy={
   ]}
 };
 function renderQuickMoods(){
-  const cfg=quickMoodCopy[locationRegion()]||quickMoodCopy.local;
+  const t=tripContext();
+  let cfg=quickMoodCopy[locationRegion()]||quickMoodCopy.local;
+  if(t?.before){
+    const dest=destinationPreset();
+    cfg={
+      title:'Build your trip',
+      copy:`Discover ideas around ${dest.name} now. Mark the best ones Must do or Want to go, then shape them into your holiday.`,
+      items:[
+        ['sights','Must-do experiences','The iconic sights and family favourites worth planning around'],
+        ['thrills','Thrills & Excitement','Big-energy days, rides and adventure experiences'],
+        ['food','Food worth planning','Highly rated meals, treats and places worth booking'],
+        ['outdoors','Chill & Recharge','Beaches, parks and slower days to balance the itinerary'],
+        ['indoor','Indoor backups','Museums, attractions and rainy-day alternatives'],
+        ['shopping','Shop & Browse','Outlets, markets and shopping worth making time for']
+      ]
+    };
+  }
   $('#quickStartTitle').textContent=cfg.title;$('#quickStartCopy').textContent=cfg.copy;
-  cfg.items.forEach((item,i)=>{const b=$(`#quickMood${i+1}`);if(!b)return;b.dataset.quick=item[0];$('b',b).textContent=item[1];$('small',b).textContent=item[2];});
-  const t=tripContext(),label=state.locationName||(state.locationMode==='gps'?'Near you':presetFor(state.locationMode)?.name)||destinationLabel();
-  if(t?.before){const dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;$('#todayLocationEyebrow').textContent=nearDest?`PREVIEWING ${dest.name.toUpperCase()}`:(label==='Near you'?'CURRENT LOCATION':`TESTING ${String(label).toUpperCase()}`);}
+  cfg.items.forEach((item,i)=>{
+    const b=$(`#quickMood${i+1}`);if(!b)return;
+    b.dataset.quick=item[0];$('b',b).textContent=item[1];$('small',b).textContent=item[2];
+    const icon=$('.quick-icon-wrap',b);if(icon&&quickIconSvg[item[0]])icon.innerHTML=quickIconSvg[item[0]];
+  });
+  $('#quickEssentialsLink').classList.toggle('hidden',!!t?.before);
+  $('#weatherCard').classList.toggle('countdown-hidden',!!t?.before);
+  const label=state.locationName||(state.locationMode==='gps'?'Near you':presetFor(state.locationMode)?.name)||destinationLabel();
+  if(t?.before){const dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;$('#todayLocationEyebrow').textContent=nearDest?`PLANNING ${dest.name.toUpperCase()}`:`COUNTDOWN TO ${dest.name.toUpperCase()}`;}
   else $('#todayLocationEyebrow').textContent=label==='Near you'?'TODAY NEAR YOU':`TODAY IN ${String(label).toUpperCase()}`;
   $('#parksNavLabel').textContent=isFloridaContext()?'Parks':'Thrills';
 }
@@ -276,7 +310,7 @@ $('#previewDestinationBtn').addEventListener('click',previewDestination);
 async function loadWeather(){
   if(!state.coords)return; const {lat,lon}=state.coords;
   const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,precipitation&hourly=precipitation_probability,weather_code,temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=celsius&timezone=auto&forecast_days=2`;
-  try{const r=await fetch(u);if(!r.ok)throw new Error();state.weather=await r.json();renderWeather();}catch(e){$('#weatherCard').className='hero-card weather-card';$('#weatherCard').innerHTML='<b>Weather unavailable right now.</b><p style="color:#d7e7e4;margin-top:8px">The planner still works, but weather-aware scoring is paused.</p>';}
+  try{const r=await fetch(u);if(!r.ok)throw new Error();state.weather=await r.json();renderWeather();}catch(e){$('#weatherCard').className='hero-card weather-card'+(tripContext()?.before?' countdown-hidden':'');$('#weatherCard').innerHTML='<b>Weather unavailable right now.</b><p style="color:#d7e7e4;margin-top:8px">The planner still works, but weather-aware scoring is paused.</p>';}
 }
 function formatWeatherHour(iso){
   if(!iso)return ''; const d=new Date(iso); return d.toLocaleTimeString([], {hour:'numeric',minute:undefined});
@@ -296,7 +330,7 @@ function renderWeather(){
   let alert=rain&&rain.prob>=55?`Best storm window: ${rain.label}. Indoor options get a boost.`:'Weather looks usable for a mixed day.';
   if([95,96,99].includes(c.weather_code))alert='Thunderstorms nearby now — stay out of pools and exposed outdoor areas.'; else if(c.apparent_temperature>=34)alert='Feels very hot — shorter outdoor spells and air-conditioned options may be smarter.';
   const tc=tripContext(),dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;if(tc?.before&&nearDest&&daysUntilArrival(tc)>2)alert=`Current conditions around ${dest.short} — your actual trip forecast is not available this far ahead yet.`;
-  $('#weatherCard').className='hero-card weather-card'; $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${bothTemp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${bothTemp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${alert}</div>`;
+  $('#weatherCard').className='hero-card weather-card'+(tripContext()?.before?' countdown-hidden':''); $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${bothTemp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${bothTemp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${alert}</div>`;
 }
 
 const stayHomeRecommendation = {
@@ -325,7 +359,7 @@ function roughSpendTier(a){const n=memberSummary().length||2,f=currencyInfo().fa
 function formatPlanTime(t){if(!t)return 'any time';const [h,m]=t.split(':').map(Number);return new Date(2000,0,1,h,m).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
 function refreshDecisionCard(){
   const h=new Date().getHours(),title=$('#decisionTitle'),copy=$('#decisionCopy'),nowBtn=$('#whatNowBtn'),tomorrow=$('#tomorrowBtn'),t=tripContext();if(!title)return;
-  if(t?.before){const days=daysUntilArrival(t);title.textContent=days<=1?'Ready for the adventure?':`${days} days to go — ready?`;copy.textContent=`I can keep the countdown useful: prep now, preview ${destinationPreset().short}, and start building your must-do list before you arrive.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Preview destination';tomorrow.classList.remove('hidden');return;}
+  if(t?.before){const days=daysUntilArrival(t);title.textContent=days<=1?'Ready for the adventure?':`${days} days to go — let’s get trip-ready`;copy.textContent=`Use countdown mode to prep the essentials, discover ${destinationPreset().short} ideas and build a shortlist before you arrive.`;nowBtn.textContent='Prep checklist';tomorrow.textContent='Build trip ideas';tomorrow.classList.remove('hidden');return;}
   tomorrow.textContent='Plan tomorrow';
   if(h>=22){title.textContent='Call it a night or plan tomorrow?';copy.textContent='I’ll heavily favour nearby, low-effort options tonight — or build a stronger plan for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
   else if(h>=20){title.textContent='Tonight or tomorrow?';copy.textContent='I’ll compare what is still worth doing now with the value of saving your energy for tomorrow.';nowBtn.textContent='Something tonight';tomorrow.classList.remove('hidden');}
@@ -475,7 +509,17 @@ async function runRecommendations(forcedTag=null,mode='now'){
 $('#whatNowBtn').addEventListener('click',()=>{if(tripContext()?.before){$('#prepSection').scrollIntoView({behavior:'smooth',block:'start'});return;}runRecommendations(null,'now');});
 $('#tomorrowBtn').addEventListener('click',()=>{if(tripContext()?.before){previewDestination();loadDiscover('sights');return;}runRecommendations(null,'tomorrow');});$('#rerunBtn').addEventListener('click',()=>runRecommendations());
 $('#openTripBtn').addEventListener('click',()=>setView('saved'));$('#quickEssentialsLink').addEventListener('click',()=>setView('essentials'));
-$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='food'||q==='stayin'){setView(q);return;}if(['thrills','indoor','outdoors','shopping','sights'].includes(q)){loadDiscover(q);return;}runRecommendations(q);}));
+$$('.quick-card').forEach(b=>b.addEventListener('click',()=>{
+  const q=b.dataset.quick,t=tripContext();
+  if(t?.before){
+    const d=destinationPreset();state.coords={lat:d.lat,lon:d.lon};state.locationName=d.name;
+    if(q==='food'){setView('food');return;}
+    if(['thrills','indoor','outdoors','shopping','sights'].includes(q)){loadDiscover(q);return;}
+  }
+  if(q==='food'||q==='stayin'){setView(q);return;}
+  if(['thrills','indoor','outdoors','shopping','sights'].includes(q)){loadDiscover(q);return;}
+  runRecommendations(q);
+}));
 
 
 const discoveryMeta={
@@ -752,6 +796,21 @@ $$('.setup-next').forEach(b=>b.addEventListener('click',()=>showSetupStep(setupS
 $('#onboardingForm').addEventListener('submit',e=>{e.preventDefault();state.profile={...state.profile,familyName:$('#setupFamilyName').value.trim(),destinationPreset:$('#setupDestinationPreset').value,homeBase:$('#setupHomeBase').value.trim(),arrivalDate:$('#setupArrivalDate').value,departureDate:$('#setupDepartureDate').value,maxDrive:+$('#setupMaxDrive').value,budget:$('#setupBudget').value,notes:$('#setupNotes').value.trim(),members:collectMembers('#setupMembers')};saveProfile();localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');loadProfileForm();renderExplore();showToast('Adventure crew saved ✨');});
 $('#skipSetup').addEventListener('click',()=>{localStorage.setItem('ffvp_onboarded','1');$('#onboarding').classList.add('hidden');});
 
+function clearTripLocalData(includeSettings=false){
+  const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done'];
+  keys.forEach(k=>localStorage.removeItem(k));
+  if(includeSettings){
+    ['ffvp_unit','ffvp_test_location','ffvp_force_onboarding'].forEach(k=>localStorage.removeItem(k));
+  }
+}
+function initBetaTestingTools(){
+  const force=$('#forceOnboarding');if(force){force.checked=betaForceOnboarding();force.addEventListener('change',()=>{localStorage.setItem('ffvp_force_onboarding',force.checked?'1':'0');showToast(force.checked?'Onboarding will open on each launch':'Onboarding launch test off');});}
+  $('#restartOnboarding')?.addEventListener('click',()=>showOnboarding());
+  $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';clearTripLocalData(false);localStorage.setItem('ffvp_force_onboarding',keepForce);location.reload();});
+  $('#resetAppData')?.addEventListener('click',()=>{if(!confirm('Reset ALL Family Vacation Planner data and testing settings on this device?'))return;localStorage.clear();location.reload();});
+}
+initBetaTestingTools();
+
 function updateOnlineState(){const b=$('#offlineBanner');if(!b)return;b.classList.toggle('hidden',navigator.onLine);}
 window.addEventListener('online',updateOnlineState);window.addEventListener('offline',updateOnlineState);updateOnlineState();
 setInterval(()=>{updateGreeting();},60000);
@@ -759,4 +818,4 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.defer
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();

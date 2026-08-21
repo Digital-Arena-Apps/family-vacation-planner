@@ -360,3 +360,116 @@ button,a.small-btn,input,select{min-height:48px}
 .prep-list{display:grid;gap:7px;margin-top:13px}.prep-item{display:flex;align-items:flex-start;gap:10px;background:#FFF7ED;border-radius:13px;padding:10px 11px;cursor:pointer}.prep-item input{margin-top:2px;accent-color:#FF6B6B;width:18px;height:18px}.prep-item span{min-width:0}.prep-item b,.prep-item small{display:block}.prep-item b{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#C2410C}.prep-item small{font-size:10px;line-height:1.4;color:#475569;margin-top:2px}
 .discover-results{margin-top:12px}.discover-card{padding:16px}.discover-rating-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;color:#334155;font-size:11px}.discover-rating-row>b{font-size:11px}.discover-heading{background:linear-gradient(135deg,#EFF6FF,#F0FDFA);border-radius:19px}
 @media(max-width:430px){.prep-head{display:block}.prep-head .secondary-btn{width:100%;margin-top:11px}.test-location-picker{align-items:stretch;flex-direction:column;gap:4px}.test-location-picker select{width:100%}}
+
+
+/* V2.2 — selected Family Vacation Planner brand identity + beta testing polish */
+:root{
+  --brand-coral:#FF6B6B;
+  --brand-peach:#FFB48A;
+  --brand-aqua:#22C1B5;
+  --brand-sky:#4DB7FF;
+  --brand-sun:#FFC857;
+  --brand-slate:#2F3A45;
+  --ink:#243746;
+  --muted:#64748B;
+  --paper:#F7FAFB;
+  --coral:var(--brand-coral);
+  --sun:var(--brand-sun);
+  --teal:#138F8A;
+  --teal-dark:#0E6D69;
+}
+body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
+.topbar.topbar-v15.brand-topbar{
+  padding:11px 17px 10px;
+  background:linear-gradient(135deg,rgba(226,247,253,.98),rgba(255,253,249,.99) 58%,rgba(255,236,224,.96));
+  color:var(--brand-slate);
+  border-bottom:1px solid rgba(47,58,69,.09);
+  box-shadow:0 5px 18px rgba(47,58,69,.08);
+}
+.brand-lockup{gap:10px}
+.brand-mark{
+  width:54px;height:54px;flex:0 0 54px;border-radius:17px;object-fit:cover;
+  box-shadow:0 5px 14px rgba(47,58,69,.12);
+  border:1px solid rgba(47,58,69,.08);
+}
+.brand-wordmark{min-width:0;line-height:1}
+.brand-wordmark>div{white-space:nowrap;font-family:Georgia,"Times New Roman",serif;font-size:18px;font-weight:800;letter-spacing:-.035em}
+.brand-family{color:var(--brand-slate)}
+.brand-vacation{color:var(--brand-coral)}
+.brand-planner{
+  display:block;margin-top:3px;color:var(--brand-aqua);font:800 9px/1 Inter,sans-serif;
+  letter-spacing:.28em;
+}
+.brand-kicker{
+  display:block;margin:5px 0 0;color:#71808D;font:800 7px/1 Inter,sans-serif;letter-spacing:.15em
+}
+.topbar-v15 .icon-btn{background:#fff;color:var(--brand-slate);border-color:rgba(47,58,69,.1);box-shadow:0 4px 12px rgba(47,58,69,.08)}
+.primary-btn{background:var(--brand-coral);color:#fff;box-shadow:0 4px 12px rgba(255,107,107,.25)}
+.secondary-btn{background:#E8F8F6;color:#117C77}
+.eyebrow{color:#138F8A}
+.hero-card.weather-card{background:linear-gradient(140deg,#263B49,#314D58 68%,#166F76)}
+.weather-alert{background:rgba(34,193,181,.18)}
+.decision-card{background:linear-gradient(135deg,#FFF4F0,#FFF9F5);border-color:rgba(255,107,107,.22)}
+.quick-card{border-color:rgba(47,58,69,.08);box-shadow:0 7px 20px rgba(47,58,69,.055)}
+.quick-card:before{width:5px}
+.quick-relax:before{background:#22C1B5}.quick-indoor:before{background:#8B5CF6}.quick-food:before{background:#FF8C72}.quick-logistics:before{background:#4DB7FF}.quick-park:before{background:#FFC857}.quick-shopping:before{background:#FF6B9D}
+.bottom-nav{border-top-color:rgba(47,58,69,.08);box-shadow:0 -5px 18px rgba(47,58,69,.05)}
+.nav-item.active{color:#117C77}
+.nav-item.active span{background:#138F8A;color:white}
+.countdown-hidden{display:none!important}
+
+/* Selected brand direction on onboarding */
+.onboarding{background:rgba(29,43,52,.72)}
+.adventure-onboarding{background:#FFFEFB;border-radius:28px}
+.onboarding-hero.brand-onboarding-hero{
+  text-align:center;padding:22px 22px 20px;color:var(--brand-slate);
+  background:
+    radial-gradient(circle at 86% 18%,rgba(255,200,87,.28),transparent 19%),
+    linear-gradient(180deg,#CFF3FF 0%,#EFFBFD 44%,#FFF9F3 100%);
+}
+.onboarding-hero.brand-onboarding-hero:before,.onboarding-hero.brand-onboarding-hero:after{display:none}
+.onboarding-brand-logo{
+  display:block;width:min(275px,78vw);max-height:245px;object-fit:contain;margin:0 auto 3px;
+  border-radius:24px;
+  mix-blend-mode:multiply;
+}
+.onboarding-tagline{
+  margin-top:2px;font-family:Georgia,"Times New Roman",serif;font-size:22px;font-weight:800;color:var(--brand-slate)
+}
+.onboarding-script{margin-top:3px;color:#159F99;font-size:15px;font-weight:800;font-style:italic}
+.onboarding-hero.brand-onboarding-hero p{color:#506372;max-width:480px;margin:9px auto 0}
+.onboarding-hero .setup-progress{justify-content:center;margin-top:16px}
+.onboarding-hero .setup-progress span{background:rgba(47,58,69,.15)}
+.onboarding-hero .setup-progress span.active{background:var(--brand-coral)}
+.step-kicker{color:var(--brand-coral)}
+.launch-card{background:linear-gradient(135deg,#FFF3EC,#FFF9E8);border-color:#F7DAB5}
+.add-person-btn{background:#E8F8F6;color:#117C77}
+
+/* Countdown is trip-building, not an on-the-ground utility mode */
+.prep-section{border-color:rgba(255,200,87,.58);background:linear-gradient(180deg,#FFFDF8,#fff)}
+.prep-item{border-color:rgba(47,58,69,.08)}
+.essentials-shortcut.hidden{display:none!important}
+
+/* Temporary beta controls */
+.beta-tools .section-title-row{align-items:flex-end}
+.beta-tools .section-title-row p{font-size:11px;margin-top:3px}
+.testing-card{background:#fff;border:1px dashed rgba(255,107,107,.42);border-radius:20px;padding:4px 15px 15px;box-shadow:var(--shadow)}
+.testing-card .toggle-row{border-top:0}
+.testing-card .toggle-row span b,.testing-card .toggle-row span small{display:block}
+.testing-card .toggle-row span small{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}
+.testing-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.testing-actions .danger-btn{grid-column:1/-1}
+.danger-btn{
+  min-height:48px;border:1px solid rgba(190,18,60,.18);border-radius:14px;background:#FFF1F2;color:#BE123C;
+  font-weight:800;padding:12px 15px;
+}
+
+/* make app install logo feel native */
+@media(max-width:430px){
+  .brand-mark{width:50px;height:50px;flex-basis:50px;border-radius:16px}
+  .brand-wordmark>div{font-size:17px}
+  .brand-kicker{font-size:6.5px}
+  .onboarding-brand-logo{width:min(250px,82vw)}
+  .testing-actions{grid-template-columns:1fr}
+  .testing-actions .danger-btn{grid-column:auto}
+}
