@@ -1,3 +1,4 @@
+// Family Vacation Planner V1.8 — time-to-value recommendations
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -38,9 +39,9 @@ const activities = [
   {id:'daytona',name:'Daytona Beach',icon:'☀️',category:'beach',tags:['beach','nature'],cost:1,energy:2,lat:29.2108,lon:-81.0228,destination:'Daytona Beach, FL',note:'Beach plus boardwalk atmosphere; a substantial day trip.'},
   {id:'kennedy',name:'Kennedy Space Center',icon:'🚀',category:'activity',tags:['indoor'],cost:3,energy:2,lat:28.5230,lon:-80.6814,destination:'Kennedy Space Center Visitor Complex, FL',note:'Excellent full-day alternative to the Orlando parks.'},
   {id:'minigolf',name:'Crazy golf near me',icon:'⛳',category:'activity',tags:['lowcost'],cost:1,energy:1,search:'mini golf',note:'Low-commitment family option when nobody wants another huge day.'},
-  {id:'food-budget',name:'Quick family meal nearby',icon:'🍔',category:'food',tags:['food','indoor'],cost:1,energy:1,search:'family quick service restaurant',foodTier:'budget',note:'Fast, casual and easier on the holiday wallet.'},
-  {id:'food-casual',name:'Casual sit-down meal nearby',icon:'🍽',category:'food',tags:['food','indoor'],cost:2,energy:1,search:'family casual dining restaurant',foodTier:'casual',note:'A proper sit-down meal without turning dinner into an event.'},
-  {id:'food-treat',name:'Treat-night restaurant nearby',icon:'🥩',category:'food',tags:['food','indoor'],cost:3,energy:1,search:'family friendly upscale restaurant',foodTier:'treat',note:'For when the holiday budget has officially entered “we are here now” mode.'}
+  {id:'food-budget',name:'Quick family meal nearby',icon:'🍔',category:'food',tags:['food','indoor'],cost:1,energy:1,search:'family quick service restaurant',foodTier:'budget',internalView:'food',note:'Fast, casual and easier on the holiday wallet.'},
+  {id:'food-casual',name:'Casual sit-down meal nearby',icon:'🍽',category:'food',tags:['food','indoor'],cost:2,energy:1,search:'family casual dining restaurant',foodTier:'casual',internalView:'food',note:'A proper sit-down meal without turning dinner into an event.'},
+  {id:'food-treat',name:'Treat-night restaurant nearby',icon:'🥩',category:'food',tags:['food','indoor'],cost:3,energy:1,search:'family friendly upscale restaurant',foodTier:'treat',internalView:'food',note:'For when the holiday budget has officially entered “we are here now” mode.'}
 ];
 
 const essentials = [
@@ -177,6 +178,39 @@ function renderWeather(){
   $('#weatherCard').className='hero-card weather-card'; $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${bothTemp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${bothTemp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${alert}</div>`;
 }
 
+const stayHomeRecommendation = {
+  id:'stay-home', name:'Stay in & reset', icon:'🏠', category:'stayin', tags:['indoor'], cost:1, energy:0,
+  note:'Keep the evening easy at your villa / hotel — food in, pool only if conditions are safe, games, films or tomorrow planning.',
+  internalView:'stayin', transient:true, minVisit:30
+};
+
+function dayPhase(date=new Date()){
+  const h=date.getHours();
+  if(h<11)return 'morning'; if(h<15)return 'midday'; if(h<18)return 'afternoon'; if(h<21)return 'evening'; return 'late';
+}
+function estimatedTravelMinutes(a){
+  const d=distMiles(a); if(d==null){if(a.category==='stayin')return 0;if(a.internalView==='food')return 10;return null;}
+  const roadMiles=d*1.22; // simple road-vs-straight-line allowance for beta
+  const speed=d<8?24:d<25?32:46;
+  return Math.max(4,Math.round((roadMiles/speed)*60+5));
+}
+function minimumVisitMinutes(a){
+  if(Number.isFinite(a.minVisit))return a.minVisit;
+  return ({park:240,beach:180,activity:90,indoor:90,shopping:75,food:60,stayin:30}[a.category]||75);
+}
+function recommendationWindow(){
+  const now=new Date(),phase=dayPhase(now),mins=now.getHours()*60+now.getMinutes();
+  const labels={morning:'BEST THIS MORNING',midday:'BEST AROUND LUNCH',afternoon:'BEST THIS AFTERNOON',evening:'BEST THIS EVENING',late:'BEST FOR TONIGHT'};
+  const titles={morning:'Make the most of the morning',midday:'What works next?',afternoon:'Best use of the afternoon',evening:'Worth doing this evening',late:'Keep tonight easy'};
+  const copies={
+    morning:'Plenty of day left — distance matters less when the payoff is worth it.',
+    midday:'We’re balancing travel time with how much useful day you’ll have when you arrive.',
+    afternoon:'Long journeys and full-day attractions start losing value from here.',
+    evening:'Nearby food, shopping and shorter entertainment get priority over big day trips.',
+    late:'We’re heavily favouring nearby options that are still worth the journey — or staying in.'
+  };
+  return {now,phase,mins,label:labels[phase],title:titles[phase],copy:copies[phase]};
+}
 function foodEstimate(tier){
   const adults=memberSummary().filter(m=>(+m.age||0)>=13).length || 2, kids=Math.max(0,memberSummary().length-adults);
   const rates={budget:[11,18,7,11],casual:[18,29,10,17],treat:[30,48,15,24]}[tier];
@@ -191,36 +225,97 @@ function familyFitReason(a){
 }
 function recommendationScore(a){
   let score=60,reasons=[];const d=distMiles(a),p=state.profile,w=state.weather;
-  if(d!=null){score+=Math.max(-25,18-(d*.55));if(d>p.maxDrive){score-=30;reasons.push('further than your usual travel range');}else if(d<15)reasons.push('fairly close');}
+  const windowInfo=recommendationWindow(),hour=windowInfo.now.getHours(),phase=windowInfo.phase;
+  const travel=estimatedTravelMinutes(a),visit=minimumVisitMinutes(a);
+
+  if(d!=null){
+    score+=Math.max(-25,18-(d*.55));
+    if(d>p.maxDrive){score-=30;reasons.push('further than your usual travel range');}
+    else if(d<15)reasons.push('fairly close');
+  }
+  if(travel!=null){
+    // Travel starts to matter much more as the usable day disappears.
+    if(travel>25)score-=Math.min(20,(travel-25)*.7);
+    if(phase==='evening'&&travel>25){score-=10;reasons.push(`about ${travel} min away`);}
+    if(phase==='late'&&travel>15){score-=Math.min(38,(travel-15)*1.25);reasons.push(`~${travel} min each way this late`);}
+
+    const usableEnd=23*60+30;
+    const remaining=Math.max(0,usableEnd-windowInfo.mins);
+    const commitment=travel*2+visit;
+    if(hour>=17&&commitment>remaining){
+      score-=Math.min(38,Math.max(8,(commitment-remaining)/5));
+      reasons.push('not much useful time left after travel');
+    }
+  }
+
   if(a.tags.some(t=>p.interests.includes(t)))score+=10;
   if(a.energy>({low:1,medium:2,high:3}[p.energy])){score-=9;reasons.push('a bigger-energy option');}
   const budgetLevel={low:1,medium:2,high:3}[p.budget];if(a.cost>budgetLevel){score-=13;reasons.push('above your preferred spend');}
   if(a.familyStyle==='thrill'&&smallerVisitors().length){score-=12;reasons.push('mixed fit for younger/smaller visitors');}
   if(a.familyStyle==='thrill'&&lowThrill()){score-=8;reasons.push('not everyone is thrill-focused');}
   if(a.familyStyle==='young'&&childMembers().some(m=>(+m.age||0)<=11)){score+=12;reasons.push('good younger-child fit');}
-  const hour=new Date().getHours();
-  if(w){const rain=w.daily.precipitation_probability_max?.[0]||0,feels=w.current.apparent_temperature,indoor=a.tags.includes('indoor')||a.category==='shopping',outdoor=['beach','park'].includes(a.category);
-    if(rain>=55&&indoor){score+=18;reasons.push('good rain fallback');} if(rain>=55&&a.category==='beach'){score-=35;reasons.push('weather works against an outdoor day');}
-    if(feels>=34&&p.heatAware&&indoor){score+=14;reasons.push('air-conditioned');} if(feels>=36&&p.heatAware&&outdoor){score-=12;reasons.push('hard work in the heat');}
+
+  if(w){
+    const rain=w.daily.precipitation_probability_max?.[0]||0,feels=w.current.apparent_temperature,indoor=a.tags.includes('indoor')||a.category==='shopping'||a.category==='stayin',outdoor=['beach','park'].includes(a.category);
+    if(rain>=55&&indoor){score+=18;reasons.push('good rain fallback');}
+    if(rain>=55&&a.category==='beach'){score-=35;reasons.push('weather works against an outdoor day');}
+    if(feels>=34&&p.heatAware&&indoor){score+=14;reasons.push('keeps you out of the heat');}
+    if(feels>=36&&p.heatAware&&outdoor){score-=12;reasons.push('hard work in the heat');}
   }
-  if(hour>=17&&a.category==='shopping'){score+=8;reasons.push('easy evening option');} if(hour>=16&&a.category==='beach')score-=10; if(hour>=15&&a.category==='park'){score-=5;reasons.push('late for a full park day');} if(a.category==='food'&&hour>=16){score+=12;reasons.push('good reset for the evening');}
-  return {score:Math.max(1,Math.min(99,Math.round(score))),reason:reasons.slice(0,2).join(' · ')||familyFitReason(a)||a.note};
+
+  // Strong daypart behaviour: the same place should score very differently at 9am and 9:30pm.
+  if(a.category==='park'){
+    if(phase==='afternoon'){score-=10;reasons.push('late for a full park day');}
+    if(phase==='evening'){score-=34;reasons.push('limited park time left');}
+    if(phase==='late'){score-=72;reasons.push('too late to justify a park journey');}
+  }
+  if(a.category==='beach'){
+    if(hour>=18){score-=48;reasons.push('too late for a worthwhile beach trip');}
+    else if(hour>=16)score-=16;
+  }
+  if(a.category==='shopping'){
+    if(phase==='evening'){score+=10;reasons.push('easy evening option');}
+    if(phase==='late'){score-=4;reasons.push('check closing time before leaving');}
+  }
+  if(a.category==='food'&&hour>=16){score+=(travel!=null&&travel<=20?20:8);reasons.push(travel!=null&&travel<=20?'nearby food fits the evening':'food still fits the evening');}
+  if(a.category==='stayin'){
+    if(phase==='evening')score+=22;
+    if(phase==='late'){score+=52;reasons.push('zero travel at this time of night');}
+  }
+
+  return {score:Math.max(1,Math.min(99,Math.round(score))),reason:reasons.slice(0,2).join(' · ')||familyFitReason(a)||a.note,travelMinutes:travel};
 }
 function runRecommendations(forcedTag=null){
-  let list=activities.map(a=>({...a,...recommendationScore(a)}));
-  if(forcedTag)list=list.filter(a=>a.category===forcedTag||a.tags.includes(forcedTag)); list.sort((a,b)=>b.score-a.score);
-  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
+  const context=recommendationWindow();
+  let candidates=[...activities];
+  if(!forcedTag)candidates.push(stayHomeRecommendation);
+  let list=candidates.map(a=>({...a,...recommendationScore(a)}));
+  if(forcedTag)list=list.filter(a=>a.category===forcedTag||a.tags.includes(forcedTag));
+  list.sort((a,b)=>b.score-a.score);
+  const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
+  if(eyebrow)eyebrow.textContent=context.label;
+  if(title)title.textContent=context.title;
+  if(copy)copy.textContent=context.copy+' Drive times are planning estimates, not live traffic.';
+  $('#recommendations').classList.remove('hidden');
+  $('#recommendationList').innerHTML=list.slice(0,4).map((a,i)=>placeCard(a,true,i===0)).join('');
+  wirePlaceActions($('#recommendationList'));
+  $('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('#whatNowBtn').addEventListener('click',()=>runRecommendations());$('#rerunBtn').addEventListener('click',()=>runRecommendations());
 $$('.quick-card').forEach(b=>b.addEventListener('click',()=>{const q=b.dataset.quick;if(q==='park'){setView('parks');return;}if(q==='family'){showOnboarding();return;}if(q==='food'||q==='essentials'||q==='stayin'){setView(q);return;}runRecommendations(q);}));
 
 function placeCard(a,withScore=false,hero=false){
-  const d=distMiles(a),saved=state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),meta=[d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi away`:null,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a);
-  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div><div class="reason">${withScore?(a.reason||a.note):a.note}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div><div class="place-actions"><button class="small-btn save-btn">${saved?'♥ Saved':'♡ Save'}</button><button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button></div></article>`;
+  const d=distMiles(a),saved=!a.transient&&state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),travel=a.travelMinutes??estimatedTravelMinutes(a);
+  const distanceMeta=d!=null?`${d<10?d.toFixed(1):Math.round(d)} mi · ~${travel} min drive`:(a.category==='stayin'?'No travel':null);
+  const meta=[distanceMeta,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a);
+  const saveAction=a.transient?'':`<button class="small-btn save-btn">${saved?'♥ Saved':'♡ Save'}</button>`;
+  const primaryAction=a.internalView?`<button class="small-btn primary-small internal-view-btn" data-view="${a.internalView}">See ideas</button>`:`<button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button>`;
+  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div><div class="reason">${withScore?(a.reason||a.note):a.note}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div><div class="place-actions">${saveAction}${primaryAction}</div></article>`;
 }
 function wirePlaceActions(root){
   $$('.save-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderExplore();renderSaved();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();}));
-  $$('.directions-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id,a=activities.find(x=>x.id===id),q=a.search?`${a.search} near me`:a.destination;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener');}));
+  $$('.directions-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id,a=activities.find(x=>x.id===id);if(!a)return;const q=a.search?`${a.search} near me`:a.destination;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener');}));
+  $$('.internal-view-btn',root).forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 }
 function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));showToast(state.saved.includes(id)?'Saved to your trip':'Removed from saved');}
 function renderExplore(){let list=activities.map(a=>({...a,...recommendationScore(a)}));if(state.filter!=='all'){if(state.filter==='lowcost')list=list.filter(a=>a.cost===1);else list=list.filter(a=>a.category===state.filter||a.tags.includes(state.filter));}list.sort((a,b)=>(distMiles(a)??999)-(distMiles(b)??999));$('#exploreList').innerHTML=list.map(a=>placeCard(a,false)).join('');wirePlaceActions($('#exploreList'));}
@@ -300,14 +395,18 @@ function foodCard(x){
   const price=foodPriceText(x.priceLevel),estimate=familyMealEstimate(x.priceLevel);
   const d=x.distance<10?x.distance.toFixed(1):Math.round(x.distance);
   const type=x.typeLabel||'Food & drink';
-  return `<article class="place-card food-card"><div class="food-card-top"><div><div class="place-title">${escapeHtml(x.name)}</div><div class="place-meta">${escapeHtml(type)} · ${d} mi away</div></div>${rating}</div><div class="food-budget-row"><span class="price-pill">${price}</span><b>${estimate}</b></div>${x.address?`<div class="reason">${escapeHtml(x.address)}</div>`:''}<div class="place-actions"><a class="small-btn primary-small direction-link" href="${foodDirectionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+  const open=x.openNow===true?'<span class="open-pill open">Open now</span>':x.openNow===false?'<span class="open-pill closed">Closed</span>':'';
+  return `<article class="place-card food-card"><div class="food-card-top"><div><div class="place-title">${escapeHtml(x.name)}</div><div class="place-meta">${escapeHtml(type)} · ${d} mi away ${open}</div></div>${rating}</div><div class="food-budget-row"><span class="price-pill">${price}</span><b>${estimate}</b></div>${x.address?`<div class="reason">${escapeHtml(x.address)}</div>`:''}<div class="place-actions"><a class="small-btn primary-small direction-link" href="${foodDirectionsUrl(x)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
 }
 function renderFoodResults(){
   let list=[...foodResultsCache];
-  if(foodSortMode==='rating')list.sort((a,b)=>(b.rating||-1)-(a.rating||-1)||a.distance-b.distance);
-  else if(foodSortMode==='budget')list.sort((a,b)=>(a.priceLevel||2)-(b.priceLevel||2)||a.distance-b.distance);
-  else if(foodSortMode==='treat')list.sort((a,b)=>(b.priceLevel||2)-(a.priceLevel||2)||(b.rating||0)-(a.rating||0));
-  else list.sort((a,b)=>a.distance-b.distance);
+  const late=new Date().getHours()>=19;
+  // In the evening, known-open places should naturally rise above known-closed places.
+  const openRank=x=>x.openNow===true?0:x.openNow==null?1:2;
+  if(foodSortMode==='rating')list.sort((a,b)=>(late?openRank(a)-openRank(b):0)||(b.rating||-1)-(a.rating||-1)||a.distance-b.distance);
+  else if(foodSortMode==='budget')list.sort((a,b)=>(late?openRank(a)-openRank(b):0)||(a.priceLevel||2)-(b.priceLevel||2)||a.distance-b.distance);
+  else if(foodSortMode==='treat')list.sort((a,b)=>(late?openRank(a)-openRank(b):0)||(b.priceLevel||2)-(a.priceLevel||2)||(b.rating||0)-(a.rating||0));
+  else list.sort((a,b)=>(late?openRank(a)-openRank(b):0)||a.distance-b.distance);
   $('#foodResults').innerHTML=list.map(foodCard).join('');
 }
 async function loadFood(force=false){

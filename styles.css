@@ -269,3 +269,11 @@ button,a.small-btn,input,select{min-height:48px}
   .decision-card h2{font-size:19px}
   .decision-card .primary-btn{padding:10px 14px}
 }
+
+
+/* V1.8 — time-to-value decision context */
+.recommendations-context{margin:-2px 4px 12px;color:#64748B;font-size:12px;line-height:1.45}
+#recommendations .place-card:first-child{box-shadow:0 10px 28px rgba(15,23,42,.08)}
+#recommendations .place-meta{font-weight:600}
+
+.open-pill{display:inline-flex;margin-left:6px;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800;vertical-align:1px}.open-pill.open{background:#DCFCE7;color:#166534}.open-pill.closed{background:#F1F5F9;color:#64748B}

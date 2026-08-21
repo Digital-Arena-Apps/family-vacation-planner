@@ -1,5 +1,22 @@
 # Family Vacation Planner — Florida Beta V1.6
 
+## V1.8 — time-to-value recommendations
+
+The What Now? engine now factors in the current local time and current GPS distance, not just category/weather fit.
+
+- estimates driving time from current location (planning estimate; not live traffic)
+- increasingly penalises long journeys as the day gets later
+- accounts for the minimum useful duration of an activity
+- heavily de-ranks theme parks and beaches when there is too little useful day left
+- boosts nearby food, short evening options and Stay In at night
+- allows **Stay in & reset** to win the main What Now? recommendation when that is genuinely the smartest use of the evening
+- changes recommendation headings/copy by daypart (morning / afternoon / evening / late evening)
+- displays approximate drive time on recommendation cards
+- keeps Food recommendations inside the app and, when Google Places is enabled, prioritises restaurants known to be open in the evening
+
+A future production version should replace the drive-time estimate with a licensed live routing/traffic provider.
+
+
 Mobile-first PWA prototype for family vacation decision support.
 
 ## What changed in V1.6
@@ -79,7 +96,7 @@ The key stays server-side in `food.js`; it is never shipped to the browser. Fami
 
 V1.6 also reads park schedule data from ThemeParks.wiki so closed parks no longer appear as LIVE with missing waits.
 
-## V1.7 UX polish
+## V1.8 UX polish
 
 - Weather now displays Celsius and Fahrenheit side-by-side and adds a likely rain/storm time window from the hourly forecast.
 - Weather card is shorter and its sub-card labels use higher-contrast slate tones for bright outdoor conditions.

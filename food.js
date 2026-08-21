@@ -25,7 +25,7 @@ async function googlePlaces(lat,lon){
     headers:{
       'Content-Type':'application/json',
       'X-Goog-Api-Key':key,
-      'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.priceLevel,places.primaryType,places.primaryTypeDisplayName'
+      'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.priceLevel,places.primaryType,places.primaryTypeDisplayName,places.currentOpeningHours.openNow'
     },
     body:JSON.stringify(body)
   },7000);
@@ -35,7 +35,7 @@ async function googlePlaces(lat,lon){
     id:x.id||'',name:x.displayName?.text||'Restaurant',address:x.formattedAddress||'',
     lat:x.location?.latitude,lon:x.location?.longitude,rating:Number.isFinite(x.rating)?x.rating:null,
     userRatingCount:Number.isFinite(x.userRatingCount)?x.userRatingCount:null,priceLevel:googlePriceLevel(x.priceLevel),
-    typeLabel:x.primaryTypeDisplayName?.text||String(x.primaryType||'restaurant').replaceAll('_',' ')
+    typeLabel:x.primaryTypeDisplayName?.text||String(x.primaryType||'restaurant').replaceAll('_',' '),openNow:x.currentOpeningHours?.openNow
   })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon)}));
 }
 function osmCoords(el){return {lat:el.lat??el.center?.lat,lon:el.lon??el.center?.lon};}
