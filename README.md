@@ -1,4 +1,4 @@
-# Family Vacation Planner — Destination Beta V2.2.2
+# Family Vacation Planner — Destination Beta V2.2.3
 
 Mobile-first PWA prototype for family vacation decision support.
 
@@ -126,3 +126,11 @@ Tomorrow Planner moods now use hard eligibility gates before ranking. A venue ca
 - **Shop & Browse:** shopping-first options.
 
 Mood fit is now a semantic gate first, then distance, weather, trip status, time, budget and family fit rank the eligible choices.
+
+
+## V2.2.3 — Outdoors classification fix
+
+- Outdoors & Explore is now restricted to genuinely outdoor venue types such as parks, zoos, gardens, nature reserves, trails/viewpoints and beaches.
+- Shopping, malls, markets and retail are explicitly classified as Shop & Browse and cannot leak into Outdoors.
+- Previously cached/discovered places are reclassified at runtime from their provider place type, so users do not need to clear saved app data.
+- Broad Explore-locally results no longer receive generic `nature` tags.

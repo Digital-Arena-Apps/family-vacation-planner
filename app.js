@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.2 — semantic mood gates + branded trip-aware beta
+// Family Vacation Planner V2.2.3 — strict semantic place classification + branded trip-aware beta
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -77,7 +77,31 @@ const activities = [
 
 ];
 
-function allTripPlaces(){return [...activities,...Object.values(state.discovered||{})];}
+const semanticPlaceTypes={
+  shopping:new Set(['shopping_mall','market','department_store','gift_shop','store','mall','marketplace','supermarket','clothing_store']),
+  outdoors:new Set(['park','botanical_garden','hiking_area','zoo','playground','national_park','nature_reserve','garden','viewpoint','wildlife_park']),
+  indoor:new Set(['museum','aquarium','art_gallery','movie_theater','cinema','bowling_alley','indoor_playground','amusement_center']),
+  thrills:new Set(['amusement_park','theme_park','adventure_sports_center','go_karting_venue','miniature_golf_course','amusement_center','observation_deck'])
+};
+function inferDiscoveredSemantics(a){
+  if(!a?.discovered)return a;
+  const type=String(a.placeType||'').toLowerCase().replaceAll(' ','_');
+  let category=a.category,tags=[...(a.tags||[])];
+  if(semanticPlaceTypes.shopping.has(type)){category='shopping';tags=['shopping','indoor'];}
+  else if(semanticPlaceTypes.outdoors.has(type)){category='outdoors';tags=['nature'];}
+  else if(semanticPlaceTypes.indoor.has(type)){category='indoor';tags=['indoor'];}
+  else if(semanticPlaceTypes.thrills.has(type)){category=type==='amusement_park'||type==='theme_park'?'park':'activity';tags=['rides'];}
+  else if(a.sourceCategory==='shopping'){category='shopping';tags=['shopping','indoor'];}
+  else if(a.sourceCategory==='outdoors'){category='outdoors';tags=['nature'];}
+  else if(a.sourceCategory==='indoor'){category='indoor';tags=['indoor'];}
+  else if(a.sourceCategory==='thrills'){category='activity';tags=['rides'];}
+  else if(a.sourceCategory==='sights'){
+    // Broad discovery is deliberately neutral unless the provider type tells us more.
+    category='activity';tags=[];
+  }
+  return {...a,category,tags};
+}
+function allTripPlaces(){return [...activities,...Object.values(state.discovered||{}).map(inferDiscoveredSemantics)];}
 function destinationLabel(){return destinationPreset().name;}
 const quickMoodCopy={
   florida:{title:'What are you in the mood for?',copy:'Built around Central Florida — but the mood comes first, not the venue type.',items:[
@@ -513,7 +537,7 @@ function tomorrowMoodMatches(a,mood){
   }
   if(mood==='indoor')return category==='indoor' || (a.discovered&&tags.includes('indoor')&&category!=='shopping'&&category!=='food');
   if(mood==='food')return category==='food';
-  if(mood==='outdoors')return category==='beach'||category==='outdoors'||(tags.includes('nature')&&category==='activity');
+  if(mood==='outdoors')return category==='beach'||category==='outdoors';
   if(mood==='thrills')return category==='park'||tags.includes('rides')||(a.energy??0)>=3;
   if(mood==='shopping')return category==='shopping';
   return category===mood||tags.includes(mood);
@@ -598,7 +622,8 @@ const discoveryMeta={
 };
 function discoveredActivity(x,category){
   const m=discoveryMeta[category]||discoveryMeta.sights,level=x.priceLevel==null?2:Math.max(1,Math.min(3,x.priceLevel||1));
-  return {id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||'',sourceCategory:category,placeType:x.typeKey||x.type||''};
+  const raw={id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||'',sourceCategory:category,placeType:x.typeKey||x.type||''};
+  return inferDiscoveredSemantics(raw);
 }
 function rememberDiscovered(a){state.discovered[a.id]=a;localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));}
 function discoveryCard(x,category){
