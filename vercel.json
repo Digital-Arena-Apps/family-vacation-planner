@@ -12,6 +12,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "discover.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "index.html",
       "use": "@vercel/static"
     },
@@ -48,6 +52,10 @@
     {
       "src": "/api/food",
       "dest": "/food.js"
+    },
+    {
+      "src": "/api/discover",
+      "dest": "/discover.js"
     },
     {
       "handle": "filesystem"

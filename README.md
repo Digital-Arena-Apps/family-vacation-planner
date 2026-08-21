@@ -1,58 +1,82 @@
-# Family Vacation Planner — Florida Beta V2.0.1
+# Family Vacation Planner — Destination Beta V2.1
 
-Mobile-first PWA prototype for a trip-aware family vacation decision engine.
+Mobile-first PWA prototype for family vacation decision support.
 
-## V2.0 — Trip Awareness
+## V2.1 — Destination awareness
 
-V2.0 moves the product from “nearby holiday ideas” toward an assistant that understands where the family is in the trip.
+V2.1 removes the assumption that every trip is a Florida theme-park holiday.
 
-### Trip context
-- Arrival and departure dates in onboarding and Family settings.
-- Day-of-trip and days-remaining summary on Today and Trip.
-- Late-day Decision Engine changes automatically from “What Now?” to “Tonight or tomorrow?”.
-- A dedicated **Plan tomorrow** path uses tomorrow’s weather, fixed plans, trip progress and remaining must-dos.
+### Mood-led Quick Start
 
-### Trip statuses and memories
-Every curated place can be marked:
-- Must do
-- Want to go
-- Been there
-- Happy to repeat
-- Don’t suggest again
+The home grid is now based on the kind of day the family wants rather than a venue type:
 
-Places marked **Been there** or **Don’t suggest again** are removed from What Now recommendations. Must-do items gain urgency as departure approaches. Visited/repeat places appear in Trip Memories and can be given a simple family star rating.
+- Chill & Recharge
+- Indoor & Easy
+- Food & Treats
+- Outdoors & Explore
+- Thrills & Excitement
+- Shop & Browse
 
-### Fixed plans / bookings
-The Trip screen can store dated commitments such as dining reservations, flights, shows and ticketed events. The decision engine penalises suggestions that do not fit comfortably before the next commitment and considers tomorrow’s bookings during tomorrow planning.
+The copy adapts to the selected/current region. “Thrills & Excitement” can mean theme parks in Central Florida, but can also surface karting, adventure centres, observation experiences, miniature golf and other high-energy options elsewhere.
 
-### Time-to-value
-Recommendations consider:
-- current device time
-- current location and planning drive estimate
-- round-trip travel + minimum worthwhile activity time
-- weather
-- family energy and walking tolerance
-- budget mood and optional remaining trip budget
-- trip status / visited history
-- remaining vacation days
-- fixed plans
+### Temporary beta location switcher
 
-The app explains why a recommendation ranks well and shows an approximate total commitment time. Drive times remain planning estimates rather than live traffic in this beta.
+For testing, the home screen includes a **TEST LOCATION** selector:
 
-### Offline / degraded mode
-The static PWA shell remains service-worker cached. V2.0 adds an offline banner so users know that saved trip information still works while live weather, wait times and nearby searches may not.
+- Current device location
+- Orlando / Central Florida
+- New York City
+- Winsford / Cheshire
+- London
+- Paris
+- Manchester
 
-## Existing data sources
-- Live theme-park waits and schedules: ThemeParks.wiki.
-- Weather: Open-Meteo in the prototype.
-- Food: Google Places API (New) when `GOOGLE_PLACES_API_KEY` is configured; OpenStreetMap fallback otherwise.
-- Nearby essentials: OpenStreetMap public infrastructure for beta only.
-- Crowd outlook: transparent beta heuristic, not official capacity.
+This is a beta/development control and should be removed or hidden behind developer settings before launch.
+
+The selected test location is used by weather, Food, Essentials and local discovery, allowing the same build to be tested as though the family were in different destinations.
+
+### Local discovery API
+
+V2.1 adds `/api/discover`, implemented by the new root `discover.js` Vercel function.
+
+It uses Google Places API (New) when `GOOGLE_PLACES_API_KEY` is configured and falls back to OpenStreetMap / Overpass. It supports discovery categories for thrills, indoor ideas, outdoors, shopping and broad local sights. Results include distance and, when supplied by Google, ratings, review counts and current open state.
+
+Discovered places can be saved and given the existing trip statuses (Must do, Want to go, Been there, Repeat, Skip), so destination-aware discovery feeds into the trip memory model rather than being disposable search results.
+
+### Pre-trip countdown mode
+
+Onboarding and the Family profile now include a trip destination alongside arrival/departure dates.
+
+When arrival is in the future, the Today screen switches into countdown mode:
+
+- days until arrival
+- a changing prep checklist based on how close departure is
+- destination-specific suggestions (for example Florida heat/rain preparation or city walking/transit prep)
+- a **Preview destination** action that moves the beta location to the trip destination so the family can explore and build Must-do / Want-to-go lists before travelling
+
+Checklist completion is stored locally for the trip.
+
+Weather shown while previewing a destination well ahead of the trip is explicitly described as **current destination conditions**, not a future trip forecast.
+
+## Existing V2.0 intelligence retained
+
+- trip day / days remaining
+- time-aware Tonight vs Tomorrow decision state
+- fixed plans and bookings
+- Must do / Want to go / Been / Repeat / Skip
+- trip memories and family ratings
+- optional budget remaining and walking tolerance
+- time-to-value recommendation scoring
+- hours-aware Florida park pressure
+- Food ratings and price guidance using Google Places when configured
+- server-backed Essentials
 
 ## Deployment
-Upload the V2.0 update files to the existing GitHub repository root and commit to `main`. The connected Vercel project should redeploy automatically. Fully close/reopen the installed PWA after deployment so the new service-worker cache takes effect.
 
+V2.1 adds one new root file:
 
-## V2.0.1 layout patch
+- `discover.js`
 
-Fixes the late-evening Decision Engine card on narrow mobile screens. The heading and explanatory copy now use the full card width, with Tonight / Tomorrow actions arranged in a clean row underneath. No recommendation logic or saved trip data model changed.
+It also changes `vercel.json` to build that function and route `/api/discover` to it. Upload the V2.1 update files to `main`; the connected Vercel project should redeploy automatically.
+
+The PWA cache is `ffvp-v2-1`; fully close/reopen the installed app after deployment.

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0F172A" />
-  <meta name="description" content="A family-aware vacation decision helper for Florida." />
+  <meta name="description" content="A family-aware vacation decision helper that adapts to destination, time and trip progress." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Family Planner" />
@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <title>Florida Family Vacation Planner</title>
+  <title>Family Vacation Planner</title>
 </head>
 <body>
   <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
@@ -34,6 +34,17 @@
           <p class="step-copy">Make it yours — family name, holiday nickname, whatever feels right.</p>
           <label>Trip / family name
             <input id="setupFamilyName" type="text" maxlength="40" placeholder="The Jones Florida Adventure" />
+          </label>
+          <label>Where are you going?
+            <select id="setupDestinationPreset">
+              <option value="orlando">Orlando / Central Florida</option>
+              <option value="new-york">New York City</option>
+              <option value="winsford">Winsford / Cheshire</option>
+              <option value="london">London</option>
+              <option value="paris">Paris</option>
+              <option value="manchester">Manchester</option>
+            </select>
+            <small>This temporary beta list lets us test how the planner adapts to different destinations.</small>
           </label>
           <label>Your holiday base
             <input id="setupHomeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" />
@@ -84,7 +95,7 @@
       <div class="brand-lockup">
         <div class="brand-badge" aria-hidden="true">☀</div>
         <div>
-          <div class="brand-kicker">FLORIDA BETA · V2.0.1</div>
+          <div class="brand-kicker">DESTINATION BETA · V2.1</div>
           <h1>Family Vacation Planner</h1>
         </div>
       </div>
@@ -95,18 +106,29 @@
     <main id="main" class="main-content">
       <section class="view active" data-view="today">
         <section class="today-intro">
-          <div class="eyebrow">TODAY IN FLORIDA</div>
+          <div id="todayLocationEyebrow" class="eyebrow">TODAY</div>
           <h2 id="todayGreeting">Good evening</h2>
           <p id="todayGreetingCopy">Here’s what looks smartest for your crew right now.</p>
         </section>
-        <div id="locationStrip" class="location-strip">
-          <span class="pulse-dot"></span>
-          <span id="locationLabel">Finding your location…</span>
-          <button id="refreshLocation" class="text-btn">Refresh</button>
+        <div id="locationStrip" class="location-strip location-strip-v21">
+          <div class="location-live-row"><span class="pulse-dot"></span><span id="locationLabel">Finding your location…</span><button id="refreshLocation" class="text-btn">Refresh</button></div>
+          <label class="test-location-picker"><span>TEST LOCATION</span><select id="testLocationSelect">
+            <option value="gps">Current device location</option>
+            <option value="orlando">Orlando / Central Florida</option>
+            <option value="new-york">New York City</option>
+            <option value="winsford">Winsford / Cheshire</option>
+            <option value="london">London</option>
+            <option value="paris">Paris</option>
+            <option value="manchester">Manchester</option>
+          </select></label>
         </div>
         <section id="tripPulse" class="trip-pulse hidden">
           <div><div class="eyebrow">YOUR TRIP</div><b id="tripPulseTitle">Add your vacation dates</b><small id="tripPulseCopy">I’ll use them to pace the rest of the holiday.</small></div>
           <button id="openTripBtn" class="text-btn" type="button">Trip →</button>
+        </section>
+        <section id="prepSection" class="prep-section hidden">
+          <div class="prep-head"><div><div class="eyebrow">COUNTDOWN MODE</div><h2 id="prepTitle">Your trip is coming up</h2><p id="prepCopy">A few useful jobs now means less admin once the holiday starts.</p></div><button id="previewDestinationBtn" class="secondary-btn" type="button">Preview destination</button></div>
+          <div id="prepChecklist" class="prep-list"></div>
         </section>
 
         <section id="weatherCard" class="hero-card weather-card loading-card">
@@ -132,15 +154,16 @@
         </section>
 
         <section class="section-block">
-          <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2>What kind of day?</h2></div></div>
+          <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2 id="quickStartTitle">What are you in the mood for?</h2><p id="quickStartCopy" class="quick-start-copy">These adapt to where you are.</p></div></div>
           <div class="quick-grid">
-            <button class="quick-card quick-relax" data-quick="stayin"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Stay in</b><small>Villa / hotel reset day</small></button>
-            <button class="quick-card quick-indoor" data-quick="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor attractions</b><small>Get out, stay cool & dry</small></button>
-            <button class="quick-card quick-food" data-quick="food"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v8"/><path d="M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M15 3c3 1 4.5 3.5 4.5 6S18 13 15 13"/></svg></span><b>Food</b><small>Ratings, distance & family spend</small></button>
-            <button class="quick-card quick-logistics" data-quick="essentials"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M2.5 4h2l2.2 10.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21 8H6"/></svg></span><b>Essentials</b><small>Groceries, pharmacy, fuel & help</small></button>
-            <button class="quick-card quick-park" data-quick="park"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4Z"/><path d="M12 7v12"/></svg></span><b>Theme parks</b><small>Live waits + park pressure</small></button>
-            <button class="quick-card quick-shopping" data-quick="shopping"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span><b>Shopping</b><small>Malls, outlets & retail</small></button>
+            <button id="quickMood1" class="quick-card quick-relax" data-quick="stayin"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Chill & Recharge</b><small>Slow the pace for a while</small></button>
+            <button id="quickMood2" class="quick-card quick-indoor" data-quick="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor & Easy</b><small>Weather-proof family options</small></button>
+            <button id="quickMood3" class="quick-card quick-food" data-quick="food"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v8"/><path d="M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M15 3c3 1 4.5 3.5 4.5 6S18 13 15 13"/></svg></span><b>Food & Treats</b><small>Ratings, distance & family spend</small></button>
+            <button id="quickMood4" class="quick-card quick-logistics" data-quick="outdoors"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="17" cy="6" r="2.5"/><path d="M3 19h18"/><path d="m5 19 5-9 3 5 2-3 4 7"/></svg></span><b>Outdoors & Explore</b><small>Parks, walks & open-air ideas</small></button>
+            <button id="quickMood5" class="quick-card quick-park" data-quick="thrills"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7z"/></svg></span><b>Thrills & Excitement</b><small>Big-energy fun within range</small></button>
+            <button id="quickMood6" class="quick-card quick-shopping" data-quick="shopping"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span><b>Shop & Browse</b><small>Malls, markets & retail</small></button>
           </div>
+          <button id="quickEssentialsLink" class="essentials-shortcut" type="button"><span>Need groceries, fuel, pharmacy or practical help?</span><b>Essentials ›</b></button>
         </section>
       </section>
 
@@ -152,6 +175,13 @@
         <div id="exploreList" class="card-list"></div>
       </section>
 
+
+      <section class="view" data-view="discover">
+        <div class="page-heading discover-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div id="discoverEyebrow" class="eyebrow">NEARBY IDEAS</div><h2 id="discoverTitle">Explore nearby</h2><p id="discoverCopy">Real local options ranked around your selected location.</p></div>
+        <div id="discoverStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding good options…</b><small>Using your selected location and travel range.</small></div></div>
+        <div id="discoverResults" class="card-list discover-results"></div>
+        <div class="notice"><b>Beta discovery:</b> results use Google Places when available, with OpenStreetMap fallback. Ratings are provider data; travel time is still a planning estimate rather than live traffic.</div>
+      </section>
 
       <section class="view" data-view="food">
         <div class="page-heading food-heading">
@@ -175,7 +205,7 @@
         <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>Quick shortlist of nearby spots. We’ll only open Maps when you tap Directions.</p></div>
         <div id="essentialsList" class="essentials-grid"></div>
         <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
-        <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. In the US, call 911 for an emergency.</div>
+        <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. Use the local emergency service for your current destination.</div>
       </section>
 
       <section class="view" data-view="essential-detail">
@@ -246,13 +276,14 @@
         <div class="page-heading"><div class="eyebrow">YOUR VACATION CREW</div><h2>Everyone gets a better holiday</h2><p>Tell us who loves coasters, who would rather not, and who is still waiting to hit those ride-height markers.</p></div>
         <form id="familyForm" class="form-card">
           <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
+          <label>Trip destination<select id="destinationPreset"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="winsford">Winsford / Cheshire</option><option value="london">London</option><option value="paris">Paris</option><option value="manchester">Manchester</option></select></label>
           <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
           <div class="setup-grid trip-date-grid"><label>Arrival date<input id="arrivalDate" type="date" /></label><label>Departure date<input id="departureDate" type="date" /></label></div>
           <div class="setup-heading"><b>Family members</b><button id="addMember" class="text-btn" type="button">+ Add person</button></div>
           <div id="familyMembers" class="member-list"></div>
           <label>How far are you prepared to travel?<select id="maxDrive"><option value="15">About 15 miles</option><option value="30">About 30 miles</option><option value="60">About 60 miles</option><option value="100">Up to 100 miles</option></select></label>
           <label>Budget mood<select id="budget"><option value="low">Keep costs down</option><option value="medium">Reasonable</option><option value="high">Holiday mode</option></select></label>
-          <label>Optional holiday budget remaining ($)<input id="budgetRemaining" type="number" min="0" step="25" placeholder="e.g. 600" /></label>
+          <label>Optional holiday budget remaining<input id="budgetRemaining" type="number" min="0" step="25" placeholder="e.g. 600" /></label>
           <label>Energy level<select id="energy"><option value="low">Easy day</option><option value="medium">Balanced</option><option value="high">Full-on day</option></select></label>
           <label>Walking tolerance<select id="walkingTolerance"><option value="low">Keep walking light</option><option value="medium">Normal holiday walking</option><option value="high">Happy with big walking days</option></select></label>
           <label>Dietary / access notes<input id="familyNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" /></label>
@@ -267,7 +298,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small>Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
+      <button class="nav-item active" data-target="today"><span>⌂</span><small>Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small>Explore</small></button><button class="nav-item" data-target="parks"><span>◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small>Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small>Family</small></button>
     </nav>
   </div>
   <div id="toast" class="toast hidden"></div>
