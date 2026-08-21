@@ -224,8 +224,14 @@ Selected Tomorrow Planner mood is persisted locally so a late-night/overnight re
 The Tomorrow Planner now switches all user-facing labels to 'later today' during the 00:00–04:59 overnight planning window, including the page eyebrow, heading, helper copy, snapshot and Best Overall action.
 
 
-## V2.2.12 simpler ride-height onboarding
+## V2.2.13 simpler ride-height onboarding
 
 Step 2 no longer asks families to type exact heights during onboarding. Instead, each profile uses an approximate ride-height band: under 36 in / under 92 cm, 36–41 in / 92–106 cm, 42–47 in / 107–121 cm, 48 in+ / 122 cm+, or Not sure. This is deliberately planning guidance rather than a claim about universal ride eligibility; individual attractions still have their own height rules.
 
 Exact cm or ft/in height entry remains available later in Family settings for users who want more precision. The app stores the selected band for family-fit logic while retaining backward compatibility with existing saved profiles.
+
+## V2.2.13 — Visitor-experience quality gate
+
+Local discovery now filters more aggressively for places a family can genuinely visit. Outdoors uses a visitor-focused whitelist (public parks, zoos, botanical gardens, nature preserves, trails, playgrounds, scenic spots and similar). Generic `park` results must also look like a real public/visitor place; generic gardens, residential dog parks, landscaping/property businesses and private-access OpenStreetMap features are excluded.
+
+Suggested experience cards now include a short **What it’s like** description. These descriptions are generated from the place's primary venue type and are deliberately concise; they help the family decide whether the experience fits before opening Maps. Google editorial summaries are not requested, avoiding the additional Atmosphere data tier for this beta.

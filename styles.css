@@ -640,3 +640,7 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
   .height-band-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .height-band-unknown{grid-column:1/-1;min-height:48px;}
 }
+
+/* V2.2.13 — visitor-experience descriptions */
+.experience-description{margin-top:11px;padding:10px 12px;border-radius:14px;background:#f4f8f7;color:#425b61;font-size:12px;line-height:1.45}
+.experience-description b{color:#173b43;font-weight:850}

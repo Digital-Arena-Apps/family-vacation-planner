@@ -4,7 +4,7 @@ const CATEGORY_TYPES = {
   chill: ['beach','spa','massage_spa','wellness_center','sauna','scenic_spot'],
   thrills: ['amusement_park','water_park','adventure_sports_center','amusement_center','go_karting_venue','miniature_golf_course','ferris_wheel','off_roading_area','paintball_center','video_arcade'],
   indoor: ['museum','art_museum','history_museum','aquarium','art_gallery','movie_theater','bowling_alley','indoor_playground','planetarium','performing_arts_theater','cultural_center'],
-  outdoors: ['park','city_park','state_park','national_park','botanical_garden','garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','dog_park','marina'],
+  outdoors: ['park','city_park','state_park','national_park','botanical_garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','scenic_spot'],
   // Leisure shopping only. Supermarkets, hypermarkets and generic stores are Essentials.
   shopping: ['shopping_mall','market','farmers_market','flea_market','gift_shop','clothing_store','book_store','toy_store','jewelry_store','shoe_store','sporting_goods_store','thrift_store','cosmetics_store'],
   sights: ['historical_landmark','cultural_landmark','historical_place','monument','castle','observation_deck','visitor_center']
@@ -19,6 +19,60 @@ const OSM_FILTERS = {
 };
 function haversine(a,b,c,d){const R=3958.7613,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,q=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));}
 function priceLevel(v){const m={PRICE_LEVEL_FREE:0,PRICE_LEVEL_INEXPENSIVE:1,PRICE_LEVEL_MODERATE:2,PRICE_LEVEL_EXPENSIVE:3,PRICE_LEVEL_VERY_EXPENSIVE:4};return m[v] ?? null;}
+const OUTDOOR_STRONG_TYPES=new Set(['city_park','state_park','national_park','botanical_garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','scenic_spot']);
+const BUSINESSISH_NAME=/\b(landscap(?:e|ing)?|lawn|maintenance|property|properties|realty|realtor|residential|hoa|homeowners|association|services?|solutions?|contractor|nursery|garden\s*center|clubhouse|apartments?|condo|ministry|church|school|academy)\b/i;
+const PUBLIC_OUTDOOR_NAME=/\b(park|parks|garden|gardens|botanical|arboretum|preserve|reserve|trail|trails|greenway|nature|wildlife|zoo|playground|recreation|recreational|forest|woods|scenic|viewpoint)\b/i;
+function visitorExperienceAllowed(x,category){
+  if(!x)return false;
+  if(String(x.businessStatus||'').toUpperCase()==='CLOSED_PERMANENTLY')return false;
+  if(['private','no','customers'].includes(String(x.access||'').toLowerCase()))return false;
+  if(category!=='outdoors')return true;
+  const type=String(x.typeKey||x.type||'').toLowerCase();
+  const name=String(x.name||'');
+  if(BUSINESSISH_NAME.test(name))return false;
+  if(OUTDOOR_STRONG_TYPES.has(type))return true;
+  // Generic "park" is noisy in Places data. Keep it only when the name itself
+  // reads like a visitor/public outdoor place, or it has substantial public reviews.
+  if(type==='park')return PUBLIC_OUTDOOR_NAME.test(name)||(x.ratingCount||0)>=75;
+  return false;
+}
+function experienceDescription(category,x){
+  const t=String(x.typeKey||x.type||'').toLowerCase();
+  const copy={
+    beach:'Beach time for sand, water and a slower pace — best when the weather and drive time make it worthwhile.',
+    spa:'A low-effort wellness stop for a proper reset away from the busy sightseeing pace.',
+    scenic_spot:'A scenic stop made for views, photos and a lower-effort outdoor break.',
+    city_park:'Public green space for an easy walk, play or picnic without committing the whole day.',
+    state_park:'A larger outdoor day with trails, nature and room to explore; allow a few hours rather than a quick stop.',
+    national_park:'A major nature-focused day out with scenery and outdoor exploration; usually worth planning several hours.',
+    park:'An outdoor green-space option for walking, play or a picnic; usually a lighter commitment than a major attraction.',
+    botanical_garden:'Landscaped gardens and walking paths — a relaxed outdoor experience that works well for strolling and photos.',
+    hiking_area:'A trail-based outdoor option — best when the family is up for walking and the weather cooperates.',
+    zoo:'An animal-focused family day out with exhibits and plenty of walking; better for a few hours than a quick stop.',
+    wildlife_park:'Wildlife-focused outdoor experience with animal viewing and walking areas; allow time to explore properly.',
+    wildlife_refuge:'A quieter nature and wildlife experience, usually centred on trails, habitats or viewing areas.',
+    nature_preserve:'Nature-first outdoor time with trails and wildlife; a good choice when you want space rather than rides or shops.',
+    playground:'A simple local stop for younger children to burn off energy without turning it into a full-day outing.',
+    picnic_ground:'An easy outdoor stop for food, downtime and open space; useful for a lower-key part of the day.',
+    cycling_park:'An active outdoor option built around cycling or wheeled recreation rather than a traditional attraction.',
+    museum:'Indoor exhibits and displays — a weather-proof option that can usually fill a couple of hours.',
+    art_museum:'Indoor galleries and exhibitions for a slower, culture-focused few hours.',
+    history_museum:'Indoor exhibits focused on local or wider history — useful for a lower-energy, weather-proof day.',
+    aquarium:'Indoor animal exhibits and marine life; family-friendly and especially useful in heat or rain.',
+    movie_theater:'A straightforward indoor reset with minimal walking — useful when everyone needs an easier couple of hours.',
+    bowling_alley:'Casual indoor family activity that works well for a shorter session or poor-weather backup.',
+    indoor_playground:'Indoor play aimed mainly at younger children — good for burning off energy without battling the weather.',
+    amusement_park:'A high-energy park day built around rides and attractions; usually a substantial time and walking commitment.',
+    water_park:'A high-energy water-based day with slides and pools; best treated as a major outing rather than a quick stop.',
+    go_karting_venue:'Shorter high-energy fun centred on kart racing — useful when you want excitement without a full theme-park day.',
+    miniature_golf_course:'Low-commitment competitive family fun that normally fits neatly into a couple of hours.',
+    shopping_mall:'Leisure shopping with multiple stores in one place, often useful when you want an easy indoor browse.',
+    farmers_market:'A browse-and-snack experience focused on local stalls, produce and small vendors.',
+    flea_market:'Casual browsing through independent stalls and bargain finds rather than conventional mall shopping.',
+    market:'A browse-first stop with multiple stalls or vendors; good for a lighter few hours rather than a major day out.'
+  };
+  return copy[t]||({chill:'A lower-effort option for slowing the pace and giving everyone a bit of breathing room.',thrills:'A higher-energy experience aimed at excitement rather than a quiet day.',indoor:'A weather-proof indoor option for a few easier hours.',outdoors:'An outdoor family experience focused on nature, open space or animals.',shopping:'A leisure-shopping option for browsing rather than practical groceries or essentials.',sights:'A visitor-focused local sight that may be worth building into the trip.'}[category]||'A nearby visitor experience that fits this part of your trip.');
+}
 async function googlePlaces(category,lat,lon,radius){
   const key=process.env.GOOGLE_PLACES_API_KEY;if(!key)return null;
   const body={includedPrimaryTypes:CATEGORY_TYPES[category],maxResultCount:20,rankPreference:['outdoors','chill'].includes(category)?'DISTANCE':'POPULARITY',locationRestriction:{circle:{center:{latitude:lat,longitude:lon},radius}}};
@@ -29,7 +83,7 @@ async function googlePlaces(category,lat,lon,radius){
   return (data.places||[]).map(p=>({
     id:`gp:${p.id}`,providerId:p.id,name:p.displayName?.text||'Nearby place',address:p.formattedAddress||'',lat:p.location?.latitude,lon:p.location?.longitude,
     rating:Number.isFinite(p.rating)?p.rating:null,ratingCount:p.userRatingCount||0,priceLevel:priceLevel(p.priceLevel),type:p.primaryTypeDisplayName?.text||'',typeKey:p.primaryType||'',types:p.types||[],openNow:typeof p.currentOpeningHours?.openNow==='boolean'?p.currentOpeningHours.openNow:null,businessStatus:p.businessStatus||'',mapsUrl:p.googleMapsUri||'',source:'Google Places'
-  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon)})).sort((a,b)=>category==='outdoors'?a.distance-b.distance:0);
+  })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,distance:haversine(lat,lon,x.lat,x.lon),description:experienceDescription(category,x)})).sort((a,b)=>category==='outdoors'?a.distance-b.distance:0);
 }
 async function overpass(category,lat,lon,radius){
   const filters=OSM_FILTERS[category]||[];if(!filters.length)return [];
@@ -37,7 +91,7 @@ async function overpass(category,lat,lon,radius){
   const q=`[out:json][timeout:14];(${parts});out center tags;`;
   const endpoints=['https://overpass.private.coffee/api/interpreter','https://overpass-api.de/api/interpreter'];
   let last;
-  for(const url of endpoints){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'FamilyVacationPlannerBeta/2.1'},body:`data=${encodeURIComponent(q)}`});if(!r.ok)throw new Error(`Overpass ${r.status}`);const d=await r.json();return (d.elements||[]).map(el=>{const la=el.lat??el.center?.lat,lo=el.lon??el.center?.lon,t=el.tags||{};if(!Number.isFinite(la)||!Number.isFinite(lo))return null;const name=t.name||t.brand||t.operator;if(!name)return null;const addr=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');return{id:`osm:${el.type}:${el.id}`,name,address:addr,lat:la,lon:lo,rating:null,ratingCount:0,priceLevel:null,type:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',typeKey:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',types:[t.tourism||t.leisure||t.shop||t.amenity||t.historic||''].filter(Boolean),openNow:null,mapsUrl:'',source:'OpenStreetMap',distance:haversine(lat,lon,la,lo)};}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,12);}catch(e){last=e;}}
+  for(const url of endpoints){try{const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','User-Agent':'FamilyVacationPlannerBeta/2.1'},body:`data=${encodeURIComponent(q)}`});if(!r.ok)throw new Error(`Overpass ${r.status}`);const d=await r.json();return (d.elements||[]).map(el=>{const la=el.lat??el.center?.lat,lo=el.lon??el.center?.lon,t=el.tags||{};if(!Number.isFinite(la)||!Number.isFinite(lo))return null;const name=t.name||t.brand||t.operator;if(!name)return null;const addr=[ [t['addr:housenumber'],t['addr:street']].filter(Boolean).join(' '),t['addr:city']].filter(Boolean).join(', ');return{id:`osm:${el.type}:${el.id}`,name,address:addr,lat:la,lon:lo,rating:null,ratingCount:0,priceLevel:null,type:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',typeKey:t.tourism||t.leisure||t.shop||t.amenity||t.historic||'',types:[t.tourism||t.leisure||t.shop||t.amenity||t.historic||''].filter(Boolean),openNow:null,mapsUrl:'',source:'OpenStreetMap',access:t.access||'',distance:haversine(lat,lon,la,lo)};}).filter(Boolean).filter(x=>visitorExperienceAllowed(x,category)).map(x=>({...x,description:experienceDescription(category,x)})).sort((a,b)=>a.distance-b.distance).slice(0,12);}catch(e){last=e;}}
   throw last||new Error('Discovery unavailable');
 }
 function normalizedName(name){return String(name||'').toLowerCase().replace(/&/g,' and ').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\b(supercenter|super centre|store|location|branch)\b/g,' ').replace(/\b#?\d+\b/g,' ').replace(/\s+/g,' ').trim();}

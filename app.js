@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.12 — simpler ride-height bands in onboarding
+// Family Vacation Planner V2.2.13 — simpler ride-height bands in onboarding
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -101,11 +101,23 @@ const activities = [
 const primaryMoodTypes={
   chill:new Set(['beach','spa','massage_spa','wellness_center','sauna','scenic_spot']),
   shopping:new Set(['shopping_mall','market','farmers_market','flea_market','gift_shop','clothing_store','book_store','toy_store','jewelry_store','shoe_store','sporting_goods_store','thrift_store','cosmetics_store']),
-  outdoors:new Set(['park','city_park','state_park','national_park','botanical_garden','garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','dog_park','marina']),
+  outdoors:new Set(['park','city_park','state_park','national_park','botanical_garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','scenic_spot']),
   indoor:new Set(['museum','art_museum','history_museum','aquarium','art_gallery','movie_theater','bowling_alley','indoor_playground','planetarium','performing_arts_theater','cultural_center']),
   thrills:new Set(['amusement_park','water_park','adventure_sports_center','go_karting_venue','miniature_golf_course','amusement_center','ferris_wheel','roller_coaster','off_roading_area','paintball_center','video_arcade'])
 };
 const practicalShoppingTypes=new Set(['supermarket','grocery_store','discount_supermarket','hypermarket','warehouse_store','convenience_store','food_store','general_store','discount_store']);
+const strongOutdoorVisitorTypes=new Set(['city_park','state_park','national_park','botanical_garden','hiking_area','zoo','wildlife_park','wildlife_refuge','nature_preserve','playground','picnic_ground','cycling_park','scenic_spot']);
+const businessishOutdoorName=/\b(landscap(?:e|ing)?|lawn|maintenance|property|properties|realty|realtor|residential|hoa|homeowners|association|services?|solutions?|contractor|nursery|garden\s*center|clubhouse|apartments?|condo|ministry|church|school|academy)\b/i;
+const publicOutdoorName=/\b(park|parks|garden|gardens|botanical|arboretum|preserve|reserve|trail|trails|greenway|nature|wildlife|zoo|playground|recreation|recreational|forest|woods|scenic|viewpoint)\b/i;
+function discoveredVisitorExperienceAllowed(a){
+  if(!a?.discovered)return true;
+  const type=normalizedPlaceType(a.placeType);
+  if(a.sourceCategory!=='outdoors')return true;
+  if(businessishOutdoorName.test(String(a.name||'')))return false;
+  if(strongOutdoorVisitorTypes.has(type))return true;
+  if(type==='park')return publicOutdoorName.test(String(a.name||''))||(+a.ratingCount||0)>=75;
+  return false;
+}
 function normalizedPlaceType(v){return String(v||'').toLowerCase().trim().replaceAll(' ','_');}
 function discoveredTypeSet(a){return new Set([normalizedPlaceType(a?.placeType),...((a?.placeTypes||[]).map(normalizedPlaceType))].filter(Boolean));}
 function primaryMoodForPlace(a){
@@ -114,6 +126,7 @@ function primaryMoodForPlace(a){
   if(a.category==='food')return 'food';
   if(a.category==='park')return 'thrills';
   if(a.discovered){
+    if(!discoveredVisitorExperienceAllowed(a))return null;
     const types=discoveredTypeSet(a);
     // Practical retail belongs in Essentials, even if Google also calls it a store.
     if([...types].some(t=>practicalShoppingTypes.has(t)))return null;
@@ -813,13 +826,13 @@ const discoveryMeta={
   chill:{eyebrow:'CHILL & RECHARGE',title:'Slow the pace down',copy:'Beaches, spas, wellness and scenic low-effort options — deliberately separate from active outdoor exploring.',icon:'🌊',category:'activity',tags:['relax']},
   thrills:{eyebrow:'THRILLS & EXCITEMENT',title:'Turn the energy up',copy:'Theme parks are only one version of a thrill day — I’ll also look for karting, adventure, high-energy attractions and big views.',icon:'⚡',category:'activity',tags:['rides']},
   indoor:{eyebrow:'INDOOR & EASY',title:'Good ideas under cover',copy:'Museums, aquariums, entertainment and other weather-proof family options around you.',icon:'☂',category:'indoor',tags:['indoor']},
-  outdoors:{eyebrow:'OUTDOORS & EXPLORE',title:'Get outside',copy:'Parks, gardens, trails, viewpoints and open-air family options that make sense from here.',icon:'🌿',category:'outdoors',tags:['nature']},
+  outdoors:{eyebrow:'OUTDOORS & EXPLORE',title:'Get outside',copy:'Public parks, zoos, nature, trails and genuinely visitor-friendly outdoor experiences that make sense from here.',icon:'🌿',category:'outdoors',tags:['nature']},
   shopping:{eyebrow:'SHOP & BROWSE',title:'Shopping nearby',copy:'Malls, markets and browse-worthy retail without assuming every destination has Florida-style outlets.',icon:'🛍',category:'shopping',tags:['shopping','indoor']},
   sights:{eyebrow:'EXPLORE LOCALLY',title:'What is worth seeing nearby?',copy:'A broad local mix of landmarks, museums, views, parks and family attractions.',icon:'📍',category:'activity',tags:['nature','indoor']}
 };
 function discoveredActivity(x,category){
   const m=discoveryMeta[category]||discoveryMeta.sights,level=x.priceLevel==null?2:Math.max(1,Math.min(3,x.priceLevel||1));
-  const raw={id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||'',sourceCategory:category,placeType:x.typeKey||x.type||'',placeTypes:Array.isArray(x.types)?x.types:[]};
+  const raw={id:x.id,name:x.name,icon:m.icon,category:m.category,tags:m.tags,cost:level,energy:category==='thrills'?2:1,lat:+x.lat,lon:+x.lon,destination:x.name,note:[x.type,x.rating?`★ ${x.rating.toFixed(1)}`:'',x.address].filter(Boolean).join(' · ')||'Discovered near your selected location.',experienceDescription:x.description||'',rating:Number.isFinite(+x.rating)?+x.rating:null,ratingCount:+x.ratingCount||0,discovered:true,provider:x.source||'',mapsUrl:x.mapsUrl||'',sourceCategory:category,placeType:x.typeKey||x.type||'',placeTypes:Array.isArray(x.types)?x.types:[]};
   return inferDiscoveredSemantics(raw);
 }
 function rememberDiscovered(a){state.discovered[a.id]=a;localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));}
@@ -827,8 +840,8 @@ function discoveryCard(x,category){
   const a=discoveredActivity(x,category);rememberDiscovered(a);const d=Number(x.distance),distance=Number.isFinite(d)?`${d<10?d.toFixed(1):Math.round(d)} mi`:'';
   const rating=x.rating?`★ ${Number(x.rating).toFixed(1)}${x.ratingCount?` · ${Number(x.ratingCount).toLocaleString()} reviews`:''}`:'Rating unavailable';
   const open=x.openNow===true?'<span class="trip-state-chip state-repeat">Open now</span>':x.openNow===false?'<span class="trip-state-chip state-skip">Closed now</span>':'';
-  const s=tripStatus(a.id),saved=state.saved.includes(a.id),type=escapeHtml(x.type||'Local attraction'),address=x.address?escapeHtml(x.address):'';
-  return `<article class="place-card discover-card" data-id="${escapeHtml(a.id)}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(a.name)}</div>${distance?`<span class="score-pill">${distance}</span>`:''}</div><div class="place-meta">${type}${address?` · ${address}`:''}</div></div></div><div class="discover-rating-row"><b>${rating}</b>${open}</div><div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div><div class="place-actions"><button class="small-btn discover-save">${saved?'♥ Saved':'♡ Save'}</button><a class="small-btn primary-small direction-link" href="${x.mapsUrl||directionsUrl(a)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
+  const s=tripStatus(a.id),saved=state.saved.includes(a.id),type=escapeHtml(x.type||'Local attraction'),address=x.address?escapeHtml(x.address):'',desc=escapeHtml(x.description||a.experienceDescription||'');
+  return `<article class="place-card discover-card" data-id="${escapeHtml(a.id)}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${escapeHtml(a.name)}</div>${distance?`<span class="score-pill">${distance}</span>`:''}</div><div class="place-meta">${type}${address?` · ${address}`:''}</div></div></div>${desc?`<div class="experience-description"><b>What it’s like:</b> ${desc}</div>`:''}<div class="discover-rating-row"><b>${rating}</b>${open}</div><div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div><div class="place-actions"><button class="small-btn discover-save">${saved?'♥ Saved':'♡ Save'}</button><a class="small-btn primary-small direction-link" href="${x.mapsUrl||directionsUrl(a)}" target="_blank" rel="noopener">Directions →</a></div></article>`;
 }
 function wireDiscover(root){
   $$('.discover-save',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderTripHub();b.textContent=state.saved.includes(id)?'♥ Saved':'♡ Save';}));
@@ -840,7 +853,7 @@ async function loadDiscover(category='sights'){
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} Search centre: ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Finding local options…</b><small>Checking places inside your travel range.</small></div>';$('#discoverResults').innerHTML='';
-  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>!['skip','visited'].includes(tripStatus(x.id)));if(!results.length)throw new Error();
+  try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));if(!results.length)throw new Error();
     $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} ideas around ${escapeHtml(state.locationName||'your location')}</b><small>${escapeHtml(data.source||'Places')} · within roughly ${state.profile.maxDrive||30} miles.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
   }catch(e){$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Local discovery is taking a break</b><small>Try again in a moment. Your saved trip plan still works.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">I couldn’t get a reliable local shortlist just now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category));}
 }
@@ -852,7 +865,8 @@ function placeCard(a,withScore=false,hero=false){
   const saveAction=a.transient?'':`<button class="small-btn save-btn">${saved?'♥ Saved':'♡ Save'}</button>`;
   const primaryAction=a.internalView?`<button class="small-btn primary-small internal-view-btn" data-view="${a.internalView}">See ideas</button>`:`<button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button>`;
   const tripTools=a.transient?'':`<div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div>`;
-  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div><div class="reason">${withScore?`<b>Why:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">${commit} including return travel + useful visit time.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${tripTools}<div class="place-actions">${saveAction}${primaryAction}</div></article>`;
+  const desc=a.experienceDescription?`<div class="experience-description"><b>What it’s like:</b> ${escapeHtml(a.experienceDescription)}</div>`:'';
+  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div>${desc}<div class="reason">${withScore?`<b>Why:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">${commit} including return travel + useful visit time.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${tripTools}<div class="place-actions">${saveAction}${primaryAction}</div></article>`;
 }
 function wirePlaceActions(root){
   $$('.save-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderExplore();renderTripHub();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();}));
