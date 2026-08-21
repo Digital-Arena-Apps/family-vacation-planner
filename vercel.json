@@ -50,6 +50,10 @@
     {
       "src": "brand-logo.png",
       "use": "@vercel/static"
+    },
+    {
+      "src": "landing-scenic.png",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
