@@ -716,3 +716,131 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
 .decision-learning-box{margin-top:12px}.decision-metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.decision-metric-grid>div{border-radius:13px;background:#F8FAFC;padding:10px}.decision-metric-grid span{display:block;color:#64748B;font-size:9px;font-weight:750}.decision-metric-grid b{display:block;color:#0F172A;font-size:18px;margin-top:3px}.decision-metric-note{border-radius:12px;background:#FFF7ED;color:#9A3412;padding:10px 11px;font-size:10px;font-weight:750}
 @media(max-width:420px){.feedback-reason-grid{grid-template-columns:1fr}.decision-choice-actions{grid-template-columns:1fr 1fr}.now-context-bar{margin-top:8px}.decision-metric-grid{gap:6px}.decision-metric-grid>div{padding:8px}}
 @media(prefers-reduced-motion:reduce){.feedback-reason-grid button:active{transform:none}}
+
+/* V2.4.1 — motion polish */
+:root{
+  --motion-fast:160ms;
+  --motion-medium:280ms;
+  --motion-slow:520ms;
+  --motion-ease:cubic-bezier(.22,.8,.24,1);
+  --motion-spring:cubic-bezier(.2,.9,.25,1.18);
+}
+
+/* Screen changes should feel deliberate, not like a redraw. */
+.view.active{animation:vpViewIn var(--motion-medium) var(--motion-ease) both}
+@keyframes vpViewIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Results arrive as a small sequence so the eye can scan them naturally. */
+.card-list>.place-card,
+.destination-results>.destination-result,
+.food-list>.food-card{
+  animation:vpCardIn 360ms var(--motion-ease) both;
+}
+.card-list>.place-card:nth-child(2),
+.destination-results>.destination-result:nth-child(2),
+.food-list>.food-card:nth-child(2){animation-delay:55ms}
+.card-list>.place-card:nth-child(3),
+.destination-results>.destination-result:nth-child(3),
+.food-list>.food-card:nth-child(3){animation-delay:110ms}
+.card-list>.place-card:nth-child(4),
+.destination-results>.destination-result:nth-child(4),
+.food-list>.food-card:nth-child(4){animation-delay:165ms}
+@keyframes vpCardIn{
+  from{opacity:0;transform:translateY(10px) scale(.992)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* Weather motion communicates the condition without becoming decorative noise. */
+.weather-card{transition:background .5s var(--motion-ease),box-shadow .3s ease}
+.weather-ambient{opacity:1}
+.weather-sunny .weather-ambient span:first-child{
+  width:150px;height:150px;right:-38px;top:-52px;
+  background:radial-gradient(circle,rgba(255,220,118,.62) 0 15%,rgba(255,200,87,.22) 37%,transparent 68%);
+  animation:vpSunGlow 5.5s ease-in-out infinite;
+}
+.weather-sunny .weather-icon{animation:vpSunnyIcon 4.8s ease-in-out infinite}
+.weather-cloudy .weather-ambient span:nth-child(1){animation:vpCloudA 9s ease-in-out infinite alternate}
+.weather-cloudy .weather-ambient span:nth-child(2){animation:vpCloudB 12s ease-in-out infinite alternate}
+.weather-cloudy .weather-icon{animation:vpWeatherBob 5.4s ease-in-out infinite}
+.weather-rain .weather-ambient{
+  background:repeating-linear-gradient(110deg,transparent 0 17px,rgba(255,255,255,.12) 18px 19px,transparent 20px 34px);
+  background-size:120px 150px;
+  animation:vpRain 1.05s linear infinite;
+}
+.weather-rain .weather-icon{animation:vpRainIcon 2.4s ease-in-out infinite}
+.weather-storm{position:relative}
+.weather-storm:before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;
+  background:rgba(255,255,255,0);animation:vpLightning 7s steps(1,end) infinite;
+}
+.weather-storm .weather-ambient{
+  background:repeating-linear-gradient(110deg,transparent 0 18px,rgba(255,255,255,.12) 19px 20px,transparent 21px 37px);
+  background-size:125px 155px;
+  animation:vpRain .88s linear infinite;
+}
+.weather-storm .weather-icon{animation:vpStormIcon 3.6s ease-in-out infinite}
+.weather-night .weather-ambient{
+  background-image:
+    radial-gradient(circle at 18% 24%,rgba(255,255,255,.52) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 42% 18%,rgba(255,255,255,.34) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 72% 34%,rgba(255,255,255,.42) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 86% 17%,rgba(255,255,255,.3) 0 1px,transparent 1.5px);
+  animation:vpStars 4.8s ease-in-out infinite;
+}
+.weather-night .weather-icon{animation:vpNightFloat 6s ease-in-out infinite}
+.weather-details[open] .weather-hours{animation:vpDetailsIn 220ms var(--motion-ease) both}
+
+@keyframes vpSunGlow{0%,100%{transform:scale(.94);opacity:.72}50%{transform:scale(1.08);opacity:1}}
+@keyframes vpSunnyIcon{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(3deg)}}
+@keyframes vpCloudA{from{transform:translateX(-14px)}to{transform:translateX(18px)}}
+@keyframes vpCloudB{from{transform:translateX(12px)}to{transform:translateX(-14px)}}
+@keyframes vpWeatherBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes vpRain{from{background-position:0 -40px}to{background-position:-38px 115px}}
+@keyframes vpRainIcon{0%,100%{transform:translateY(0)}45%{transform:translateY(2px)}60%{transform:translateY(-2px)}}
+@keyframes vpLightning{0%,89%,91%,94%,100%{background:rgba(255,255,255,0)}90%{background:rgba(255,255,255,.13)}92%{background:rgba(255,255,255,.06)}}
+@keyframes vpStormIcon{0%,100%{transform:translateY(0)}48%{transform:translateY(-2px)}52%{transform:translateY(1px)}}
+@keyframes vpStars{0%,100%{opacity:.62}50%{opacity:1}}
+@keyframes vpNightFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes vpDetailsIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Decision feedback should acknowledge the choice immediately. */
+.decision-picked{animation:vpAccepted 440ms var(--motion-spring) both!important}
+.decision-picked-note{animation:vpAcceptedNote 360ms var(--motion-ease) both}
+@keyframes vpAccepted{
+  0%{transform:scale(1);box-shadow:0 8px 24px rgba(24,50,58,.04)}
+  48%{transform:scale(1.012);box-shadow:0 12px 28px rgba(15,118,110,.16)}
+  100%{transform:scale(1);box-shadow:0 8px 24px rgba(15,118,110,.08)}
+}
+@keyframes vpAcceptedNote{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* Bottom-sheet dialogs now feel attached to the action that opened them. */
+.modal-overlay:not(.hidden){animation:vpModalBackdrop 180ms ease-out both}
+.modal-overlay:not(.hidden) .modal-card{animation:vpModalIn 320ms var(--motion-ease) both}
+@keyframes vpModalBackdrop{from{background-color:rgba(15,23,42,0)}to{background-color:rgba(15,23,42,.52)}}
+@keyframes vpModalIn{from{opacity:.5;transform:translateY(24px) scale(.99)}to{opacity:1;transform:none}}
+
+/* Fix: preserve translateX(-50%) throughout the toast animation. */
+.toast:not(.hidden){animation:vpToastPop 230ms var(--motion-ease) both}
+@keyframes vpToastPop{
+  from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.97)}
+  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+
+.primary-btn,.secondary-btn,.small-btn,.quick-card,.nav-item,.finder-chip,.now-context-chip{
+  -webkit-tap-highlight-color:transparent;
+  transition:transform var(--motion-fast) ease,box-shadow var(--motion-fast) ease,background-color var(--motion-fast) ease,border-color var(--motion-fast) ease;
+}
+.primary-btn:active,.secondary-btn:active,.small-btn:active,.quick-card:active,.nav-item:active,.finder-chip:active,.now-context-chip:active{transform:scale(.975)}
+.nav-item.active span{animation:vpNavSelect 260ms var(--motion-spring) both}
+@keyframes vpNavSelect{from{transform:scale(.88)}to{transform:scale(1)}}
+
+@media(prefers-reduced-motion:reduce){
+  .view.active,.card-list>.place-card,.destination-results>.destination-result,.food-list>.food-card,
+  .weather-ambient,.weather-icon,.weather-storm:before,.decision-picked,.decision-picked-note,
+  .modal-overlay:not(.hidden),.modal-overlay:not(.hidden) .modal-card,.toast:not(.hidden),.nav-item.active span{
+    animation:none!important;transform:none!important;
+  }
+}
