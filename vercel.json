@@ -98,10 +98,6 @@
       "dest": "/discover.js"
     },
     {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
       "handle": "filesystem"
     },
     {
