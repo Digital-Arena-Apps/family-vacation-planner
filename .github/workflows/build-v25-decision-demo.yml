@@ -1,0 +1,78 @@
+name: Build V2.5 Decision Demo
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-v25-decision-demo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble decision-engine demo
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64, gzip, re
+
+          js=''.join(Path(f'.demo-build/js{i}.txt').read_text().strip() for i in range(1,5))
+          css=''.join(Path(f'.demo-build/css{i}.txt').read_text().strip() for i in range(1,3))
+          Path('decision-demo.js').write_bytes(gzip.decompress(base64.b64decode(js)))
+          Path('decision-demo.css').write_bytes(gzip.decompress(base64.b64decode(css)))
+
+          # Preserve the rejected recommendation id after the feedback sheet closes.
+          p=Path('decision-demo.js')
+          s=p.read_text()
+          old="""if(!pendingRejectId)return;
+    demoState.rejected[pendingRejectId]={reason,at:new Date().toISOString()}; demoState.lastReason=reason; if(demoState.chosen===pendingRejectId)demoState.chosen=null; saveState(); closeFeedback(); updateChosenSummary(); renderWhatNow();
+    try { if(typeof trackDecisionEvent==='function') trackDecisionEvent('demo_recommendation_rejected',{id:pendingRejectId,reason,source:'v2.5-demo'}); } catch {}"""
+          new="""if(!pendingRejectId)return;
+    const rejectedId=pendingRejectId;
+    demoState.rejected[rejectedId]={reason,at:new Date().toISOString()}; demoState.lastReason=reason; if(demoState.chosen===rejectedId)demoState.chosen=null; saveState(); closeFeedback(); updateChosenSummary(); renderWhatNow();
+    try { if(typeof trackDecisionEvent==='function') trackDecisionEvent('demo_recommendation_rejected',{id:rejectedId,reason,source:'v2.5-demo'}); } catch {}"""
+          if old not in s:
+              raise SystemExit('Expected rejectRecommendation demo block not found')
+          p.write_text(s.replace(old,new))
+
+          # Load the demo as a thin layer after the existing application.
+          p=Path('index.html')
+          s=p.read_text()
+          if 'decision-demo.css' not in s:
+              s=s.replace('<link rel="stylesheet" href="styles.css" />','<link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="decision-demo.css" />')
+          if 'decision-demo.js' not in s:
+              s=s.replace('</body>','  <script src="decision-demo.js"></script>\n</body>')
+          s=s.replace('DECISION BETA · V2.4','DECISION DEMO · V2.5')
+          p.write_text(s)
+
+          # Force the service worker to replace the V2.4 cache and keep demo files offline-ready.
+          p=Path('sw.js')
+          s=p.read_text()
+          s=re.sub(r"const CACHE='[^']+';", "const CACHE='ffvp-v2-5-0';", s, count=1)
+          if './decision-demo.js' not in s:
+              s=s.replace("'./landing-scenic.png']", "'./landing-scenic.png','./decision-demo.js','./decision-demo.css']")
+          p.write_text(s)
+
+          # Leave a concise build note without changing the product documentation structure.
+          p=Path('README.md')
+          s=p.read_text() if p.exists() else ''
+          marker='## V2.5 — Decision Engine Demo'
+          if marker not in s:
+              s += """\n\n## V2.5 — Decision Engine Demo\n\nA focused Orlando family-vacation demo layered over the existing app. The home experience centres What Now?, Plan Tomorrow and Fix My Day. Demo trip context, fixed commitments, contextual saves, recommendation feedback and deterministic replanning are intentionally mocked where that speeds validation; existing live app functionality remains underneath.\n"""
+          p.write_text(s)
+          PY
+          node --check decision-demo.js
+      - name: Commit assembled demo
+        shell: bash
+        run: |
+          rm -rf .demo-build
+          rm -f .github/workflows/build-v25-decision-demo.yml
+          git config user.name "Vacation Planner Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Build V2.5 decision engine demo"
+          git push
