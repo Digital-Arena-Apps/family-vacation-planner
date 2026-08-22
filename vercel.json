@@ -4,10 +4,6 @@
   "trailingSlash": false,
   "builds": [
     {
-      "src": "demo-shell.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "nearby.js",
       "use": "@vercel/node"
     },
@@ -103,7 +99,7 @@
     },
     {
       "src": "/",
-      "dest": "/demo-shell.js"
+      "dest": "/index.html"
     },
     {
       "handle": "filesystem"
