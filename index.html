@@ -155,7 +155,7 @@
         <div class="brand-wordmark" aria-label="Family Vacation Planner">
           <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
           <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DESTINATION BETA · V2.3.0</span>
+          <span class="brand-kicker">DECISION BETA · V2.4</span>
         </div>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
@@ -203,6 +203,20 @@
           <div class="decision-actions">
             <button id="whatNowBtn" class="primary-btn">What Now?</button>
             <button id="tomorrowBtn" class="secondary-btn hidden" type="button">Plan tomorrow</button>
+          </div>
+        </section>
+
+        <section id="nowContextBar" class="now-context-bar" aria-label="Optional right now context">
+          <div class="now-context-head">
+            <div><div class="eyebrow">RIGHT NOW</div><b>Anything different today?</b><small>Optional — tap only what matters right now.</small></div>
+            <button id="clearNowContext" class="text-btn hidden" type="button">Clear</button>
+          </div>
+          <div class="now-context-chips" role="group" aria-label="Temporary planning context">
+            <button class="now-context-chip" type="button" data-now-context="time2">About 2 hours</button>
+            <button class="now-context-chip" type="button" data-now-context="cheap">Keep it cheap</button>
+            <button class="now-context-chip" type="button" data-now-context="lowEnergy">Low energy</button>
+            <button class="now-context-chip" type="button" data-now-context="drive">Happy to drive</button>
+            <button class="now-context-chip" type="button" data-now-context="food">Need food too</button>
           </div>
         </section>
 
@@ -416,6 +430,16 @@
               <label>Vacations used<input id="testTripUses" type="number" min="0" step="1" value="1" /></label>
               <div class="commercial-test-actions"><button id="applyCommercialTest" class="secondary-btn" type="button">Apply test state</button><button id="exhaustFreshIdeas" class="secondary-btn" type="button">Set to last idea</button><button id="resetCommercialTest" class="secondary-btn" type="button">Reset commercial test</button></div>
             </div>
+            <div class="commercial-test-box decision-learning-box">
+              <div><b>What Now learning</b><small>Local beta signals from this device — useful for checking whether recommendations are actually getting accepted.</small></div>
+              <div class="decision-metric-grid">
+                <div><span>Sets shown</span><b id="metricRecommendationSets">0</b></div>
+                <div><span>Accepted</span><b id="metricAccepted">0</b></div>
+                <div><span>Acceptance</span><b id="metricAcceptance">—</b></div>
+              </div>
+              <div id="metricTopReject" class="decision-metric-note">No rejection pattern yet.</div>
+              <button id="resetDecisionLearning" class="secondary-btn" type="button">Reset What Now learning</button>
+            </div>
             <div class="testing-actions">
               <button id="showLanding" class="secondary-btn" type="button">Show landing screen</button>
               <button id="restartOnboarding" class="secondary-btn" type="button">Restart onboarding</button>
@@ -431,6 +455,26 @@
       <button class="nav-item active" data-target="today"><span>⌂</span><small id="navTodayLabel">Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small id="navExploreLabel">Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small id="navTripLabel">Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small id="navFamilyLabel">Family</small></button>
     </nav>
   </div>
+  <div id="recommendationFeedbackDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div class="modal-card feedback-modal">
+      <button id="closeRecommendationFeedback" class="modal-close" type="button" aria-label="Close">×</button>
+      <div class="eyebrow">HELP ME LEARN THIS TRIP</div>
+      <h2 id="feedbackTitle">What ruled this one out?</h2>
+      <p id="feedbackPlaceName">A quick reason helps the next suggestions fit your family better.</p>
+      <div class="feedback-reason-grid">
+        <button type="button" data-feedback-reason="too_expensive"><span>£</span><b>Too expensive</b></button>
+        <button type="button" data-feedback-reason="too_far"><span>↗</span><b>Too far away</b></button>
+        <button type="button" data-feedback-reason="too_tiring"><span>◔</span><b>Too tiring</b></button>
+        <button type="button" data-feedback-reason="not_interested"><span>×</span><b>Not interested</b></button>
+        <button type="button" data-feedback-reason="already_done"><span>✓</span><b>Already done it</b></button>
+        <button type="button" data-feedback-reason="group_mismatch"><span>◎</span><b>Doesn’t suit us</b></button>
+        <button type="button" data-feedback-reason="wrong_type"><span>↺</span><b>Wrong kind of thing</b></button>
+        <button type="button" data-feedback-reason="other"><span>…</span><b>Something else</b></button>
+      </div>
+      <small class="feedback-footnote">This only teaches this vacation. You can reset the learning any time in Beta Testing.</small>
+    </div>
+  </div>
+
   <div id="newTripDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="newTripTitle">
     <div class="modal-card new-trip-modal">
       <button id="closeNewTrip" class="modal-close" type="button" aria-label="Close">×</button>

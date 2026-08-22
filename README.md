@@ -1,3 +1,26 @@
+# Family Vacation Planner — V2.4
+
+## What Now learning loop
+
+This release deliberately strengthens the core **context → decision → feedback → better decision** loop instead of adding a new travel vertical.
+
+### What changed
+- **What Now now shows 3 choices**, not 4, to reduce decision load.
+- Each What Now card has **Let’s do this** and **Not for us** actions.
+- Rejections capture one fast reason: too expensive, too far, too tiring, not interested, already done, group mismatch, wrong type, or other.
+- Rejected places stay out of the current trip and repeated rejection patterns gently influence later ranking.
+- Accepted recommendations are saved to the trip and remembered for that day.
+- Added optional **Right Now** context chips: About 2 hours, Keep it cheap, Low energy, Happy to drive, Need food too. These change ranking without rewriting the permanent family profile.
+- Right Now context resets automatically on a new local day.
+- Added local beta instrumentation for What Now: recommendation sets, accepts, rejects, rejection reasons and time-to-decision events are stored locally.
+- Family → Beta Testing now shows a simple acceptance metric and common rejection reason, plus a reset control.
+- Trip archive/restore carries recommendation learning with the trip.
+
+### Deliberate non-goals
+- No external analytics service yet. We are validating the event model locally before adding operational complexity.
+- No machine-learning backend. The first learning loop is simple, explainable trip-level scoring.
+- No Fix My Day implementation yet; fixed commitments and Plan Tomorrow remain the next foundation.
+
 # Family Vacation Planner — Destination Beta V2.3.0
 
 Mobile-first PWA prototype for family vacation decision support.
@@ -314,3 +337,38 @@ Working plans:
 A Fresh Idea is consumed only when the app makes a genuinely new external nearby-place request (discovery, food, essentials, or a new locally seeded recommendation pool). Reopening saved content, sorting, weather, park waits and re-reading existing results do not consume allowance.
 
 Family → Testing tools contains a commercial simulator for switching tier, setting usage, and jumping to the last Fresh Idea. The pricing screen is intentionally non-transactional; its buttons only change localStorage on the device.
+
+## V2.3.1 — Connected weather + motion
+
+Weather now goes through the same server-side Vercel pattern as nearby discovery rather than calling the forecast provider directly from the phone.
+
+`/api/weather` is backed by the root `weather.js` function and currently uses Open-Meteo. The app requests:
+
+- current temperature, feels-like temperature, humidity, rain, condition, wind and gusts
+- hourly temperature, rain probability, weather condition, wind, gusts, UV and day/night state
+- a 7-day daily forecast including highs/lows, rain probability, UV, sunrise/sunset and wind
+
+The UI uses that data to show a compact current card, a timed rain/storm window, a best outdoor spell where the forecast supports one, and an expandable six-hour view. Weather refreshes every 15 minutes while the app is active and whenever the app returns to the foreground. The server response is cached for 10 minutes so reopening the app does not create unnecessary upstream calls.
+
+Weather requests intentionally do **not** consume a paid-plan `Fresh Idea`; Fresh Ideas remain tied to new place discovery.
+
+### Open-Meteo commercial setup
+
+During prototype testing, `weather.js` falls back to Open-Meteo's free non-commercial endpoint.
+
+Before enabling subscriptions or advertising in production, subscribe to an Open-Meteo commercial API plan and add this Vercel environment variable:
+
+`OPEN_METEO_API_KEY`
+
+When that variable exists, the same server function automatically switches to `customer-api.open-meteo.com`; no client update is required. Open-Meteo attribution remains visible in the weather card.
+
+### Motion
+
+V2.3.1 adds restrained interface motion:
+
+- sunny glow / drifting cloud / rain / storm / night ambience on the weather card
+- subtle screen and result-card entrance transitions
+- button/card press feedback
+- toast entrance motion
+
+All animations are disabled automatically when the device/browser has `prefers-reduced-motion: reduce` enabled.

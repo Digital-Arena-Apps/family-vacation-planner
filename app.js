@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.2.19 — personal vacation buddy tone pass
+// Family Vacation Planner V2.4 — What Now learning loop
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -53,13 +53,19 @@ const defaultProfile = {
   interests:['rides','food','shopping','beach','indoor'], heatAware:true, notes:'', quickNotes:[], arrivalDate:'', departureDate:'', budgetRemaining:'', walkingTolerance:'medium'
 };
 const savedProfile = JSON.parse(localStorage.getItem('ffvp_profile') || 'null');
+function betaLocalDayStamp(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function loadNowContext(){
+  try{const saved=JSON.parse(localStorage.getItem('ffvp_now_context')||'null');if(saved?.day===betaLocalDayStamp())return {...saved,day:betaLocalDayStamp()};}catch(e){}
+  return {day:betaLocalDayStamp(),time2:false,cheap:false,lowEnergy:false,drive:false,food:false};
+}
 const state = {
   coords:null, weather:null,
   unit:localStorage.getItem('ffvp_unit') || (navigator.language?.toLowerCase().includes('us') ? 'f' : 'c'),
   profile:{...defaultProfile, ...(savedProfile || {}), members:(savedProfile?.members?.length ? savedProfile.members : defaultMembers())},
   saved:JSON.parse(localStorage.getItem('ffvp_saved') || '[]'), tripStatuses:JSON.parse(localStorage.getItem('ffvp_trip_statuses') || '{}'), plans:JSON.parse(localStorage.getItem('ffvp_plans') || '[]'),
   discovered:JSON.parse(localStorage.getItem('ffvp_discovered') || '{}'), prepDone:JSON.parse(localStorage.getItem('ffvp_prep_done') || '{}'),
-  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}, tomorrowMood:localStorage.getItem('ffvp_tomorrow_mood') || null, archives:JSON.parse(localStorage.getItem('ffvp_trip_archive') || '[]')
+  locationMode:localStorage.getItem('ffvp_test_location') || 'gps', locationName:'', discoveryCategory:'sights', localSeedKey:'', parkSchedules:{}, deferredInstall:null, filter:'all', recommendationRuns:{}, tomorrowMood:localStorage.getItem('ffvp_tomorrow_mood') || null, archives:JSON.parse(localStorage.getItem('ffvp_trip_archive') || '[]'),
+  nowContext:loadNowContext(), recommendationFeedback:JSON.parse(localStorage.getItem('ffvp_recommendation_feedback') || '{}'), decisionEvents:JSON.parse(localStorage.getItem('ffvp_decision_events') || '[]'), pendingFeedbackId:null, currentRecommendationContext:null, currentRecommendationStartedAt:0
 };
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
@@ -483,7 +489,7 @@ function parkValueSignal(p){
 const weatherCode = code => {
   if(code===0)return ['Clear','☀️']; if([1,2].includes(code))return ['Partly cloudy','🌤']; if(code===3)return ['Cloudy','☁️'];
   if([45,48].includes(code))return ['Foggy','🌫']; if([51,53,55,56,57].includes(code))return ['Drizzle','🌦'];
-  if([61,63,65,66,67,80,81,82].includes(code))return ['Rain','🌧']; if([95,96,99].includes(code))return ['Thunderstorms','⛈']; return ['Mixed weather','🌤'];
+  if([61,63,65,66,67,80,81,82].includes(code))return ['Rain','🌧']; if([71,73,75,77,85,86].includes(code))return ['Snow','🌨']; if([95,96,99].includes(code))return ['Thunderstorms','⛈']; return ['Mixed weather','🌤'];
 };
 const toF=c=>(c*9/5)+32, temp=c=>state.unit==='f'?`${Math.round(toF(c))}°F`:`${Math.round(c)}°C`, bothTemp=c=>`${Math.round(c)}°C / ${Math.round(toF(c))}°F`, miles=km=>km*.621371;
 const haversine=(a,b,c,d)=>{const R=6371,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,q=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));};
@@ -629,30 +635,57 @@ $('#testLocationSelect').addEventListener('change',e=>{const key=e.target.value;
 function previewDestination(){const key=state.profile.destinationPreset||'orlando';applyPresetLocation(key);showToast(`Previewing ${destinationPreset().name}`);}
 $('#previewDestinationBtn').addEventListener('click',previewDestination);
 
-async function loadWeather(){
+let weatherRefreshTimer=null;
+async function loadWeather({silent=false}={}){
   if(!state.coords)return; const {lat,lon}=state.coords;
-  const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code,precipitation&hourly=precipitation_probability,weather_code,temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=celsius&timezone=auto&forecast_days=2`;
-  try{const r=await fetch(u);if(!r.ok)throw new Error();state.weather=await r.json();renderWeather();}catch(e){$('#weatherCard').className='hero-card weather-card'+(tripContext()?.before?' countdown-hidden':'');$('#weatherCard').innerHTML='<b>Weather unavailable right now.</b><p style="color:#d7e7e4;margin-top:8px">The planner still works, but weather-aware scoring is paused.</p>';}
+  if(!silent){const card=$('#weatherCard');if(card&&!state.weather)card.classList.add('weather-loading');}
+  try{
+    const r=await fetch(`/api/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`,{headers:{'Accept':'application/json'}});
+    if(!r.ok)throw new Error(`Weather ${r.status}`);
+    state.weather=await r.json();renderWeather();
+  }catch(e){
+    const card=$('#weatherCard');if(!state.weather&&card){card.className='hero-card weather-card weather-error'+(tripContext()?.before?' countdown-hidden':'');card.innerHTML='<b>Weather is taking a break.</b><p style="color:#d7e7e4;margin-top:8px">Everything else still works — we’ll try the forecast again shortly.</p>';}
+  }
 }
 function formatWeatherHour(iso){
-  if(!iso)return ''; const d=new Date(iso); return d.toLocaleTimeString(appLocale(), {hour:'numeric',minute:undefined});
+  if(!iso)return ''; const m=String(iso).match(/T(\d{2}):(\d{2})/);if(!m)return '';
+  const d=new Date(2000,0,1,+m[1],+m[2]);return d.toLocaleTimeString(appLocale(),{hour:'numeric',minute:m[2]==='00'?undefined:'2-digit'});
 }
-function rainWindow(w){
-  const times=w.hourly?.time||[], probs=w.hourly?.precipitation_probability||[]; if(!times.length)return null;
-  const now=new Date(w.current?.time||Date.now()).getTime(); let start=times.findIndex(t=>new Date(t).getTime()>=now); if(start<0)start=0;
-  const end=Math.min(times.length,start+12); let best=start,bestP=-1;
+function currentWeatherIndex(w){
+  const times=w.hourly?.time||[],now=String(w.current?.time||'');if(!times.length)return 0;
+  const i=times.findIndex(t=>String(t)>=now);return i<0?Math.max(0,times.length-1):i;
+}
+function rainWindow(w,hours=12){
+  const times=w.hourly?.time||[],probs=w.hourly?.precipitation_probability||[];if(!times.length)return null;
+  const start=currentWeatherIndex(w),end=Math.min(times.length,start+hours);let best=start,bestP=-1;
   for(let i=start;i<end;i++){const p=Number(probs[i]||0);if(p>bestP){bestP=p;best=i;}}
-  if(bestP<20)return {prob:bestP,label:'low next 12h'};
-  const lo=Math.max(start,best-1), hi=Math.min(end-1,best+1);
-  return {prob:bestP,label:`${formatWeatherHour(times[lo])}–${formatWeatherHour(times[hi])}`};
+  if(bestP<20)return {prob:bestP,label:`low next ${hours}h`};
+  let lo=best,hi=best;while(lo>start&&Number(probs[lo-1]||0)>=Math.max(35,bestP-15))lo--;while(hi<end-1&&Number(probs[hi+1]||0)>=Math.max(35,bestP-15))hi++;
+  return {prob:bestP,label:`${formatWeatherHour(times[lo])}–${formatWeatherHour(times[hi+1]||times[hi])}`};
+}
+function weatherWindowForDay(w,dayIndex=0){
+  const day=w.daily?.time?.[dayIndex];if(!day)return null;const times=w.hourly?.time||[],probs=w.hourly?.precipitation_probability||[],feels=w.hourly?.apparent_temperature||w.hourly?.temperature_2m||[],codes=w.hourly?.weather_code||[];
+  const candidates=[];for(let i=0;i<times.length;i++){if(!String(times[i]).startsWith(day+'T'))continue;const hour=+(String(times[i]).slice(11,13));if(hour<8||hour>19)continue;candidates.push(i);}if(candidates.length<3)return null;
+  let best=null;for(let j=0;j<=candidates.length-3;j++){const inds=candidates.slice(j,j+3);const avgRain=inds.reduce((a,i)=>a+Number(probs[i]||0),0)/inds.length;const avgFeels=inds.reduce((a,i)=>a+Number(feels[i]||0),0)/inds.length;const storm=inds.some(i=>[95,96,99].includes(Number(codes[i])));const heatPenalty=Math.max(0,avgFeels-31)*4;const score=avgRain+heatPenalty+(storm?80:0);if(!best||score<best.score)best={score,avgRain,avgFeels,start:times[inds[0]],end:times[inds[inds.length-1]],storm};}
+  if(!best)return null;return {...best,label:`${formatWeatherHour(best.start)}–${formatWeatherHour(best.end)}`};
+}
+function weatherTheme(code,isDay=1){if(!isDay)return 'weather-night';if([95,96,99].includes(code))return 'weather-storm';if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return 'weather-rain';if([1,2,3,45,48].includes(code))return 'weather-cloudy';return 'weather-sunny';}
+function hourlyWeatherCards(w,count=6){
+  const times=w.hourly?.time||[],temps=w.hourly?.temperature_2m||[],probs=w.hourly?.precipitation_probability||[],codes=w.hourly?.weather_code||[],day=w.hourly?.is_day||[],start=currentWeatherIndex(w),end=Math.min(times.length,start+count);
+  return times.slice(start,end).map((t,j)=>{const i=start+j,[,baseIcon]=weatherCode(Number(codes[i])),icon=!Number(day[i]??1)&&[0,1,2].includes(Number(codes[i]))?'🌙':baseIcon;return `<div class="weather-hour"><span>${j===0?'Now':formatWeatherHour(t)}</span><i>${icon}</i><b>${temp(Number(temps[i]||0))}</b><small>${Math.round(Number(probs[i]||0))}% rain</small></div>`;}).join('');
 }
 function renderWeather(){
-  const w=state.weather;if(!w)return;const c=w.current,d=w.daily,[summary,icon]=weatherCode(c.weather_code),maxRain=d.precipitation_probability_max?.[0]||0,rain=rainWindow(w);
-  const rainText=rain&&rain.prob>=20?`${Math.round(rain.prob)}% · ${rain.label}`:`${Math.round(maxRain)}% · low nearby`;
-  let alert=rain&&rain.prob>=55?`Best storm window: ${rain.label}. Indoor options get a boost.`:'Weather looks usable for a mixed day.';
-  if([95,96,99].includes(c.weather_code))alert='Thunderstorms nearby now — stay out of pools and exposed outdoor areas.'; else if(c.apparent_temperature>=34)alert='Feels very hot — shorter outdoor spells and air-conditioned options may be smarter.';
-  const tc=tripContext(),dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;if(tc?.before&&nearDest&&daysUntilArrival(tc)>2)alert=`Current conditions around ${dest.short} — your actual trip forecast is not available this far ahead yet.`;
-  $('#weatherCard').className='hero-card weather-card'+(tripContext()?.before?' countdown-hidden':''); $('#weatherCard').innerHTML=`<div class="weather-top"><div><div class="weather-place">RIGHT NOW</div><div class="weather-temp">${bothTemp(c.temperature_2m)}</div><div class="weather-summary">${summary} · feels ${bothTemp(c.apparent_temperature)}</div></div><div class="weather-icon">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(d.temperature_2m_max[0])}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(d.temperature_2m_min[0])}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${alert}</div>`;
+  const w=state.weather;if(!w)return;const c=w.current||{},d=w.daily||{},[summary,baseIcon]=weatherCode(Number(c.weather_code)),isDay=Number(c.is_day??1),icon=!isDay&&[0,1,2].includes(Number(c.weather_code))?'🌙':baseIcon,maxRain=Number(d.precipitation_probability_max?.[0]||0),rain=rainWindow(w),best=weatherWindowForDay(w,0),uv=Number(d.uv_index_max?.[0]||0),wind=Number(c.wind_speed_10m||0),gust=Number(c.wind_gusts_10m||0);
+  const rainText=rain&&rain.prob>=20?`${Math.round(rain.prob)}% · ${rain.label}`:`${Math.round(maxRain)}% · looking low`;
+  let alert=best&&best.avgRain<35?`Best outdoor spell looks like ${best.label}.`:'Weather looks usable for a mixed day.';
+  if(rain&&rain.prob>=55)alert=`Rain/storm risk is highest around ${rain.label}. Indoor ideas get a boost then.`;
+  if([95,96,99].includes(Number(c.weather_code)))alert='Thunderstorms nearby now — stay out of pools and exposed outdoor areas.';
+  else if(Number(c.apparent_temperature)>=34)alert=`It feels hot. ${best?`The easier outdoor window looks like ${best.label}.`:'Keep outdoor spells shorter and build in air-con.'}`;
+  else if(uv>=8)alert=`UV is very high today${best?`; ${best.label} looks the kinder outdoor window`:''}. Shade and sunscreen matter.`;
+  if(gust>=45)alert='It is gusty enough to affect exposed outdoor plans — worth keeping a backup handy.';
+  const tc=tripContext(),dest=destinationPreset(),nearDest=state.coords&&miles(haversine(state.coords.lat,state.coords.lon,dest.lat,dest.lon))<50;if(tc?.before&&nearDest&&daysUntilArrival(tc)>2)alert=`These are current conditions around ${dest.short}; your useful trip forecast will appear as you get closer.`;
+  const card=$('#weatherCard'),theme=weatherTheme(Number(c.weather_code),isDay);card.className=`hero-card weather-card ${theme}${tripContext()?.before?' countdown-hidden':''}`;
+  card.innerHTML=`<div class="weather-ambient" aria-hidden="true"><span></span><span></span><span></span></div><div class="weather-top"><div><div class="weather-place">RIGHT NOW · ${formatWeatherHour(c.time)}</div><div class="weather-temp">${bothTemp(Number(c.temperature_2m||0))}</div><div class="weather-summary">${summary} · feels ${bothTemp(Number(c.apparent_temperature||c.temperature_2m||0))}</div></div><div class="weather-icon" aria-hidden="true">${icon}</div></div><div class="weather-grid"><div class="weather-stat"><small>High</small><b>${bothTemp(Number(d.temperature_2m_max?.[0]||0))}</b></div><div class="weather-stat"><small>Low</small><b>${bothTemp(Number(d.temperature_2m_min?.[0]||0))}</b></div><div class="weather-stat"><small>Rain risk</small><b>${rainText}</b></div></div><div class="weather-alert">${escapeHtml(alert)}</div><details class="weather-details"><summary>Next few hours <span>›</span></summary><div class="weather-hours">${hourlyWeatherCards(w,6)}</div><div class="weather-extra"><span>Wind ${Math.round(wind)} km/h${gust?` · gusts ${Math.round(gust)}`:''}</span><span>${uv?`UV ${Math.round(uv)}`:''}</span></div></details><div class="weather-source">Forecast by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · refreshes automatically</div>`;
 }
 
 const stayHomeRecommendation = {
@@ -661,6 +694,53 @@ const stayHomeRecommendation = {
   internalView:'stayin', transient:true, minVisit:30
 };
 
+
+
+function saveNowContext(){state.nowContext.day=betaLocalDayStamp();localStorage.setItem('ffvp_now_context',JSON.stringify(state.nowContext));renderNowContext();}
+function activeNowContext(){if(state.nowContext.day!==betaLocalDayStamp())state.nowContext=loadNowContext();return state.nowContext;}
+function renderNowContext(){
+  const c=activeNowContext();$$('.now-context-chip').forEach(b=>{const on=!!c[b.dataset.nowContext];b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});
+  const any=['time2','cheap','lowEnergy','drive','food'].some(k=>c[k]);$('#clearNowContext')?.classList.toggle('hidden',!any);
+}
+function nowContextSummary(){
+  const c=activeNowContext(),parts=[];if(c.time2)parts.push('about 2 hours');if(c.cheap)parts.push('keep it cheap');if(c.lowEnergy)parts.push('low energy');if(c.drive)parts.push('happy to drive');if(c.food)parts.push('food needed');return parts;
+}
+function saveRecommendationFeedback(){localStorage.setItem('ffvp_recommendation_feedback',JSON.stringify(state.recommendationFeedback));}
+function saveDecisionEvents(){state.decisionEvents=state.decisionEvents.slice(-500);localStorage.setItem('ffvp_decision_events',JSON.stringify(state.decisionEvents));renderDecisionMetrics();}
+function trackDecisionEvent(type,props={}){state.decisionEvents.push({type,at:new Date().toISOString(),day:betaLocalDayStamp(),destination:state.profile.destinationPreset||'',...props});saveDecisionEvents();}
+function feedbackFor(id){return state.recommendationFeedback[id]||{};}
+function feedbackSignature(a){return {mood:primaryMoodForPlace(a)||a.category||'',category:a.category||'',placeType:normalizedPlaceType(a.placeType),familyStyle:a.familyStyle||''};}
+function feedbackReasonLabel(reason){return ({too_expensive:'Too expensive',too_far:'Too far away',too_tiring:'Too tiring',not_interested:'Not interested',already_done:'Already done it',group_mismatch:'Doesn’t suit the group',wrong_type:'Wrong kind of thing',other:'Something else'})[reason]||reason;}
+function learnedRecommendationAdjustment(a){
+  let adjust=0;const reasons=[],sig=feedbackSignature(a),items=Object.values(state.recommendationFeedback||{}).filter(f=>f?.dismissed&&f.reason);
+  const count=r=>items.filter(f=>f.reason===r).length;
+  const expensive=count('too_expensive');if(expensive&&a.cost>=2){adjust-=Math.min(28,expensive*(a.cost===3?10:6));if(expensive>=2)reasons.push('we’re keeping spend tighter');}
+  const far=count('too_far'),d=distMiles(a);if(far&&d!=null&&d>12){adjust-=Math.min(28,far*Math.min(10,d/4));if(far>=2)reasons.push('closer options suit this trip better');}
+  const tiring=count('too_tiring');if(tiring&&(a.energy>=2||['park','beach'].includes(a.category))){adjust-=Math.min(28,tiring*8);if(tiring>=2)reasons.push('lighter options have worked better');}
+  const group=count('group_mismatch');if(group&&a.familyStyle&&items.some(f=>f.reason==='group_mismatch'&&f.signature?.familyStyle===a.familyStyle)){adjust-=Math.min(24,group*8);}
+  const taste=items.filter(f=>['not_interested','wrong_type'].includes(f.reason));const sameTaste=taste.filter(f=>(f.signature?.mood&&f.signature.mood===sig.mood)||(f.signature?.placeType&&f.signature.placeType===sig.placeType)).length;if(sameTaste){adjust-=Math.min(32,sameTaste*10);if(sameTaste>=2)reasons.push('similar ideas have been ruled out');}
+  return {adjust,reasons};
+}
+function renderDecisionMetrics(){
+  const sets=state.decisionEvents.filter(e=>e.type==='recommendations_generated').length,accepted=state.decisionEvents.filter(e=>e.type==='recommendation_accepted').length,rejected=state.decisionEvents.filter(e=>e.type==='recommendation_rejected').length,decisions=accepted+rejected;
+  if($('#metricRecommendationSets'))$('#metricRecommendationSets').textContent=String(sets);if($('#metricAccepted'))$('#metricAccepted').textContent=String(accepted);if($('#metricAcceptance'))$('#metricAcceptance').textContent=decisions?`${Math.round(accepted/decisions*100)}%`:'—';
+  const counts={};state.decisionEvents.filter(e=>e.type==='recommendation_rejected'&&e.reason).forEach(e=>counts[e.reason]=(counts[e.reason]||0)+1);const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];if($('#metricTopReject'))$('#metricTopReject').textContent=top?`Most common rejection: ${feedbackReasonLabel(top[0])} (${top[1]})`:'No rejection pattern yet.';
+}
+function decisionDelay(){return state.currentRecommendationStartedAt?Math.max(0,Date.now()-state.currentRecommendationStartedAt):null;}
+function acceptRecommendation(id,card){
+  const a=allTripPlaces().find(x=>x.id===id)||([stayHomeRecommendation].find(x=>x.id===id));if(!a)return;const prev=feedbackFor(id);state.recommendationFeedback[id]={...prev,acceptedAt:new Date().toISOString(),selectedDate:betaLocalDayStamp(),acceptedCount:(prev.acceptedCount||0)+1,dismissed:false,signature:feedbackSignature(a)};saveRecommendationFeedback();
+  if(!a.transient&&!state.saved.includes(id)){state.saved=[...state.saved,id];localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));renderTripHub();}
+  trackDecisionEvent('recommendation_accepted',{id,name:a.name,score:+card?.dataset.score||null,decisionMs:decisionDelay(),context:nowContextSummary()});
+  card?.classList.add('decision-picked');const area=card?.querySelector('.decision-choice-actions');if(area)area.innerHTML='<div class="decision-picked-note">✓ Good choice — I’ll remember that for this trip.</div>';showToast(a.id==='stay-home'?'Easy night it is — good call.':'Nice — saved to your trip.');
+}
+function openRecommendationFeedback(id){const a=allTripPlaces().find(x=>x.id===id)||([stayHomeRecommendation].find(x=>x.id===id));if(!a)return;state.pendingFeedbackId=id;$('#feedbackPlaceName').textContent=`${a.name} isn’t quite right — what’s the main reason?`;$('#recommendationFeedbackDialog').classList.remove('hidden');}
+function closeRecommendationFeedback(){state.pendingFeedbackId=null;$('#recommendationFeedbackDialog')?.classList.add('hidden');}
+function rejectRecommendation(reason){
+  const id=state.pendingFeedbackId,a=allTripPlaces().find(x=>x.id===id)||([stayHomeRecommendation].find(x=>x.id===id));if(!id||!a)return;const prev=feedbackFor(id),counts={...(prev.reasonCounts||{})};counts[reason]=(counts[reason]||0)+1;state.recommendationFeedback[id]={...prev,dismissed:true,reason,rejectedAt:new Date().toISOString(),reasonCounts:counts,signature:feedbackSignature(a)};saveRecommendationFeedback();
+  if(reason==='already_done'&&!a.transient){const old=tripStatusObj(id);state.tripStatuses[id]={...old,status:'visited',visitedAt:old.visitedAt||localDateKey()};saveTripStatuses();}
+  trackDecisionEvent('recommendation_rejected',{id,name:a.name,reason,decisionMs:decisionDelay(),context:nowContextSummary()});closeRecommendationFeedback();showToast(`Got it — ${feedbackReasonLabel(reason).toLowerCase()}.`);
+  const c=state.currentRecommendationContext||{};runRecommendations(c.forcedTag||null,'now',{replacement:true,noScroll:true});
+}
 
 function tripStatusObj(id){const v=state.tripStatuses[id];return typeof v==='string'?{status:v}:v||{status:''};}
 function tripStatus(id){return tripStatusObj(id).status||'';}
@@ -691,8 +771,8 @@ function refreshDecisionCard(){
   else{title.textContent='What kind of day shall we make of it?';copy.textContent=`Plenty of day ahead. Let’s find something that suits the weather, your energy and the things you still want to do. ${tripStageLine(t)}`;nowBtn.textContent='Give me some ideas';tomorrow.classList.add('hidden');}
 }
 function weatherForDate(target){
-  const w=state.weather;if(!w)return null;const today=localDateKey(),key=localDateKey(target),idx=key===today?0:1;
-  return {rain:w.daily?.precipitation_probability_max?.[idx]||0,high:w.daily?.temperature_2m_max?.[idx],low:w.daily?.temperature_2m_min?.[idx],feels:idx===0?w.current?.apparent_temperature:null};
+  const w=state.weather;if(!w)return null;const key=localDateKey(target),days=w.daily?.time||[];let idx=days.indexOf(key);if(idx<0)idx=key===localDateKey()?0:1;const window=weatherWindowForDay(w,idx);
+  return {rain:w.daily?.precipitation_probability_max?.[idx]||0,high:w.daily?.temperature_2m_max?.[idx],low:w.daily?.temperature_2m_min?.[idx],feels:idx===0?w.current?.apparent_temperature:null,weatherCode:w.daily?.weather_code?.[idx],bestOutdoor:window?.label||'',bestOutdoorRain:window?.avgRain};
 }
 function tripUrgencyBoost(a,targetDate){
   const t=tripContext(targetDate),s=tripStatus(a.id);if(!t?.inTrip)return 0;
@@ -766,15 +846,17 @@ function scheduleForActivity(a,targetDate){const p=parkDefinitionForActivity(a);
 function recommendationScore(a,options={}){
   let score=60,reasons=[];const d=distMiles(a),p=state.profile;
   const targetDate=options.targetDate||new Date(), mode=options.mode||'now', windowInfo=recommendationWindow(), hour=windowInfo.now.getHours(), phase=windowInfo.phase;
-  const travel=estimatedTravelMinutes(a),visit=minimumVisitMinutes(a),status=tripStatus(a.id),wx=weatherForDate(targetDate);
-  const schedule=a.category==='park'?scheduleForActivity(a,targetDate):null;
+  const travel=estimatedTravelMinutes(a),visit=minimumVisitMinutes(a),status=tripStatus(a.id),wx=weatherForDate(targetDate),nowCtx=mode==='now'?activeNowContext():{};
+  const schedule=a.category==='park'?scheduleForActivity(a,targetDate):null,fb=feedbackFor(a.id);
+  if(fb.dismissed)return {score:-999,reason:'ruled out for this trip',travelMinutes:travel};
+  if(fb.selectedDate===betaLocalDayStamp()&&mode==='now')return {score:-999,reason:'already chosen today',travelMinutes:travel};
   if(status==='skip'||status==='visited')return {score:-999,reason:status==='visited'?'already visited this trip':'hidden for this trip',travelMinutes:travel};
   if(!isFloridaContext()&&!a.discovered&&a.lat&&d!=null&&d>250)return {score:-999,reason:'outside this destination',travelMinutes:travel};
   if(a.discovered&&d!=null&&d>Math.max(120,(p.maxDrive||30)*2))return {score:-999,reason:'outside this travel area',travelMinutes:travel};
   if(status==='repeat'){score+=12;reasons.push('you marked it worth repeating');}
   score+=tripUrgencyBoost(a,targetDate);if(status==='must')reasons.push('one of your must-dos');else if(status==='want')reasons.push('on your want-to-go list');
 
-  if(d!=null){score+=Math.max(-25,18-(d*.55));if(d>p.maxDrive){score-=30;reasons.push('further than your usual travel range');}else if(d<15)reasons.push('fairly close');}
+  if(d!=null){const effectiveMaxDrive=mode==='now'&&nowCtx.drive?Math.max(+p.maxDrive||30,60):(+p.maxDrive||30);score+=Math.max(-25,18-(d*.55));if(d>effectiveMaxDrive){score-=30;reasons.push('further than your travel range');}else if(d<15)reasons.push('fairly close');else if(nowCtx.drive&&d<=effectiveMaxDrive)score+=5;}
   if(travel!=null&&mode==='now'){
     if(travel>25)score-=Math.min(20,(travel-25)*.7);
     if(phase==='evening'&&travel>25){score-=10;reasons.push(`about ${travel} min away`);} if(phase==='late'&&travel>15){score-=Math.min(38,(travel-15)*1.25);reasons.push(`~${travel} min each way this late`);}
@@ -790,6 +872,15 @@ function recommendationScore(a,options={}){
   if(a.familyStyle==='thrill'&&smallerVisitors().length){score-=12;reasons.push('mixed fit for younger/smaller visitors');} if(a.familyStyle==='thrill'&&lowThrill()){score-=8;reasons.push('not everyone is thrill-focused');} if(a.familyStyle==='young'&&childMembers().some(m=>(+m.age||0)<=11)){score+=12;reasons.push('good younger-child fit');}
 
   if(wx){const indoor=a.tags.includes('indoor')||a.category==='shopping'||a.category==='stayin',outdoor=['beach','park'].includes(a.category);if(wx.rain>=55&&indoor){score+=18;reasons.push(mode==='tomorrow'?'good fallback for tomorrow’s rain':'good rain fallback');}if(wx.rain>=55&&a.category==='beach'){score-=35;reasons.push('weather works against an outdoor day');}if(wx.feels>=34&&p.heatAware&&indoor){score+=14;reasons.push('keeps you out of the heat');}if(wx.feels>=36&&p.heatAware&&outdoor){score-=12;reasons.push('hard work in the heat');}}
+
+  if(mode==='now'){
+    const commitmentNow=travel==null?visit:travel*2+visit;
+    if(nowCtx.time2){if(commitmentNow<=120){score+=12;reasons.push('fits the couple of hours you have');}else{score-=Math.min(55,18+(commitmentNow-120)/3);reasons.push('too much for a two-hour window');}}
+    if(nowCtx.cheap){if(a.cost===1){score+=16;reasons.push('keeps the spend down');}else if(a.cost===2)score-=14;else score-=32;}
+    if(nowCtx.lowEnergy){if((a.energy||1)<=1){score+=14;reasons.push('easy on the energy');}else{score-=a.energy>=3?30:16;reasons.push('more effort than you fancy today');}}
+    if(nowCtx.food){if(a.category==='food'||a.internalView==='food'){score+=28;reasons.push('sorts food at the same time');}else if((a.tags||[]).includes('food'))score+=12;}
+  }
+  const learned=learnedRecommendationAdjustment(a);score+=learned.adjust;reasons.push(...learned.reasons);
 
   if(schedule?.open&&schedule?.close&&travel!=null){
     if(mode==='now'){
@@ -819,9 +910,9 @@ function recommendationScore(a,options={}){
   return {score:Math.max(-999,Math.min(99,Math.round(score))),reason:reasons.slice(0,3).join(' · ')||familyFitReason(a)||a.note,travelMinutes:travel,commitmentMinutes:commitment};
 }
 async function seedLocalDiscovery(){
-  if(isFloridaContext()||!state.coords)return;const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${state.profile.maxDrive||30}:${appLanguage()}`;if(state.localSeedKey===key)return;
+  if(isFloridaContext()||!state.coords)return;const searchMiles=activeNowContext().drive?Math.max(+state.profile.maxDrive||30,60):(+state.profile.maxDrive||30);const key=`${state.coords.lat.toFixed(3)},${state.coords.lon.toFixed(3)}:${searchMiles}:${appLanguage()}`;if(state.localSeedKey===key)return;
   if(!consumeFreshIdea('local planning ideas'))return;
-  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();if(!(data.results||[]).length)throw new Error();(data.results||[]).slice(0,8).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){refundFreshIdea();}
+  try{const r=await fetch(`/api/discover?category=sights&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(searchMiles)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();if(!(data.results||[]).length)throw new Error();(data.results||[]).slice(0,10).forEach(x=>rememberDiscovered(discoveredActivity(x,'sights')));state.localSeedKey=key;}catch(e){refundFreshIdea();}
 }
 
 function tomorrowTargetDate(){return nextPlanningDate(new Date());}
@@ -1017,8 +1108,9 @@ async function runRecommendations(forcedTag=null,mode='now',options={}){
   if(mode==='tomorrow'&&forcedTag)list=shapeMoodResults(list,forcedTag);
   const rerun=!!options.rerun;
   const runKey=recommendationRunKey(forcedTag,mode,targetDate);
-  const displayCount=mode==='tomorrow'?5:4;
+  const displayCount=mode==='tomorrow'?5:3;
   const displayList=rotatingShortlist(list,displayCount,runKey,rerun);
+  if(mode==='now'){state.currentRecommendationContext={forcedTag,mode,ids:displayList.map(a=>a.id)};state.currentRecommendationStartedAt=Date.now();if(!options.replacement)trackDecisionEvent('recommendations_generated',{count:displayList.length,rerun,context:nowContextSummary()});}
   const eyebrow=$('#recommendationsEyebrow'),title=$('#recommendationsTitle'),copy=$('#recommendationsContext');
   if(mode==='tomorrow'){
     const t=tripContext(targetDate),wx=weatherForDate(targetDate),plans=plansForDate(targetDate),weather=wx?`${Math.round(wx.high)}°C high · ${wx.rain}% rain risk`:'weather still loading';
@@ -1032,10 +1124,13 @@ async function runRecommendations(forcedTag=null,mode='now',options={}){
     }
     const planLabel=nextPlanningLabel(now);eyebrow.textContent=isOvernightWindow(now)?'PLAN LATER TODAY':'PLAN TOMORROW';title.textContent=t?.departureDay?'Departure-day options':(t?.inTrip?`A few good ideas for day ${t.index} of ${t.total}`:`A few good ideas for ${planLabel}`);copy.textContent=`${weather}${plans.length?` · ${plans.length} fixed plan${plans.length===1?'':'s'} already in the diary`:''}. Already-visited places are excluded unless marked Repeat.`;
   }else{eyebrow.textContent=context.label;title.textContent=context.title;copy.textContent=context.copy+' We’ll keep your plans and places you’ve already done in mind. Drive times are a rough guide rather than live traffic.';}
-  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=displayList.map((a,i)=>placeCard(a,true,i===0)).join('');wirePlaceActions($('#recommendationList'));$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
+  $('#recommendations').classList.remove('hidden');$('#recommendationList').innerHTML=displayList.length?displayList.map((a,i)=>placeCard(a,true,i===0,true)).join(''):'<div class="error-card"><b>Nothing strong enough yet.</b><br/>Try clearing one of the right-now filters or mix it up.</div>';wirePlaceActions($('#recommendationList'));if(!options.noScroll)$('#recommendations').scrollIntoView({behavior:'smooth',block:'start'});
 }
-$('#whatNowBtn').addEventListener('click',()=>{if(tripContext()?.before){$('#prepSection').scrollIntoView({behavior:'smooth',block:'start'});return;}runRecommendations(null,'now');});
-$('#tomorrowBtn').addEventListener('click',openTomorrowPlanner);$('#rerunBtn').addEventListener('click',()=>runRecommendations(null,'now',{rerun:true}));
+$('#whatNowBtn').addEventListener('click',()=>{if(tripContext()?.before){$('#prepSection').scrollIntoView({behavior:'smooth',block:'start'});return;}trackDecisionEvent('what_now_opened',{context:nowContextSummary()});runRecommendations(null,'now');});
+$('#tomorrowBtn').addEventListener('click',openTomorrowPlanner);$('#rerunBtn').addEventListener('click',()=>runRecommendations(state.currentRecommendationContext?.forcedTag||null,'now',{rerun:true}));
+$$('.now-context-chip').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.nowContext;state.nowContext={...activeNowContext(),[k]:!activeNowContext()[k]};saveNowContext();trackDecisionEvent('now_context_changed',{key:k,value:!!state.nowContext[k]});if(!$('#recommendations').classList.contains('hidden'))runRecommendations(state.currentRecommendationContext?.forcedTag||null,'now',{noScroll:true});}));
+$('#clearNowContext')?.addEventListener('click',()=>{state.nowContext={day:betaLocalDayStamp(),time2:false,cheap:false,lowEnergy:false,drive:false,food:false};saveNowContext();trackDecisionEvent('now_context_cleared');if(!$('#recommendations').classList.contains('hidden'))runRecommendations(state.currentRecommendationContext?.forcedTag||null,'now',{noScroll:true});});
+$('#closeRecommendationFeedback')?.addEventListener('click',closeRecommendationFeedback);$('#recommendationFeedbackDialog')?.addEventListener('click',e=>{if(e.target.id==='recommendationFeedbackDialog')closeRecommendationFeedback();});$$('[data-feedback-reason]').forEach(b=>b.addEventListener('click',()=>rejectRecommendation(b.dataset.feedbackReason)));
 $$('.tomorrow-mood').forEach(b=>b.addEventListener('click',()=>runRecommendations(b.dataset.tomorrowMood,'tomorrow')));
 $('#tomorrowBestOverall').addEventListener('click',()=>runRecommendations(null,'tomorrow'));
 $('#tomorrowRerunBtn').addEventListener('click',()=>runRecommendations(state.tomorrowMood||null,'tomorrow',{rerun:true}));
@@ -1094,7 +1189,7 @@ async function loadDiscover(category='sights',opts={}){
   }catch(e){refundFreshIdea();$('#discoverStatus').innerHTML='<span>🧭</span><div><b>Can’t get nearby places just now</b><small>Give it another go in a moment — everything you’ve already saved is still here.</small></div>';$('#discoverResults').innerHTML=`<article class="place-card"><div class="reason">Nearby ideas aren’t loading properly right now.</div><div class="place-actions"><button id="retryDiscover" class="small-btn primary-small">Try again</button></div></article>`;$('#retryDiscover').addEventListener('click',()=>loadDiscover(category,{specialist:!!state.discoverySpecialist}));}
 }
 
-function placeCard(a,withScore=false,hero=false){
+function placeCard(a,withScore=false,hero=false,decisionMode=false){
   const d=distMiles(a),saved=!a.transient&&state.saved.includes(a.id),budget=a.foodTier?foodEstimate(a.foodTier):money(a.cost),travel=a.travelMinutes??estimatedTravelMinutes(a);
   const distanceMeta=d!=null?`${formatDistance(d)} · ~${travel} min drive`:(a.category==='stayin'?'No travel':null),commit=a.commitmentMinutes?`~${Math.round(a.commitmentMinutes/15)*15} min total commitment`:null;
   const meta=[distanceMeta,budget,a.category.replace(/^./,x=>x.toUpperCase())].filter(Boolean).join(' · '),fit=familyFitReason(a),s=tripStatus(a.id);
@@ -1102,13 +1197,16 @@ function placeCard(a,withScore=false,hero=false){
   const primaryAction=a.internalView?`<button class="small-btn primary-small internal-view-btn" data-view="${a.internalView}">See ideas</button>`:`<button class="small-btn primary-small directions-btn">${a.search?'Find nearby':'Directions'}</button>`;
   const tripTools=a.transient?'':`<div class="trip-card-tools">${activityStatusSelect(a)}${s?`<span class="trip-state-chip state-${s}">${statusLabel(s)}</span>`:''}</div>`;
   const desc=a.experienceDescription?`<div class="experience-description"><b>${t('whatItsLike')}</b> ${escapeHtml(a.experienceDescription)}</div>`:'';
-  return `<article class="place-card" data-id="${a.id}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div>${desc}<div class="reason">${withScore?`<b>Why it suits:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">About ${commit.replace('~','')} all-in, including getting there and back.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${tripTools}<div class="place-actions">${saveAction}${primaryAction}</div></article>`;
+  const choiceActions=decisionMode?`<div class="decision-choice-actions"><button class="decision-accept-btn" type="button">Let’s do this</button><button class="decision-reject-btn" type="button">Not for us</button></div>`:'';
+  return `<article class="place-card${decisionMode?' decision-place-card':''}" data-id="${a.id}" data-score="${withScore?a.score:''}"><div class="place-top"><div class="place-icon">${a.icon}</div><div class="place-main"><div class="place-title-row"><div class="place-title">${hero?'⭐ ':''}${a.name}</div>${withScore?`<span class="score-pill">${a.score}% fit</span>`:''}</div><div class="place-meta">${meta}</div></div></div>${desc}<div class="reason">${withScore?`<b>Why it suits:</b> ${a.reason||a.note}`:a.note}${commit&&withScore?`<br><span class="family-fit">About ${commit.replace('~','')} all-in, including getting there and back.</span>`:''}${fit&&!withScore?`<br><span class="family-fit">${fit}</span>`:''}</div>${choiceActions}${decisionMode?'':tripTools}<div class="place-actions ${decisionMode?'decision-secondary-actions':''}">${saveAction}${primaryAction}</div></article>`;
 }
 function wirePlaceActions(root){
   $$('.save-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id;toggleSave(id);renderExplore();renderTripHub();if(!$('#recommendations').classList.contains('hidden'))runRecommendations();}));
   $$('.directions-btn',root).forEach(b=>b.addEventListener('click',()=>{const id=b.closest('.place-card').dataset.id,a=allTripPlaces().find(x=>x.id===id);if(!a)return;if(a.mapsUrl){window.open(a.mapsUrl,'_blank','noopener');return;}const q=a.search?`${a.search} near me`:a.destination;window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,'_blank','noopener');}));
   $$('.internal-view-btn',root).forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
   $$('.trip-status-select',root).forEach(s=>s.addEventListener('change',()=>setTripStatus(s.closest('.place-card').dataset.id,s.value)));
+  $$('.decision-accept-btn',root).forEach(b=>b.addEventListener('click',()=>acceptRecommendation(b.closest('.place-card').dataset.id,b.closest('.place-card'))));
+  $$('.decision-reject-btn',root).forEach(b=>b.addEventListener('click',()=>openRecommendationFeedback(b.closest('.place-card').dataset.id)));
 }
 function toggleSave(id){state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));showToast(state.saved.includes(id)?'Saved for this trip':'Removed from your trip');}
 function renderExplore(){if(!isFloridaContext()&&$('.view.active')?.dataset.view==='explore'){loadDiscover('sights');return;}let list=activities.map(a=>({...a,...recommendationScore(a)}));if(state.filter!=='all'){if(state.filter==='lowcost')list=list.filter(a=>a.cost===1);else list=list.filter(a=>a.category===state.filter||a.tags.includes(state.filter));}list.sort((a,b)=>(distMiles(a)??999)-(distMiles(b)??999));$('#exploreList').innerHTML=list.map(a=>placeCard(a,false)).join('');wirePlaceActions($('#exploreList'));}
@@ -1455,11 +1553,11 @@ const destinationFinderProfiles={
 function archiveCurrentTrip(){
   if(!localStorage.getItem('ffvp_onboarded'))return;
   const p=state.profile;if(!p.destinationPreset&&!p.arrivalDate&&!state.saved.length&&!state.plans.length)return;
-  const snapshot={id:crypto.randomUUID?.()||String(Date.now()),archivedAt:new Date().toISOString(),profile:JSON.parse(JSON.stringify(p)),saved:[...state.saved],tripStatuses:{...state.tripStatuses},plans:JSON.parse(JSON.stringify(state.plans)),discovered:{...state.discovered}};
+  const snapshot={id:crypto.randomUUID?.()||String(Date.now()),archivedAt:new Date().toISOString(),profile:JSON.parse(JSON.stringify(p)),saved:[...state.saved],tripStatuses:{...state.tripStatuses},plans:JSON.parse(JSON.stringify(state.plans)),discovered:{...state.discovered},recommendationFeedback:JSON.parse(JSON.stringify(state.recommendationFeedback||{})),decisionEvents:JSON.parse(JSON.stringify(state.decisionEvents||[]))};
   state.archives=[snapshot,...(state.archives||[])].slice(0,10);localStorage.setItem('ffvp_trip_archive',JSON.stringify(state.archives));
 }
 function clearCurrentTripState(){
-  state.saved=[];state.tripStatuses={};state.plans=[];state.discovered={};state.prepDone={};state.localSeedKey='';state.recommendationRuns={};state.tomorrowMood=null;
+  state.saved=[];state.tripStatuses={};state.plans=[];state.discovered={};state.prepDone={};state.localSeedKey='';state.recommendationRuns={};state.tomorrowMood=null;state.recommendationFeedback={};state.decisionEvents=[];state.nowContext={day:betaLocalDayStamp(),time2:false,cheap:false,lowEnergy:false,drive:false,food:false};localStorage.removeItem('ffvp_recommendation_feedback');localStorage.removeItem('ffvp_decision_events');localStorage.setItem('ffvp_now_context',JSON.stringify(state.nowContext));
   ['ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done','ffvp_tomorrow_mood'].forEach(k=>localStorage.removeItem(k));
 }
 function startNewTrip(destinationKey='orlando'){
@@ -1572,11 +1670,11 @@ function renderDestinationFinder(forceDifferent=false){
   if($('#findDestinations'))$('#findDestinations').textContent=t('finderDifferent','Show me different ideas');
 }
 function renderPreviousTrips(){const root=$('#previousTripsList');if(!root)return;const list=state.archives||[];root.innerHTML=list.length?list.map(a=>{const p=a.profile||{},dest=presetFor(p.destinationPreset)?.name||p.destinationPreset||'Trip';const when=p.arrivalDate?new Date(`${p.arrivalDate}T12:00:00`).toLocaleDateString(appLocale(),{year:'numeric',month:'short',day:'numeric'}):new Date(a.archivedAt).toLocaleDateString(appLocale(),{year:'numeric',month:'short'});return `<article class="plan-row archive-row" data-id="${a.id}"><div><b>${escapeHtml(p.familyName||dest)}</b><small>${escapeHtml(dest)} · ${when}</small></div><button class="text-btn restore-trip" type="button">${t('restore')}</button></article>`;}).join(''):`<div class="trip-empty"><b>${t('previousTrips')}</b><small>Your completed or replaced trips will appear here.</small></div>`;$$('.restore-trip',root).forEach(b=>b.addEventListener('click',()=>restoreArchivedTrip(b.closest('.archive-row').dataset.id)));}
-function restoreArchivedTrip(id){const a=(state.archives||[]).find(x=>x.id===id);if(!a)return;if(!confirm('Replace the current trip with this saved vacation?'))return;archiveCurrentTrip();state.profile=a.profile;state.saved=a.saved||[];state.tripStatuses=a.tripStatuses||{};state.plans=a.plans||[];state.discovered=a.discovered||{};localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));localStorage.setItem('ffvp_trip_statuses',JSON.stringify(state.tripStatuses));localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));localStorage.setItem('ffvp_onboarded','1');loadProfileForm();renderTripHub();renderExplore();updateGreeting();showToast('Holiday restored');}
+function restoreArchivedTrip(id){const a=(state.archives||[]).find(x=>x.id===id);if(!a)return;if(!confirm('Replace the current trip with this saved vacation?'))return;archiveCurrentTrip();state.profile=a.profile;state.saved=a.saved||[];state.tripStatuses=a.tripStatuses||{};state.plans=a.plans||[];state.discovered=a.discovered||{};state.recommendationFeedback=a.recommendationFeedback||{};state.decisionEvents=a.decisionEvents||[];localStorage.setItem('ffvp_profile',JSON.stringify(state.profile));localStorage.setItem('ffvp_saved',JSON.stringify(state.saved));localStorage.setItem('ffvp_trip_statuses',JSON.stringify(state.tripStatuses));localStorage.setItem('ffvp_plans',JSON.stringify(state.plans));localStorage.setItem('ffvp_discovered',JSON.stringify(state.discovered));localStorage.setItem('ffvp_recommendation_feedback',JSON.stringify(state.recommendationFeedback));localStorage.setItem('ffvp_decision_events',JSON.stringify(state.decisionEvents));localStorage.setItem('ffvp_onboarded','1');loadProfileForm();renderTripHub();renderExplore();renderDecisionMetrics();renderNowContext();updateGreeting();showToast('Holiday restored');}
 $('#newTripBtn')?.addEventListener('click',openNewTripDialog);$('#newTripBtnFamily')?.addEventListener('click',openNewTripDialog);$('#closeNewTrip')?.addEventListener('click',closeNewTripDialog);$('#newTripDialog')?.addEventListener('click',e=>{if(e.target.id==='newTripDialog')closeNewTripDialog();});$('#startKnownTrip')?.addEventListener('click',()=>startNewTrip($('#newTripDestination')?.value||'orlando'));$('#openDestinationFinder')?.addEventListener('click',()=>{$('#newTripStartPanel').classList.add('hidden');$('#destinationFinderPanel').classList.remove('hidden');renderDestinationFinder();});$('#backNewTrip')?.addEventListener('click',()=>{$('#destinationFinderPanel').classList.add('hidden');$('#newTripStartPanel').classList.remove('hidden');});$$('.finder-chip').forEach(b=>b.addEventListener('click',()=>{const active=finderSelections();if(!b.classList.contains('active')&&active.length>=3){showToast('Pick up to 3 things that matter most');return;}b.classList.toggle('active');destinationFinderRun=0;renderDestinationFinder();}));['finderOrigin','finderBudget','finderLength','finderClimate','finderSetting'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{destinationFinderRun=0;renderDestinationFinder();}));$('#findDestinations')?.addEventListener('click',()=>{if(commercialTier()==='explorer'&&$('#destinationFinderResults .destination-result')){openPricing('finder');return;}renderDestinationFinder(true);});
 
 function clearTripLocalData(includeSettings=false){
-  const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done'];
+  const keys=['ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done','ffvp_recommendation_feedback','ffvp_decision_events','ffvp_now_context'];
   keys.forEach(k=>localStorage.removeItem(k));
   if(includeSettings){
     ['ffvp_unit','ffvp_test_location','ffvp_force_onboarding','ffvp_force_landing'].forEach(k=>localStorage.removeItem(k));
@@ -1595,6 +1693,7 @@ function initBetaTestingTools(){
   $$('.choose-test-plan').forEach(b=>b.addEventListener('click',()=>{setCommercialTier(b.dataset.plan,{resetUsage:true});closePricing();showToast(`${commercialPlan().name} enabled for beta testing — no payment taken.`);}));
   $('#applyCommercialTest')?.addEventListener('click',()=>{setCommercialTier($('#testCommercialPlan').value);setFreshUsed(+$('#testFreshUsed').value||0);localStorage.setItem('ffvp_trip_uses',String(Math.max(0,+$('#testTripUses').value||0)));updateCommercialUI();showToast('Commercial test state applied');});
   $('#exhaustFreshIdeas')?.addEventListener('click',()=>{const p=commercialPlan();setFreshUsed(Math.max(0,p.freshLimit-1));showToast('One Fresh Idea left — ready to test the limit');});
+  $('#resetDecisionLearning')?.addEventListener('click',()=>{state.recommendationFeedback={};state.decisionEvents=[];state.nowContext={day:betaLocalDayStamp(),time2:false,cheap:false,lowEnergy:false,drive:false,food:false};localStorage.removeItem('ffvp_recommendation_feedback');localStorage.removeItem('ffvp_decision_events');localStorage.setItem('ffvp_now_context',JSON.stringify(state.nowContext));renderNowContext();renderDecisionMetrics();showToast('What Now learning reset');});
   $('#resetCommercialTest')?.addEventListener('click',()=>{['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));updateCommercialUI();showToast('Commercial test reset to Explorer');});
   $('#dismissTestAd')?.addEventListener('click',()=>{localStorage.setItem('ffvp_test_ad_hidden','1');updateCommercialUI();});
 }
@@ -1603,8 +1702,12 @@ initBetaTestingTools();
 function updateOnlineState(){const b=$('#offlineBanner');if(!b)return;b.classList.toggle('hidden',navigator.onLine);}
 window.addEventListener('online',updateOnlineState);window.addEventListener('offline',updateOnlineState);updateOnlineState();
 setInterval(()=>{updateGreeting();},60000);
+weatherRefreshTimer=setInterval(()=>{if(document.visibilityState==='visible'&&state.coords)loadWeather({silent:true});},15*60*1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state.coords)loadWeather({silent:true});});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstall=e;$('#installBtn').classList.remove('hidden');});
 $('#installBtn').addEventListener('click',async()=>{if(!state.deferredInstall)return;state.deferredInstall.prompt();await state.deferredInstall.userChoice;state.deferredInstall=null;$('#installBtn').classList.add('hidden');});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
 populateDestinationSelects();applyTranslations();updateCommercialUI();loadProfileForm();$('#testLocationSelect').value=presetFor(state.locationMode)?state.locationMode:'gps';updateGreeting();renderExplore();renderTripHub();renderEssentials();requestLocation();if(betaForceLanding())showLanding();else if(betaForceOnboarding()||!localStorage.getItem('ffvp_onboarded'))showOnboarding();
+
+renderNowContext();renderDecisionMetrics();
