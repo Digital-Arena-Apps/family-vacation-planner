@@ -1,0 +1,71 @@
+name: Fix V2.5 Static Demo
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-v25-static-demo.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair static-first demo routing
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,re
+
+          # Inject the existing V2.5 demo loader directly into the static app shell.
+          p=Path('index.html')
+          s=p.read_text()
+          tag='<script src="decision-demo-loader.js?v=2.5.1"></script>'
+          if 'decision-demo-loader.js' not in s:
+              s=s.replace('</body>',f'  {tag}\n</body>')
+          else:
+              s=re.sub(r'<script src="/?decision-demo-loader\.js[^\"]*"></script>',tag,s)
+          s=s.replace('DECISION BETA · V2.4','DECISION DEMO · V2.5')
+          p.write_text(s)
+
+          # Remove the recursive server shell. Root now resolves straight to static index.html.
+          p=Path('vercel.json')
+          data=json.loads(p.read_text())
+          data['builds']=[b for b in data.get('builds',[]) if b.get('src')!='demo-shell.js']
+          routes=[]
+          root_added=False
+          for r in data.get('routes',[]):
+              if r.get('src')=='/' and r.get('dest')=='/demo-shell.js':
+                  if not root_added:
+                      routes.append({'src':'/','dest':'/index.html'})
+                      root_added=True
+                  continue
+              routes.append(r)
+          if not root_added:
+              insert_at=next((i for i,r in enumerate(routes) if r.get('handle')=='filesystem'),len(routes))
+              routes.insert(insert_at,{'src':'/','dest':'/index.html'})
+          data['routes']=routes
+          p.write_text(json.dumps(data,indent=2)+'\n')
+
+          # Force installed PWAs/browsers to pick up the repaired shell and demo loader.
+          p=Path('sw.js')
+          s=p.read_text()
+          s=re.sub(r"const CACHE='[^']+';","const CACHE='ffvp-v2-5-1';",s,count=1)
+          if "'./decision-demo-loader.js'" not in s:
+              s=s.replace("'./landing-scenic.png']","'./landing-scenic.png','./decision-demo-loader.js']")
+          p.write_text(s)
+          PY
+          node --check decision-demo-loader.js
+          python -m json.tool vercel.json >/dev/null
+      - name: Commit repair
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-v25-static-demo.yml
+          git config user.name "Vacation Planner Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix V2.5 static demo routing"
+          git push
