@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "builds": [
     {
+      "src": "demo-shell.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "nearby.js",
       "use": "@vercel/node"
     },
@@ -25,6 +29,34 @@
     },
     {
       "src": "styles.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "decision-demo-loader.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/js1.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/js2.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/js3.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/js4.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/css1.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": ".demo-build/css2.txt",
       "use": "@vercel/static"
     },
     {
@@ -68,6 +100,10 @@
     {
       "src": "/api/discover",
       "dest": "/discover.js"
+    },
+    {
+      "src": "/",
+      "dest": "/demo-shell.js"
     },
     {
       "handle": "filesystem"
