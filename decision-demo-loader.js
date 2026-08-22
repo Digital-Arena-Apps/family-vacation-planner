@@ -20,13 +20,17 @@
     return await new Response(stream).text();
   }
 
-  function reveal(){
-    document.documentElement.classList.add('vp-demo-ready');
-  }
+  function reveal(){document.documentElement.classList.add('vp-demo-ready');}
 
   try{
     const [cssPayload,jsPayload]=await Promise.all([loadTextParts(chunks.css),loadTextParts(chunks.js)]);
-    const [css,js]=await Promise.all([ungzipBase64(cssPayload),ungzipBase64(jsPayload)]);
+    let [css,js]=await Promise.all([ungzipBase64(cssPayload),ungzipBase64(jsPayload)]);
+
+    // Small demo-only instrumentation repair: keep the rejected id alive until the event is recorded.
+    js=js.replace(
+      "saveState(); closeFeedback(); updateChosenSummary(); renderWhatNow();\n    try { if(typeof trackDecisionEvent==='function') trackDecisionEvent('demo_recommendation_rejected',{id:pendingRejectId,reason,source:'v2.5-demo'}); } catch {}",
+      "saveState(); updateChosenSummary(); renderWhatNow();\n    try { if(typeof trackDecisionEvent==='function') trackDecisionEvent('demo_recommendation_rejected',{id:pendingRejectId,reason,source:'v2.5-demo'}); } catch {}\n    closeFeedback();"
+    );
 
     const style=document.createElement('style');
     style.id='vpDecisionDemoStyles';
