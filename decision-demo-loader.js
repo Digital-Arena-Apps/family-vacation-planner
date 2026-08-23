@@ -44,6 +44,14 @@
   }
 
   function reveal(){document.documentElement.classList.add('vp-demo-ready');}
+  function loadFamilyUiTest(){
+    if(document.getElementById('vpFamilyUiTestRuntime'))return;
+    const script=document.createElement('script');
+    script.id='vpFamilyUiTestRuntime';
+    script.src='/family-ui-test.js?v=1';
+    script.async=false;
+    document.body.appendChild(script);
+  }
   function demoLauncher(){return document.querySelector('#vpLandingDemo:not(.hidden),#vpOnboardingDemo:not(.hidden)');}
   function launchDecisionDemo(){
     const launcher=demoLauncher();
@@ -99,9 +107,11 @@
     // If the viewer refreshes after completing onboarding in this same browser session, resume the demo.
     if(localStorage.getItem('ffvp_onboarded'))setTimeout(()=>launchWhenReady(),120);
 
+    loadFamilyUiTest();
     reveal();
   }catch(error){
     console.error('Decision demo failed to load',error);
+    loadFamilyUiTest();
     reveal();
   }
 })();
