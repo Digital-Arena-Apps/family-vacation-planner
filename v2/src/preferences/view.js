@@ -5,54 +5,54 @@ const GROUPS = {
     title: 'What pace feels like a good holiday?',
     hint: 'This will influence how much we suggest in a day and when we recommend a breather.',
     options: [
-      ['relaxed', 'Easy-going', 'Fewer stops, more breathing room and time to linger.', '☕', '/preferences/pace-relaxed.webp'],
-      ['balanced', 'Balanced', 'A good amount planned without turning the day into a race.', '◐', '/preferences/pace-balanced.webp'],
-      ['full', 'Pack it in', 'We are happy with fuller days when there is plenty worth doing.', '⚡', '/preferences/pace-full.webp']
+      ['relaxed', 'Easy-going', 'Fewer stops, more breathing room and time to linger.', 'pace-relaxed'],
+      ['balanced', 'Balanced', 'A good amount planned without turning the day into a race.', 'pace-balanced'],
+      ['full', 'Pack it in', 'We are happy with fuller days when there is plenty worth doing.', 'pace-full']
     ]
   },
   budget: {
     title: 'How budget-conscious should suggestions be?',
     hint: 'This is about ranking, not hiding good options completely.',
     options: [
-      ['value', 'Value-conscious', 'Prioritise good-value choices and flag expensive extras.', '£'],
-      ['balanced', 'Balanced', 'Mix value with worthwhile treats and convenience.', '££'],
-      ['flexible', 'Flexible', 'Fit matters more than price when an option is genuinely better.', '£££']
+      ['value', 'Value-conscious', 'Prioritise good-value choices and flag expensive extras.', 'budget-value'],
+      ['balanced', 'Balanced', 'Mix value with worthwhile treats and convenience.', 'budget-balanced'],
+      ['flexible', 'Flexible', 'Fit matters more than price when an option is genuinely better.', 'budget-flexible']
     ]
   },
   rhythm: {
     title: 'What is the crew’s natural day rhythm?',
     hint: 'Useful later for breakfast, park arrival, evening plans and realistic itineraries.',
     options: [
-      ['early', 'Early starters', 'Happy to get moving early and make use of quieter mornings.', '☀', '/preferences/rhythm-early.webp'],
-      ['flexible', 'Flexible', 'No strong preference — adapt to the day.', '↔', '/preferences/rhythm-flexible.webp'],
-      ['late', 'Later starters', 'Avoid plans that rely on everyone being out at dawn.', '☾', '/preferences/rhythm-late.webp']
+      ['early', 'Early starters', 'Happy to get moving early and make use of quieter mornings.', 'rhythm-early'],
+      ['flexible', 'Flexible', 'No strong preference — adapt to the day.', 'rhythm-flexible'],
+      ['late', 'Later starters', 'Avoid plans that rely on everyone being out at dawn.', 'rhythm-late']
     ]
   },
   discovery: {
     title: 'How adventurous should recommendations be?',
     hint: 'This helps balance dependable favourites with things you might never have searched for.',
     options: [
-      ['familiar', 'Familiar favourites', 'Lean toward proven, predictable options.', '✓', '/preferences/discovery-familiar.webp'],
-      ['mix', 'Mix it up', 'Blend reliable choices with a few interesting discoveries.', '✦', '/preferences/discovery-mix.webp'],
-      ['discover', 'Surprise us', 'Give unusual and local discoveries a real chance to rank.', '◎', '/preferences/discovery-surprise.webp']
+      ['familiar', 'Familiar favourites', 'Lean toward proven, predictable options.', 'discovery-familiar'],
+      ['mix', 'Mix it up', 'Blend reliable choices with a few interesting discoveries.', 'discovery-mix'],
+      ['discover', 'Surprise us', 'Give unusual and local discoveries a real chance to rank.', 'discovery-discover']
     ]
   },
   walking: {
     title: 'How much walking is comfortable for the group?',
     hint: 'We can eventually use this when comparing routes, parks, attractions and food options.',
     options: [
-      ['low', 'Keep walking lower', 'Prefer compact plans and avoid needless backtracking.', '◌', '/preferences/walking-low.webp'],
-      ['normal', 'Normal holiday walking', 'Some distance is fine if the day still flows well.', '→', '/preferences/walking-normal.webp'],
-      ['high', 'Happy to walk lots', 'Distance is less important than getting to the best option.', '↗', '/preferences/walking-high.webp']
+      ['low', 'Keep walking lower', 'Prefer compact plans and avoid needless backtracking.', 'walking-low'],
+      ['normal', 'Normal holiday walking', 'Some distance is fine if the day still flows well.', 'walking-normal'],
+      ['high', 'Happy to walk lots', 'Distance is less important than getting to the best option.', 'walking-high']
     ]
   }
 };
 
 const ACCESSIBILITY = [
-  ['minimiseWalking', 'Minimise unnecessary walking', 'Prefer closer options and efficient routes where possible.', '/preferences/minimise-walking.webp'],
-  ['frequentSeating', 'Regular opportunities to sit', 'Factor rest stops and places with seating into longer plans.', '/preferences/regular-seating.webp'],
-  ['stepFree', 'Prefer step-free routes', 'Surface step-free access and avoid assuming stairs are suitable.', '/preferences/step-free.webp'],
-  ['quietBreaks', 'Quieter breaks are useful', 'Allow for lower-stimulation pauses during busy days.', '']
+  ['minimiseWalking', 'Minimise unnecessary walking', 'Prefer closer options and efficient routes where possible.'],
+  ['frequentSeating', 'Regular opportunities to sit', 'Factor rest stops and places with seating into longer plans.'],
+  ['stepFree', 'Prefer step-free routes', 'Surface step-free access and avoid assuming stairs are suitable.'],
+  ['quietBreaks', 'Quieter breaks are useful', 'Allow for lower-stimulation pauses during busy days.']
 ];
 
 function esc(value = '') {
@@ -68,13 +68,11 @@ function groupMarkup(key, value) {
       <legend>${group.title}</legend>
       <p>${group.hint}</p>
       <div class="preference-choice-grid">
-        ${group.options.map(([optionValue, label, hint, icon, image]) => `
-          <label class="preference-choice ${image ? 'with-image' : ''}">
+        ${group.options.map(([optionValue, label, hint, art]) => `
+          <label class="preference-choice with-image">
             <input type="radio" name="${key}" value="${optionValue}" ${value === optionValue ? 'checked' : ''} />
-            <span class="preference-choice-body ${image ? 'has-image' : ''}">
-              ${image
-                ? `<span class="preference-choice-image"><img src="${image}" alt="" loading="lazy" decoding="async" /></span>`
-                : `<span class="preference-choice-icon">${icon}</span>`}
+            <span class="preference-choice-body has-image">
+              <span class="preference-choice-image preference-art ${art}" role="img" aria-label="${label}"></span>
               <span class="preference-choice-copy"><b>${label}</b><small>${hint}</small></span>
               <span class="preference-check">✓</span>
             </span>
@@ -114,7 +112,7 @@ export function mountPreferencesScreen(root, store, options = {}) {
         </section>
 
         <section class="preferences-principle">
-          <span>✦</span>
+          <span class="preferences-principle-art preference-art guidance" role="img" aria-label="Preferences guide"></span>
           <div><b>These are preferences, not hard rules.</b><small>If something is unusually good, the app can still surface it — but it should explain why it is worth bending the usual pattern.</small></div>
         </section>
 
@@ -127,12 +125,11 @@ export function mountPreferencesScreen(root, store, options = {}) {
 
           <fieldset class="preference-section accessibility-section">
             <legend>Anything the whole trip should be considerate of?</legend>
-            <p>These settings will later influence route and venue suggestions across the holiday.</p>
+            <p>Choose any that matter. These can influence routes, venue suggestions and how demanding a day plan feels.</p>
             <div class="accessibility-grid">
-              ${ACCESSIBILITY.map(([key, label, hint, image]) => `
-                <label class="accessibility-choice ${image ? 'has-image' : ''}">
+              ${ACCESSIBILITY.map(([key, label, hint]) => `
+                <label class="accessibility-choice">
                   <input type="checkbox" name="accessibility" value="${key}" ${value.accessibility[key] ? 'checked' : ''} />
-                  ${image ? `<span class="accessibility-image"><img src="${image}" alt="" loading="lazy" decoding="async" /></span>` : ''}
                   <span class="accessibility-copy"><b>${label}</b><small>${hint}</small></span>
                 </label>
               `).join('')}
