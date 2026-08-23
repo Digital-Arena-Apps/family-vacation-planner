@@ -46,16 +46,22 @@ for (const file of passthrough) {
 }
 
 const html = await readFile('dist/index.html', 'utf8');
-for (const ref of ['styles.css', 'app.js', 'decision-demo-loader.js', 'startup-safety.js', 'landing-scenic.png', 'brand-logo.png', 'brand-mark.png']) {
+for (const ref of ['styles.css', 'app.js', 'decision-demo-loader.js', 'landing-scenic.png', 'brand-logo.png', 'brand-mark.png']) {
   if (!html.includes(ref)) throw new Error(`Built index.html lost legacy asset reference: ${ref}`);
+}
+if (!html.includes('phase1InlineStartupGuard')) {
+  throw new Error('Built index.html is missing the inline Phase 1 startup guard.');
 }
 if (html.includes('/assets/')) {
   throw new Error('Phase 1 unexpectedly rewrote legacy UI assets into Vite hashed assets.');
 }
 
 const sw = await readFile('dist/sw.js', 'utf8');
-if (!sw.includes('ffvp-v2-6-7-startup-state-machine')) {
-  throw new Error('Built service worker does not preserve the current cache generation.');
+if (!sw.includes('ffvp-v2-6-7-phase1-vite-2')) {
+  throw new Error('Built service worker does not contain the Phase 1 cache generation.');
+}
+for (const fresh of ['/styles.css','/app.js','/decision-demo-loader.js','/startup-safety.js']) {
+  if (!sw.includes(fresh)) throw new Error(`Built service worker is missing force-fresh startup asset: ${fresh}`);
 }
 
-console.log('Phase 1 build verification passed: legacy runtime preserved, startup safety included, Vite shell created, service worker emitted.');
+console.log('Phase 1 build verification passed: legacy runtime preserved, inline startup guard present, fresh cache generation emitted.');
