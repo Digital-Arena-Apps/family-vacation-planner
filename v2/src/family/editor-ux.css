@@ -1,9 +1,20 @@
+.member-drawer {
+  --size: min(76dvh, 820px);
+}
+
 .member-drawer::part(panel) {
-  max-height: min(92dvh, 780px);
+  max-height: min(94dvh, 820px);
 }
 
 .member-drawer::part(body) {
   overflow: hidden;
+}
+
+.member-drawer::part(footer) {
+  padding-top: 12px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 -10px 26px rgba(24, 49, 57, .055);
 }
 
 .drawer-body-shell {
@@ -12,11 +23,11 @@
 }
 
 .drawer-scroll-region {
-  height: clamp(330px, calc(92dvh - 178px), 590px);
+  height: clamp(350px, calc(76dvh - 184px), 620px);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 2px 2px 62px;
+  padding: 2px 2px 76px;
   scroll-behavior: smooth;
 }
 
@@ -26,17 +37,17 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 76px;
+  height: 84px;
   pointer-events: none;
   opacity: 0;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.96) 58%);
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.97) 58%);
   transition: opacity .18s ease;
 }
 
 .drawer-scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: 9px;
+  bottom: 11px;
   z-index: 2;
   display: inline-flex;
   align-items: center;
@@ -71,6 +82,10 @@
 }
 
 @media (max-width: 560px) {
+  .member-drawer {
+    --size: min(70dvh, 31rem);
+  }
+
   .member-form {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: 10px !important;
@@ -91,8 +106,8 @@
   }
 
   .drawer-scroll-region {
-    height: clamp(320px, calc(92dvh - 168px), 610px);
-    padding-bottom: 58px;
+    height: clamp(340px, calc(70dvh - 174px), 520px);
+    padding-bottom: 70px;
   }
 
   .drawer-actions {
