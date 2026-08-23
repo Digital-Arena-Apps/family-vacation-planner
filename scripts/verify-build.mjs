@@ -11,6 +11,7 @@ const required = [
   'dist/orlando-early-access.css',
   'dist/base-location.js',
   'dist/family-ui-test.js',
+  'dist/startup-safety.js',
   'dist/manifest.webmanifest',
   'dist/icon-192.png',
   'dist/icon-512.png',
@@ -32,7 +33,8 @@ const passthrough = [
   'decision-demo.css',
   'orlando-early-access.css',
   'base-location.js',
-  'family-ui-test.js'
+  'family-ui-test.js',
+  'startup-safety.js'
 ];
 
 for (const file of passthrough) {
@@ -44,7 +46,7 @@ for (const file of passthrough) {
 }
 
 const html = await readFile('dist/index.html', 'utf8');
-for (const ref of ['styles.css', 'app.js', 'decision-demo-loader.js', 'landing-scenic.png', 'brand-logo.png', 'brand-mark.png']) {
+for (const ref of ['styles.css', 'app.js', 'decision-demo-loader.js', 'startup-safety.js', 'landing-scenic.png', 'brand-logo.png', 'brand-mark.png']) {
   if (!html.includes(ref)) throw new Error(`Built index.html lost legacy asset reference: ${ref}`);
 }
 if (html.includes('/assets/')) {
@@ -56,4 +58,4 @@ if (!sw.includes('ffvp-v2-6-7-startup-state-machine')) {
   throw new Error('Built service worker does not preserve the current cache generation.');
 }
 
-console.log('Phase 1 build verification passed: legacy runtime preserved, Vite shell created, service worker emitted.');
+console.log('Phase 1 build verification passed: legacy runtime preserved, startup safety included, Vite shell created, service worker emitted.');
