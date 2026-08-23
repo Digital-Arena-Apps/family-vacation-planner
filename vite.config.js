@@ -11,6 +11,7 @@ const legacyAssets = [
   'orlando-early-access.css',
   'base-location.js',
   'family-ui-test.js',
+  'startup-safety.js',
   'demo-shell.js',
   'manifest.webmanifest',
   'icon-192.png',
@@ -28,13 +29,20 @@ function preserveLegacyAssetUrls() {
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        return html.replace(
+        const preserved = html.replace(
           /<(link|script|img)\b([^>]*?(?:src|href)=["']([^"']+)["'][^>]*)>/gi,
           (full, tag, attrs, url) => {
             const clean = url.split('?')[0].replace(/^\//, '');
             if (!legacyAssetNames.has(clean) || /\bvite-ignore\b/i.test(attrs)) return full;
             return `<${tag} vite-ignore${attrs}>`;
           }
+        );
+
+        // Independent of the Orlando loader: if its init path throws before its own
+        // timeout is scheduled, this guard still releases the splash after 3.6s.
+        return preserved.replace(
+          '</body>',
+          '  <script vite-ignore src="startup-safety.js" defer></script>\n</body>'
         );
       }
     }
