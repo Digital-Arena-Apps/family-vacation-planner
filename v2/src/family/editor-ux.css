@@ -1,0 +1,122 @@
+.member-drawer::part(panel) {
+  max-height: min(92dvh, 780px);
+}
+
+.member-drawer::part(body) {
+  overflow: hidden;
+}
+
+.drawer-body-shell {
+  position: relative;
+  min-height: 0;
+}
+
+.drawer-scroll-region {
+  height: clamp(330px, calc(92dvh - 178px), 590px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 62px;
+  scroll-behavior: smooth;
+}
+
+.drawer-body-shell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 76px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.96) 58%);
+  transition: opacity .18s ease;
+}
+
+.drawer-scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transform: translate(-50%, 8px);
+  padding: 7px 11px;
+  border: 1px solid rgba(12, 129, 122, .13);
+  border-radius: 999px;
+  background: rgba(237, 249, 247, .98);
+  color: #0a736d;
+  font-size: .72rem;
+  font-weight: 850;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(24, 49, 57, .08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.drawer-scroll-cue b {
+  font-size: .95rem;
+  line-height: 1;
+}
+
+.drawer-body-shell.show-scroll-cue::after {
+  opacity: 1;
+}
+
+.drawer-body-shell.show-scroll-cue .drawer-scroll-cue {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 560px) {
+  .member-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .field {
+    min-width: 0;
+  }
+
+  .field.span-2 {
+    grid-column: 1 / -1 !important;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    min-width: 0;
+  }
+
+  .drawer-scroll-region {
+    height: clamp(320px, calc(92dvh - 168px), 610px);
+    padding-bottom: 58px;
+  }
+
+  .drawer-actions {
+    grid-template-columns: auto minmax(0, .9fr) minmax(0, 1.2fr) !important;
+    gap: 7px !important;
+  }
+
+  .drawer-actions > span {
+    display: none !important;
+  }
+
+  #deleteMember {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  #cancelMember {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+
+  #saveMember {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+  }
+}
