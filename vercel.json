@@ -32,6 +32,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "family-ui-test.js",
+      "use": "@vercel/static"
+    },
+    {
       "src": ".demo-build/js1.txt",
       "use": "@vercel/static"
     },
@@ -117,6 +121,24 @@
     },
     {
       "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/decision-demo-loader.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/family-ui-test.js",
       "headers": [
         {
           "key": "Cache-Control",
