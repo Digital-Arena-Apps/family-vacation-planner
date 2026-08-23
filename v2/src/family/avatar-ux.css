@@ -6,11 +6,22 @@
   object-fit: cover;
 }
 
+/* The portrait artwork already contains its own circular edge treatment.
+   Crop it slightly inside our frame so it reads as one full avatar rather
+   than a smaller disc sitting inside a placeholder. */
+.member-avatar.illustrated .traveller-avatar-img,
+.dietary-avatar.illustrated .traveller-avatar-img {
+  width: 112%;
+  height: 112%;
+  max-width: none;
+  transform: translate(-5.35%, -5.35%);
+}
+
 .member-avatar.illustrated {
   overflow: hidden;
   padding: 0;
   background: #eef6f5;
-  border: 2px solid rgba(255,255,255,.96);
+  border: 1px solid rgba(255,255,255,.98);
   box-shadow: 0 5px 16px rgba(24, 49, 57, .12);
 }
 
@@ -58,9 +69,16 @@
   margin: 0 auto 6px;
   overflow: hidden;
   border-radius: 50%;
-  border: 3px solid white;
+  border: 2px solid white;
   background: #edf5f4;
   box-shadow: 0 5px 14px rgba(24,49,57,.12);
+}
+
+.avatar-choice > span .traveller-avatar-img {
+  width: 108%;
+  height: 108%;
+  max-width: none;
+  transform: translate(-3.7%, -3.7%);
 }
 
 .avatar-choice small {
@@ -111,7 +129,7 @@
   overflow: hidden;
   padding: 0;
   background: #eef6f5;
-  border: 2px solid white;
+  border: 1px solid white;
   box-shadow: 0 4px 12px rgba(24,49,57,.10);
 }
 
