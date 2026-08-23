@@ -1,4 +1,4 @@
-/* Family roster polish: keep the cards compact and readable on phones. */
+/* Family roster polish: compact, visual and readable on phones. */
 
 @media (max-width: 560px) {
   .crew-summary {
@@ -31,7 +31,7 @@
   .member-card {
     grid-template-columns: 28px minmax(0, 1fr);
     min-height: 0;
-    border-radius: 18px;
+    border-radius: 19px;
   }
 
   .drag-handle {
@@ -44,15 +44,15 @@
   }
 
   .member-main {
-    grid-template-columns: 44px minmax(0, 1fr) 12px;
-    gap: 9px;
-    padding: 9px 11px 9px 9px;
+    grid-template-columns: 54px minmax(0, 1fr) 12px;
+    gap: 10px;
+    padding: 8px 11px 8px 8px;
     align-items: center;
   }
 
   .member-avatar {
-    width: 44px;
-    height: 44px;
+    width: 54px;
+    height: 54px;
     font-size: .96rem;
   }
 
@@ -61,12 +61,12 @@
   }
 
   .member-title b {
-    font-size: .96rem;
-    line-height: 1.15;
+    font-size: .98rem;
+    line-height: 1.12;
   }
 
   .member-title small {
-    margin-top: 1px;
+    margin-top: 2px;
     font-size: .69rem;
   }
 
@@ -75,11 +75,12 @@
     gap: 5px;
     min-width: 0;
     overflow: hidden;
-    font-size: .66rem;
+    font-size: .65rem;
   }
 
   .member-meta > span:first-child,
-  .thrill {
+  .thrill,
+  .member-food {
     flex: 0 1 auto;
     min-width: 0;
     padding: 4px 7px;
@@ -87,6 +88,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.05;
+  }
+
+  .member-food {
+    color: #49724d;
+    background: #eef7eb;
+    border-radius: 999px;
   }
 
   .member-note {
