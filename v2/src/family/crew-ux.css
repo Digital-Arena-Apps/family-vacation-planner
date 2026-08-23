@@ -1,10 +1,10 @@
-/* Family roster polish: compact, visual and readable on phones. */
+/* Family roster polish: portrait-led, readable and roomy on phones. */
 
 @media (max-width: 560px) {
   .crew-summary {
     grid-template-columns: 36px minmax(0, 1fr) auto;
     gap: 9px;
-    padding: 9px 10px;
+    padding: 10px;
     border-radius: 18px;
   }
 
@@ -19,74 +19,76 @@
   }
 
   .crew-summary-copy span {
-    margin-top: 1px;
+    margin-top: 2px;
     font-size: .67rem;
   }
 
   .family-list {
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 12px;
   }
 
   .member-card {
-    grid-template-columns: 28px minmax(0, 1fr);
-    min-height: 0;
-    border-radius: 19px;
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-height: 98px;
+    border-radius: 20px;
   }
 
   .drag-handle {
-    min-width: 28px;
+    min-width: 30px;
   }
 
   .drag-handle i {
-    width: 12px;
+    width: 13px;
     height: 2px;
   }
 
   .member-main {
-    grid-template-columns: 54px minmax(0, 1fr) 12px;
-    gap: 10px;
-    padding: 8px 11px 8px 8px;
+    grid-template-columns: 64px minmax(0, 1fr) 12px;
+    gap: 12px;
+    padding: 12px 12px 12px 10px;
     align-items: center;
   }
 
   .member-avatar {
-    width: 54px;
-    height: 54px;
+    width: 64px;
+    height: 64px;
     font-size: .96rem;
   }
 
   .member-copy {
-    gap: 4px;
+    align-content: center;
+    gap: 6px;
+    min-height: 64px;
   }
 
   .member-title b {
-    font-size: .98rem;
-    line-height: 1.12;
+    font-size: 1rem;
+    line-height: 1.15;
   }
 
   .member-title small {
-    margin-top: 2px;
-    font-size: .69rem;
+    margin-top: 3px;
+    font-size: .72rem;
+    line-height: 1.2;
   }
 
   .member-meta {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 5px;
     min-width: 0;
-    overflow: hidden;
-    font-size: .65rem;
+    overflow: visible;
+    font-size: .66rem;
+    line-height: 1;
   }
 
   .member-meta > span:first-child,
   .thrill,
   .member-food {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     min-width: 0;
-    padding: 4px 7px;
+    padding: 5px 8px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     line-height: 1.05;
   }
 
@@ -97,11 +99,13 @@
   }
 
   .member-note {
-    font-size: .67rem;
+    max-width: 100%;
+    font-size: .68rem;
   }
 
   .member-chevron {
-    font-size: 1.2rem;
+    align-self: center;
+    font-size: 1.25rem;
   }
 
   .family-fab {
