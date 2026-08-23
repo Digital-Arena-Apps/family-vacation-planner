@@ -6,6 +6,9 @@ import Sortable from 'sortablejs';
 import './styles.css';
 import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
+import { enhanceMemberEditor } from './family/editor-ux.js';
 
 const store = createFamilyStore();
-mountFamilyScreen(document.querySelector('#app'), store, Sortable);
+const root = document.querySelector('#app');
+mountFamilyScreen(root, store, Sortable);
+enhanceMemberEditor(root);
