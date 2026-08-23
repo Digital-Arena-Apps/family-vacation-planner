@@ -1,9 +1,9 @@
-// Vacation Planner V2.6.2 — Orlando Early Access bootstrap
+// Vacation Planner V2.6.3 — Orlando Early Access bootstrap
 // Keeps the proven V2.4 app intact while making the public-facing test genuinely Orlando-first.
 (()=>{
   'use strict';
 
-  const VERSION='2.6.2';
+  const VERSION='2.6.3';
   const ONBOARDING_METRICS_KEY='ffvp_orlando_onboarding_metrics';
   const ORLANDO_ZONE='America/New_York';
   let onboardingStart=0;
@@ -49,14 +49,11 @@
   function paceLabel(value){return ({relaxed:'Relaxed pace',balanced:'Balanced pace',packed:'Pack it in'})[value]||'Balanced pace';}
   function heightBandLabel(band){return ({under36:'Under 36″','36to41':'36–41″','42to47':'42–47″','48plus':'48″+','unknown':'Height not set'})[band]||'Height not set';}
   function thrillLabel(v){return ({low:'gentle rides',medium:'some thrills',high:'big thrills'})[v]||'some thrills';}
-  function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));}
 
   function markOrlandoOnly(){
     document.body.classList.add('orlando-early-access');
     setText(qs('.brand-kicker'),'ORLANDO EARLY ACCESS · V2.6');
-
-    // Keep the underlying controls in the DOM because the proven V2.4 submit handlers use them,
-    // but remove them from the customer experience without relying on a stylesheet race.
     const setupDestination=qs('#setupDestinationPreset');
     if(setupDestination){setupDestination.value='orlando';const row=setupDestination.closest('label');if(row)row.style.display='none';}
     const profileDestination=qs('#destinationPreset');
@@ -65,7 +62,6 @@
     const locationStrip=qs('#locationStrip');if(locationStrip)locationStrip.style.display='none';
     ['#newTripBtn','#newTripBtnFamily','#familyNewVacationBtn','#openDestinationFinder'].forEach(sel=>{const el=qs(sel);if(el)el.style.display='none';});
     const newTrip=qs('#newTripDialog');if(newTrip)newTrip.style.display='none';
-
     writeProfilePatch({destinationPreset:'orlando'});
   }
 
@@ -133,12 +129,12 @@
       setText(qs('.step-copy',steps[0]),'Just enough to know when you’re there and where the family is starting from.');
       const labels=qsa('.field-label',steps[0]);if(labels[0])setText(labels[0],'Trip name (optional)');
       const family=qs('#setupFamilyName');if(family)family.placeholder='Our Orlando adventure';
-      const home=qs('#setupHomeBase');if(home){home.placeholder='Kissimmee villa, Disney resort, Universal hotel…';setText(home.parentElement?.querySelector('small'),'Approximate is fine — this helps make travel suggestions sensible.');}
+      const home=qs('#setupHomeBase');if(home){home.placeholder='Search villa, hotel, resort or address';setText(home.parentElement?.querySelector('small'),'Find your Orlando base so plans can start from the right place.');}
       const arrival=qs('#setupArrivalDate'),departure=qs('#setupDepartureDate');if(arrival)arrival.required=true;if(departure)departure.required=true;
       const dateHelp=qs('.field-help',steps[0]);setText(dateHelp,'Your dates tell me whether we’re planning ahead, deciding what to do today, or running out of holiday days.');
       setText(qs('.setup-next',steps[0]),'Who’s coming? →');
       if(!qs('#orlandoDateError',steps[0])){const err=document.createElement('div');err.id='orlandoDateError';err.className='orlando-date-error';err.setAttribute('role','alert');const help=dateHelp||qs('.setup-next',steps[0]);help?.parentNode.insertBefore(err,help?.nextSibling||null);}
-      stepWhy(steps[0],'📍','<b>Why I ask:</b> Orlando is spread out. Dates and your base change what is genuinely practical, especially around park days and evening bookings.');
+      stepWhy(steps[0],'📍','<b>Why I ask:</b> Orlando is spread out. Your base gives tomorrow plans a real starting point; while you’re out, What Now can switch to your live location.');
     }
     if(steps[1]){
       setText(qs('h3',steps[1]),'Who am I planning for?');
@@ -226,9 +222,6 @@
     const strip=qs('#locationStrip');if(strip)strip.style.display='none';
     const deviceZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
     let inTrip=false;try{inTrip=!!(typeof tripContext==='function'&&tripContext()?.inTrip);}catch{}
-
-    // When the phone itself is on Eastern Time during the trip, allow the proven GPS path
-    // to provide accurate "from here" distance. Otherwise we are planning Orlando remotely.
     if(deviceZone===ORLANDO_ZONE&&inTrip&&typeof requestLocation==='function'){
       try{if(typeof state!=='undefined')state.locationMode='gps';localStorage.setItem('ffvp_test_location','gps');requestLocation();return;}catch{}
     }
@@ -276,6 +269,7 @@
       ['Compact crew enabled',qsa('#setupMembers .orlando-crew-compact').length===qsa('#setupMembers .member-row').length],
       ['Test location hidden',qs('#locationStrip')?.style.display==='none'],
       ['Orlando clock present',!!qs('#orlandoTimeStrip')],
+      ['Base search loaded',!!qs('#vpBasePicker')],
       ['Navigation contract intact',qsa('.bottom-nav .nav-item').length>0&&qsa('.bottom-nav .nav-item').every(b=>!!b.dataset.target)],
       ['Decision experience loaded',!!qs('#vpDecisionHome')]
     ];
@@ -292,6 +286,7 @@
     loadStyle(`/decision-demo.css?v=${VERSION}`,'vpDecisionDemoCss');
     loadStyle(`/orlando-early-access.css?v=${VERSION}`,'vpOrlandoEarlyAccessCss');
     markOrlandoOnly();addLandingPositioning();rewriteOnboarding();wireOnboarding();ensureTimeStrip();syncOrlandoLocation();
+    try{await loadScript(`/base-location.js?v=${VERSION}`,'vpBaseLocationRuntime');}catch(e){console.warn('Home base search did not load',e);}
 
     if(!onboarded){qs('#onboarding')?.classList.add('hidden');if(typeof showLanding==='function')showLanding();else qs('#landingScreen')?.classList.remove('hidden');addLandingPositioning();}
 
