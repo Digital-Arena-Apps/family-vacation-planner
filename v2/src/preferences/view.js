@@ -1,49 +1,50 @@
 import './styles.css';
+import ART from './artwork-data.js';
 
 const GROUPS = {
   pace: {
     title: 'What pace feels like a good holiday?',
     hint: 'This will influence how much we suggest in a day and when we recommend a breather.',
     options: [
-      ['relaxed', 'Easy-going', 'Fewer stops, more breathing room and time to linger.', 'pace-relaxed'],
-      ['balanced', 'Balanced', 'A good amount planned without turning the day into a race.', 'pace-balanced'],
-      ['full', 'Pack it in', 'We are happy with fuller days when there is plenty worth doing.', 'pace-full']
+      ['relaxed', 'Easy-going', 'Fewer stops, more breathing room and time to linger.', 0],
+      ['balanced', 'Balanced', 'A good amount planned without turning the day into a race.', 1],
+      ['full', 'Pack it in', 'We are happy with fuller days when there is plenty worth doing.', 2]
     ]
   },
   budget: {
     title: 'How budget-conscious should suggestions be?',
     hint: 'This is about ranking, not hiding good options completely.',
     options: [
-      ['value', 'Value-conscious', 'Prioritise good-value choices and flag expensive extras.', 'budget-value'],
-      ['balanced', 'Balanced', 'Mix value with worthwhile treats and convenience.', 'budget-balanced'],
-      ['flexible', 'Flexible', 'Fit matters more than price when an option is genuinely better.', 'budget-flexible']
+      ['value', 'Value-conscious', 'Prioritise good-value choices and flag expensive extras.', 0],
+      ['balanced', 'Balanced', 'Mix value with worthwhile treats and convenience.', 1],
+      ['flexible', 'Flexible', 'Fit matters more than price when an option is genuinely better.', 2]
     ]
   },
   rhythm: {
     title: 'What is the crew’s natural day rhythm?',
     hint: 'Useful later for breakfast, park arrival, evening plans and realistic itineraries.',
     options: [
-      ['early', 'Early starters', 'Happy to get moving early and make use of quieter mornings.', 'rhythm-early'],
-      ['flexible', 'Flexible', 'No strong preference — adapt to the day.', 'rhythm-flexible'],
-      ['late', 'Later starters', 'Avoid plans that rely on everyone being out at dawn.', 'rhythm-late']
+      ['early', 'Early starters', 'Happy to get moving early and make use of quieter mornings.', 0],
+      ['flexible', 'Flexible', 'No strong preference — adapt to the day.', 1],
+      ['late', 'Later starters', 'Avoid plans that rely on everyone being out at dawn.', 2]
     ]
   },
   discovery: {
     title: 'How adventurous should recommendations be?',
     hint: 'This helps balance dependable favourites with things you might never have searched for.',
     options: [
-      ['familiar', 'Familiar favourites', 'Lean toward proven, predictable options.', 'discovery-familiar'],
-      ['mix', 'Mix it up', 'Blend reliable choices with a few interesting discoveries.', 'discovery-mix'],
-      ['discover', 'Surprise us', 'Give unusual and local discoveries a real chance to rank.', 'discovery-discover']
+      ['familiar', 'Familiar favourites', 'Lean toward proven, predictable options.', 0],
+      ['mix', 'Mix it up', 'Blend reliable choices with a few interesting discoveries.', 1],
+      ['discover', 'Surprise us', 'Give unusual and local discoveries a real chance to rank.', 2]
     ]
   },
   walking: {
     title: 'How much walking is comfortable for the group?',
     hint: 'We can eventually use this when comparing routes, parks, attractions and food options.',
     options: [
-      ['low', 'Keep walking lower', 'Prefer compact plans and avoid needless backtracking.', 'walking-low'],
-      ['normal', 'Normal holiday walking', 'Some distance is fine if the day still flows well.', 'walking-normal'],
-      ['high', 'Happy to walk lots', 'Distance is less important than getting to the best option.', 'walking-high']
+      ['low', 'Keep walking lower', 'Prefer compact plans and avoid needless backtracking.', 0],
+      ['normal', 'Normal holiday walking', 'Some distance is fine if the day still flows well.', 1],
+      ['high', 'Happy to walk lots', 'Distance is less important than getting to the best option.', 2]
     ]
   }
 };
@@ -63,16 +64,18 @@ function esc(value = '') {
 
 function groupMarkup(key, value) {
   const group = GROUPS[key];
+  const strip = ART[key];
+  const positions = ['0%', '50%', '100%'];
   return `
     <fieldset class="preference-section">
       <legend>${group.title}</legend>
       <p>${group.hint}</p>
       <div class="preference-choice-grid">
-        ${group.options.map(([optionValue, label, hint, art]) => `
+        ${group.options.map(([optionValue, label, hint, artIndex]) => `
           <label class="preference-choice with-image">
             <input type="radio" name="${key}" value="${optionValue}" ${value === optionValue ? 'checked' : ''} />
             <span class="preference-choice-body has-image">
-              <span class="preference-choice-image preference-art ${art}" role="img" aria-label="${label}"></span>
+              <span class="preference-choice-image" role="img" aria-label="${label}" style="background-image:url('${strip}');background-position:${positions[artIndex]} center"></span>
               <span class="preference-choice-copy"><b>${label}</b><small>${hint}</small></span>
               <span class="preference-check">✓</span>
             </span>
@@ -112,7 +115,7 @@ export function mountPreferencesScreen(root, store, options = {}) {
         </section>
 
         <section class="preferences-principle">
-          <span class="preferences-principle-art preference-art guidance" role="img" aria-label="Preferences guide"></span>
+          <img class="preferences-principle-art" src="${ART.guidance}" alt="" />
           <div><b>These are preferences, not hard rules.</b><small>If something is unusually good, the app can still surface it — but it should explain why it is worth bending the usual pattern.</small></div>
         </section>
 
