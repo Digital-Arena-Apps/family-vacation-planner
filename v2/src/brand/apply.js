@@ -1,21 +1,16 @@
 import { FERDA_ASSETS } from './assets.js';
 
-function brandedImage(src, fallback, className, alt = '') {
-  return `
-    <span class="${className}" aria-hidden="${alt ? 'false' : 'true'}">
-      <span class="ferda-asset-fallback">${fallback}</span>
-      <img src="${src}" alt="${alt}" />
-    </span>
-  `;
+function image(src, fallback = '', className = 'ferda-ui-image', alt = '') {
+  return `<span class="${className}" ${alt ? '' : 'aria-hidden="true"'}><span class="ferda-asset-fallback">${fallback}</span><img src="${src}" alt="${alt}" /></span>`;
 }
 
 function wireImageFallbacks(root) {
-  root.querySelectorAll('.ferda-brand img, .ferda-ui-image img, .preferences-principle-art').forEach(img => {
+  root.querySelectorAll('.ferda-brand-mark img, .ferda-ui-image img, .ferda-nav-icon img, .ferda-button-icon img').forEach(img => {
     if (img.dataset.ferdaFallbackWired) return;
     img.dataset.ferdaFallbackWired = 'true';
     img.addEventListener('error', () => {
       img.hidden = true;
-      img.closest('.ferda-brand-mark, .ferda-ui-image')?.classList.add('asset-missing');
+      img.parentElement?.classList.add('asset-missing');
     }, { once: true });
   });
 }
@@ -30,39 +25,52 @@ export function applyFerdaBranding(root) {
     if (brand) {
       brand.classList.add('ferda-brand');
       brand.innerHTML = `
-        ${brandedImage(FERDA_ASSETS.brand.logoMark, 'F', 'ferda-brand-mark', 'FERDA')}
-        <span class="ferda-brand-copy">
-          <b>FERDA</b>
-          <small>FAMILY VACATION PLANNER · V2 PREVIEW</small>
-        </span>
+        ${image(FERDA_ASSETS.brand.logoMark, 'F', 'ferda-brand-mark', 'FERDA')}
+        <span class="ferda-brand-copy"><b>FERDA</b><small>FAMILY VACATION PLANNER · V2 PREVIEW</small></span>
       `;
     }
   }
 
-  const foodRow = root.querySelector('#foodNeedsRow');
-  if (foodRow) {
-    const icon = foodRow.querySelector('.preference-icon');
-    if (icon) {
-      icon.classList.add('ferda-ui-image');
-      icon.innerHTML = `<span class="ferda-asset-fallback">⌁</span><img src="${FERDA_ASSETS.ui.foodDietary}" alt="" />`;
-    }
+  const crewIcon = root.querySelector('.crew-summary-icon');
+  if (crewIcon) {
+    crewIcon.classList.add('ferda-ui-image');
+    crewIcon.innerHTML = `<span class="ferda-asset-fallback">◎</span><img src="${FERDA_ASSETS.ui.holidayCrew}" alt="" />`;
   }
 
-  const preferencesRow = root.querySelector('#familyPreferences');
+  const addTop = root.querySelector('#addPersonTop');
+  if (addTop) addTop.innerHTML = `${image(FERDA_ASSETS.ui.addPerson, '+', 'ferda-button-icon')}<span>Add person</span>`;
+
+  const foodRow = root.querySelector('#foodNeedsRow .preference-icon');
+  if (foodRow) {
+    foodRow.classList.add('ferda-ui-image');
+    foodRow.innerHTML = `<span class="ferda-asset-fallback">⌁</span><img src="${FERDA_ASSETS.ui.foodDietary}" alt="" />`;
+  }
+
+  const preferencesRow = root.querySelector('#familyPreferences .preference-icon');
   if (preferencesRow) {
-    const icon = preferencesRow.querySelector('.preference-icon');
-    if (icon) {
-      icon.classList.add('ferda-ui-image');
-      icon.innerHTML = `<span class="ferda-asset-fallback">⚙</span><img src="${FERDA_ASSETS.ui.tripPreferences}" alt="" />`;
+    preferencesRow.classList.add('ferda-ui-image');
+    preferencesRow.innerHTML = `<span class="ferda-asset-fallback">⚙</span><img src="${FERDA_ASSETS.ui.tripPreferences}" alt="" />`;
+  }
+
+  const nav = root.querySelectorAll('.v2-nav button');
+  const navAssets = [FERDA_ASSETS.ui.navToday, FERDA_ASSETS.ui.navExplore, FERDA_ASSETS.ui.navTrip, FERDA_ASSETS.ui.navFamily];
+  nav.forEach((button, index) => {
+    const slot = button.querySelector('span');
+    if (slot && navAssets[index]) {
+      slot.className = 'ferda-nav-icon';
+      slot.innerHTML = `<img src="${navAssets[index]}" alt="" />`;
     }
+  });
+
+  const dietaryPrinciple = root.querySelector('.dietary-principle > span');
+  if (dietaryPrinciple) {
+    dietaryPrinciple.classList.add('ferda-ui-image');
+    dietaryPrinciple.innerHTML = `<span class="ferda-asset-fallback">!</span><img src="${FERDA_ASSETS.ui.foodDietary}" alt="" />`;
   }
 
   const principleImage = root.querySelector('.preferences-principle-art');
-  if (principleImage) {
-    principleImage.src = FERDA_ASSETS.ui.preferencesGuidance;
-    principleImage.alt = '';
-  }
+  if (principleImage) principleImage.src = FERDA_ASSETS.ui.tripPreferences;
 
-  root.querySelectorAll('.eyebrow').forEach(eyebrow => eyebrow.classList.add('ferda-eyebrow'));
+  root.querySelectorAll('.eyebrow, .section-kicker').forEach(el => el.classList.add('ferda-eyebrow'));
   wireImageFallbacks(root);
 }
