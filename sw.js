@@ -1,4 +1,4 @@
-const CACHE='ffvp-v2-6-1-orlando-early-access';
+const CACHE='ffvp-v2-6-2-orlando-early-access';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./brand-mark.png','./brand-logo.png','./landing-scenic.png','./decision-demo-loader.js','./decision-demo.js','./decision-demo.css','./orlando-early-access.css','./family-ui-test.js'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
