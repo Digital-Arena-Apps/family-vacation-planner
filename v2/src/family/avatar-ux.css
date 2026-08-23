@@ -1,45 +1,32 @@
+.traveller-avatar-img,
 .traveller-avatar-svg {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
 .member-avatar.illustrated {
   overflow: hidden;
   padding: 0;
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, .88);
-  box-shadow: 0 5px 14px rgba(24, 49, 57, .12);
+  background: #eef6f5;
+  border: 2px solid rgba(255,255,255,.96);
+  box-shadow: 0 5px 16px rgba(24, 49, 57, .12);
 }
 
 .avatar-field {
   gap: 8px;
 }
 
-.avatar-field > span {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.avatar-field > span::after {
-  content: 'Swipe for more →';
-  color: #8a999d;
-  font-size: .62rem;
-  font-weight: 700;
-}
-
 .avatar-picker {
   display: grid;
-  grid-template-rows: repeat(2, auto);
   grid-auto-flow: column;
-  grid-auto-columns: 82px;
-  gap: 8px 9px;
+  grid-template-rows: repeat(2, auto);
+  grid-auto-columns: 78px;
+  gap: 9px 8px;
   width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 3px 9px;
+  padding: 4px 3px 10px;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -51,63 +38,69 @@
 
 .avatar-choice {
   position: relative;
-  width: 82px;
+  width: 78px;
   scroll-snap-align: center;
-  border: 1px solid rgba(24, 49, 57, .10);
+  border: 1px solid transparent;
   border-radius: 18px;
-  background: rgba(255, 255, 255, .86);
-  padding: 7px 5px 6px;
-  color: #5e7075;
+  background: transparent;
+  padding: 4px 3px 6px;
+  color: #617379;
   text-align: center;
   cursor: pointer;
   transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
 }
 
 .avatar-choice > span {
+  position: relative;
   display: block;
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 5px;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 6px;
   overflow: hidden;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(24, 49, 57, .10);
+  border: 3px solid white;
+  background: #edf5f4;
+  box-shadow: 0 5px 14px rgba(24,49,57,.12);
 }
 
 .avatar-choice small {
   display: block;
   overflow: hidden;
   color: inherit;
-  font-size: .61rem;
-  font-weight: 850;
+  font-size: .64rem;
+  font-weight: 800;
   line-height: 1.15;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .avatar-choice.active {
-  border-color: rgba(12, 129, 122, .62);
+  border-color: rgba(12, 129, 122, .24);
   background: #eefaf8;
   color: #08736d;
-  box-shadow: 0 0 0 3px rgba(12, 129, 122, .10), 0 9px 20px rgba(24, 49, 57, .07);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px rgba(12, 129, 122, .06);
 }
 
-.avatar-choice.active::after {
+.avatar-choice.active > span {
+  border-color: #0c817a;
+  box-shadow: 0 0 0 3px rgba(12,129,122,.10), 0 7px 16px rgba(24,49,57,.13);
+}
+
+.avatar-choice.active > span::after {
   content: '✓';
   position: absolute;
-  right: 5px;
-  top: 5px;
-  width: 18px;
-  height: 18px;
+  right: -1px;
+  bottom: -1px;
+  width: 20px;
+  height: 20px;
   display: grid;
   place-items: center;
   border: 2px solid white;
   border-radius: 50%;
-  background: #0b817a;
+  background: #0c817a;
   color: white;
-  font-size: .65rem;
+  font-size: .68rem;
   font-weight: 950;
-  box-shadow: 0 3px 8px rgba(8, 113, 107, .22);
 }
 
 .avatar-choice:active {
@@ -117,30 +110,25 @@
 .dietary-avatar.illustrated {
   overflow: hidden;
   padding: 0;
-  background: transparent;
-  border: 2px solid rgba(255,255,255,.9);
+  background: #eef6f5;
+  border: 2px solid white;
   box-shadow: 0 4px 12px rgba(24,49,57,.10);
 }
 
 @media (max-width: 560px) {
   .avatar-picker {
-    grid-auto-columns: 76px;
-    gap: 7px 8px;
     margin-left: -2px;
     margin-right: -2px;
+    grid-auto-columns: 74px;
   }
 
   .avatar-choice {
-    width: 76px;
+    width: 74px;
     border-radius: 16px;
   }
 
   .avatar-choice > span {
-    width: 54px;
-    height: 54px;
-  }
-
-  .avatar-field > span::after {
-    font-size: .58rem;
+    width: 58px;
+    height: 58px;
   }
 }
