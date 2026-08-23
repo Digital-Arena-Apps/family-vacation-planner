@@ -6,15 +6,13 @@
   object-fit: cover;
 }
 
-/* The portrait artwork already contains its own circular edge treatment.
-   Crop it slightly inside our frame so it reads as one full avatar rather
-   than a smaller disc sitting inside a placeholder. */
-.member-avatar.illustrated .traveller-avatar-img,
-.dietary-avatar.illustrated .traveller-avatar-img {
-  width: 112%;
-  height: 112%;
-  max-width: none;
-  transform: translate(-5.35%, -5.35%);
+/* These temporary portrait assets were cropped from the approved concept at
+   slightly different framing. Apply the crop per image instead of globally:
+   Explorer is already correctly framed, while the others need tighter,
+   bottom-anchored crops to remove source whitespace without over-zooming. */
+.traveller-avatar-img {
+  transform: scale(var(--avatar-scale, 1));
+  transform-origin: center bottom;
 }
 
 .member-avatar.illustrated {
@@ -72,13 +70,6 @@
   border: 2px solid white;
   background: #edf5f4;
   box-shadow: 0 5px 14px rgba(24,49,57,.12);
-}
-
-.avatar-choice > span .traveller-avatar-img {
-  width: 108%;
-  height: 108%;
-  max-width: none;
-  transform: translate(-3.7%, -3.7%);
 }
 
 .avatar-choice small {
