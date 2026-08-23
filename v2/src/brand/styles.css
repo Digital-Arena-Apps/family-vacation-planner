@@ -1,3 +1,22 @@
+:root {
+  --ferda-teal: #0b6f69;
+  --ferda-teal-dark: #07534f;
+  --ferda-cream: #fff5df;
+  --ferda-cream-soft: #fffaf0;
+  --ferda-orange: #f3a14a;
+  --ferda-mint: #e8f3ef;
+  --ferda-surface: #fffdf8;
+  --ink: #183139;
+  --muted: #6d7d80;
+  --teal: var(--ferda-teal);
+  --teal-dark: var(--ferda-teal-dark);
+  --surface: rgba(255,253,248,.97);
+  --line: rgba(24,49,57,.095);
+  --shadow: 0 12px 30px rgba(21,55,55,.07);
+}
+html, body { background: #f8f5ec; }
+body { background: radial-gradient(circle at 104% -4%, rgba(11,111,105,.11), transparent 27rem), radial-gradient(circle at -8% 34%, rgba(243,161,74,.10), transparent 22rem), #f8f5ec; }
+.v2-topbar { background: rgba(248,245,236,.89); border-bottom-color: rgba(7,83,79,.07); }
 .ferda-topbar { height: auto; min-height: 0; padding-top: 10px; padding-bottom: 10px; }
 .ferda-brand { gap: 10px; }
 .ferda-brand-mark { position: relative; width: 52px; height: 38px; flex: 0 0 52px; display: grid; place-items: center; overflow: hidden; border-radius: 12px; color: #fff; font-weight: 950; background: var(--ferda-teal); box-shadow: 0 7px 18px rgba(7,83,79,.16); }
@@ -11,18 +30,44 @@
 .ferda-ui-image.asset-missing img, .ferda-button-icon.asset-missing img, .ferda-nav-icon.asset-missing img, .ferda-brand-mark.asset-missing img { display: none; }
 .ferda-ui-image:not(.asset-missing) > .ferda-asset-fallback, .ferda-button-icon:not(.asset-missing) > .ferda-asset-fallback { opacity: 0; }
 .ferda-eyebrow { color: var(--ferda-teal-dark); }
+.crew-summary, .member-card, .preference-row, .preference-section, .dietary-section, .dietary-editor-heading, .dietary-person, .accessibility-choice, .preference-choice-body { background: var(--ferda-surface); }
+.crew-summary { grid-template-columns: 46px minmax(0,1fr) auto; height: auto; min-height: 0; padding: 10px 12px; border-color: rgba(11,111,105,.12); }
 .crew-summary-icon.ferda-ui-image { width: 46px; height: 46px; border-radius: 14px; background: var(--ferda-mint); }
+.member-card, .member-main, .member-copy { min-height: 0 !important; height: auto; }
+.preference-row { grid-template-columns: 44px minmax(0,1fr) auto; min-height: 0; height: auto; padding: 10px 12px; opacity: 1; border-color: rgba(11,111,105,.10); }
 .preference-icon.ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
+.family-preferences-row, .food-needs-row { background: rgba(255,253,248,.95); }
+.preference-action, .page-back { color: var(--ferda-teal); }
+.family-fab { background: linear-gradient(145deg, #13827a, #07534f); box-shadow: 0 14px 30px rgba(7,83,79,.28); }
 .ferda-button-icon { width: 23px; height: 23px; margin-right: 5px; vertical-align: middle; }
+.v2-nav { background: rgba(255,253,248,.96); border-color: rgba(7,83,79,.08); }
 .ferda-nav-icon { width: 28px; height: 28px; }
+.v2-nav button.active { color: var(--ferda-teal); }
 .v2-nav button.active .ferda-nav-icon { transform: translateY(-1px); }
+.preferences-principle, .dietary-principle { background: var(--ferda-mint); border-color: rgba(11,111,105,.15); height: auto; min-height: 0; }
+.preferences-principle-art { object-fit: contain !important; background: var(--ferda-cream); }
 .dietary-principle > .ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
+.preference-choice-body, .need-type-card span { min-height: 0 !important; height: auto; }
+.preference-choice input:checked + .preference-choice-body, .need-type-card input:checked + span, .accessibility-choice:has(input:checked) { border-color: rgba(11,111,105,.40); background: #eef8f4; }
+.preference-check { background: var(--ferda-teal); }
+.preference-future-card, .future-search-card { background: var(--ferda-teal-dark); }
+.preference-future-card > span, .future-search-card > span { color: #a8dfd8; }
+.cross-contact-row { border-color: rgba(243,161,74,.28); background: var(--ferda-cream-soft); }
+.preferences-actions, .dietary-actions { background: linear-gradient(to bottom, rgba(248,245,236,0), #f8f5ec 22%); }
 @media (max-width: 560px) {
   .ferda-topbar { padding-top: 9px; padding-bottom: 9px; }
   .ferda-brand-mark { width: 48px; height: 35px; flex-basis: 48px; }
   .ferda-brand-copy b { font-size: .96rem; }
   .ferda-brand-copy small { font-size: .48rem; letter-spacing: .085em; }
+  .crew-summary { grid-template-columns: 44px minmax(0,1fr) auto !important; padding: 9px 10px !important; }
   .crew-summary-icon.ferda-ui-image { width: 44px; height: 44px; }
+  .preference-row { grid-template-columns: 42px minmax(0,1fr) auto; padding: 9px 10px; }
   .preference-icon.ferda-ui-image { width: 42px; height: 42px; }
   .ferda-nav-icon { width: 27px; height: 27px; }
+  .preference-choice-body.has-image { grid-template-columns: 74px minmax(0,1fr) !important; gap: 10px !important; padding: 8px 9px !important; }
+  .preference-choice-image { width: 74px !important; height: 74px !important; border-radius: 15px !important; }
+  .preferences-principle { grid-template-columns: 48px minmax(0,1fr) !important; padding: 10px !important; }
+  .preferences-principle-art { width: 48px !important; height: 48px !important; }
+  .dietary-principle { grid-template-columns: 42px minmax(0,1fr) !important; align-items: center !important; }
+  .dietary-actions { background: rgba(248,245,236,.97) !important; }
 }
