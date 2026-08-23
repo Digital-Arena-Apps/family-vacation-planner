@@ -1,0 +1,11 @@
+.field-hint { display: block; margin-top: -1px; color: #8a989c; font-size: .67rem; line-height: 1.4; font-weight: 600; }
+.dietary-question select { border-color: rgba(12,129,122,.2); background: #fbfefd; }
+.food-needs-row { opacity: 1; border-color: rgba(12,129,122,.15); background: rgba(240,250,248,.88); }
+.food-needs-row .preference-icon { background: #def3f0; color: var(--teal-dark); }
+.member-food { flex: 0 0 auto; padding: 4px 7px; border-radius: 999px; background: #eef2ff; color: #5962a6; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .member-food { max-width: 74px; overflow: hidden; text-overflow: ellipsis; }
+  .food-needs-row { margin-top: 10px; }
+  .field-hint { font-size: .64rem; }
+}
