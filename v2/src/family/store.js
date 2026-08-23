@@ -1,3 +1,5 @@
+import { normaliseAvatar } from './avatars.js';
+
 const STORAGE_KEY = 'fvp_v2_family_v1';
 
 const DIETARY_TYPES = ['allergy', 'coeliac', 'intolerance', 'preference'];
@@ -33,10 +35,10 @@ function normaliseDietary(value) {
 
 function seedMembers() {
   return [
-    { id: id(), name: 'Adult 1', age: 40, role: 'adult', thrill: 'medium', heightBand: '48plus', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Adult 2', age: 38, role: 'adult', thrill: 'low', heightBand: '48plus', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Child 1', age: 14, role: 'child', thrill: 'high', heightBand: '48plus', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Child 2', age: 10, role: 'child', thrill: 'medium', heightBand: '42to47', notes: '', dietary: emptyDietary() }
+    { id: id(), name: 'Adult 1', age: 40, role: 'adult', thrill: 'medium', heightBand: '48plus', avatar: 'explorer', notes: '', dietary: emptyDietary() },
+    { id: id(), name: 'Adult 2', age: 38, role: 'adult', thrill: 'low', heightBand: '48plus', avatar: 'sunny', notes: '', dietary: emptyDietary() },
+    { id: id(), name: 'Child 1', age: 14, role: 'child', thrill: 'high', heightBand: '48plus', avatar: 'thrill', notes: '', dietary: emptyDietary() },
+    { id: id(), name: 'Child 2', age: 10, role: 'child', thrill: 'medium', heightBand: '42to47', avatar: 'stargazer', notes: '', dietary: emptyDietary() }
   ];
 }
 
@@ -48,6 +50,7 @@ function normaliseMember(member) {
     role: member.role === 'child' ? 'child' : 'adult',
     thrill: ['low', 'medium', 'high'].includes(member.thrill) ? member.thrill : 'medium',
     heightBand: ['under36', '36to41', '42to47', '48plus', 'unknown'].includes(member.heightBand) ? member.heightBand : 'unknown',
+    avatar: normaliseAvatar(member.avatar),
     notes: String(member.notes || '').trim(),
     dietary: normaliseDietary(member.dietary)
   };
