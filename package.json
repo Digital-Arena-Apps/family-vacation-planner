@@ -8,9 +8,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build:vite": "vite build",
+    "build": "npm run build:vite && node scripts/verify-build.mjs",
     "preview": "vite preview",
-    "check": "npm run build && node scripts/verify-build.mjs"
+    "check": "npm run build"
   },
   "devDependencies": {
     "vite": "8.2.2",
