@@ -4,7 +4,7 @@ export function enhanceMemberEditor(root) {
   const drawer = root.querySelector('#memberDrawer');
   const form = root.querySelector('#memberForm');
   const list = root.querySelector('#familyList');
-  if (!drawer || !form) return;
+  if (!drawer || !form) return () => {};
 
   const shell = document.createElement('div');
   shell.className = 'drawer-body-shell';
@@ -22,6 +22,8 @@ export function enhanceMemberEditor(root) {
   shell.append(scrollRegion, cue);
   scrollRegion.append(form);
 
+  let cueTimer;
+
   function updateCue() {
     const overflow = scrollRegion.scrollHeight > scrollRegion.clientHeight + 8;
     const untouched = scrollRegion.scrollTop < 12;
@@ -31,7 +33,8 @@ export function enhanceMemberEditor(root) {
   function resetEditorViewport() {
     scrollRegion.scrollTop = 0;
     requestAnimationFrame(() => requestAnimationFrame(updateCue));
-    setTimeout(updateCue, 180);
+    clearTimeout(cueTimer);
+    cueTimer = setTimeout(updateCue, 180);
   }
 
   scrollRegion.addEventListener('scroll', updateCue, { passive: true });
@@ -42,11 +45,17 @@ export function enhanceMemberEditor(root) {
     if (event.target.closest('[data-edit-member]')) resetEditorViewport();
   });
 
+  let observer;
   if ('ResizeObserver' in window) {
-    const observer = new ResizeObserver(updateCue);
+    observer = new ResizeObserver(updateCue);
     observer.observe(scrollRegion);
     observer.observe(form);
   }
 
   resetEditorViewport();
+
+  return () => {
+    clearTimeout(cueTimer);
+    observer?.disconnect();
+  };
 }
