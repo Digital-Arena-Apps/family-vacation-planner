@@ -1,12 +1,12 @@
 export const AVATAR_OPTIONS = [
-  { id: 'explorer', label: 'Explorer', src: '/avatars/explorer.webp' },
-  { id: 'sunny', label: 'Sunshine', src: '/avatars/sunshine.webp' },
-  { id: 'stargazer', label: 'Stargazer', src: '/avatars/stargazer.webp' },
-  { id: 'thrill', label: 'Thrill seeker', src: '/avatars/thrill.webp' },
-  { id: 'beach', label: 'Beach day', src: '/avatars/beach.webp' },
-  { id: 'foodie', label: 'Foodie', src: '/avatars/foodie.webp' },
-  { id: 'wildlife', label: 'Wildlife fan', src: '/avatars/wildlife.webp' },
-  { id: 'chill', label: 'Chill mode', src: '/avatars/chill.webp' }
+  { id: 'explorer', label: 'Explorer', src: '/avatars/explorer.webp', cropScale: 1 },
+  { id: 'sunny', label: 'Sunshine', src: '/avatars/sunshine.webp', cropScale: 1.23 },
+  { id: 'stargazer', label: 'Stargazer', src: '/avatars/stargazer.webp', cropScale: 1.23 },
+  { id: 'thrill', label: 'Thrill seeker', src: '/avatars/thrill.webp', cropScale: 1.24 },
+  { id: 'beach', label: 'Beach day', src: '/avatars/beach.webp', cropScale: 1.43 },
+  { id: 'foodie', label: 'Foodie', src: '/avatars/foodie.webp', cropScale: 1.43 },
+  { id: 'wildlife', label: 'Wildlife fan', src: '/avatars/wildlife.webp', cropScale: 1.43 },
+  { id: 'chill', label: 'Chill mode', src: '/avatars/chill.webp', cropScale: 1.43 }
 ];
 
 const ids = new Set(AVATAR_OPTIONS.map(option => option.id));
@@ -40,5 +40,5 @@ export function avatarAsset(value) {
 export function avatarMarkup(value, options = {}) {
   const avatar = avatarAsset(value);
   const label = escAttr(options.label || `${avatar.label} traveller avatar`);
-  return `<img class="traveller-avatar-img" src="${avatar.src}" alt="${label}" loading="lazy" decoding="async" />`;
+  return `<img class="traveller-avatar-img" src="${avatar.src}" alt="${label}" loading="lazy" decoding="async" style="--avatar-scale:${avatar.cropScale}" />`;
 }
