@@ -11,6 +11,12 @@ export const AVATAR_OPTIONS = [
 
 const ids = new Set(AVATAR_OPTIONS.map(option => option.id));
 
+function escAttr(value = '') {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+}
+
 export function normaliseAvatar(value) {
   return ids.has(value) ? value : 'explorer';
 }
@@ -28,7 +34,7 @@ function faceDetails(style, hair, accent) {
 
 export function avatarMarkup(value, options = {}) {
   const avatar = AVATAR_OPTIONS.find(option => option.id === normaliseAvatar(value)) || AVATAR_OPTIONS[0];
-  const label = options.label || avatar.label;
+  const label = escAttr(options.label || avatar.label);
   return `<svg class="traveller-avatar-svg" viewBox="0 0 80 80" role="img" aria-label="${label}">
     <circle cx="40" cy="40" r="40" fill="${avatar.bg}"/>
     <path d="M17 80c2-17 11-27 23-27s21 10 23 27Z" fill="${avatar.shirt}"/>
