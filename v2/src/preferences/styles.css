@@ -1,5 +1,6 @@
 .preferences-shell { padding-bottom: 24px; }
 .preferences-page { width: min(100%, 760px); margin: 0 auto; padding: 18px 16px 44px; }
+.preferences-page .page-back { border: 0; background: transparent; color: var(--teal); font-weight: 850; padding: 8px 2px 14px; cursor: pointer; }
 .preferences-hero { padding: 0 4px 17px; }
 .preferences-hero h1 { margin: 4px 0 8px; font-size: clamp(2rem, 8vw, 3.15rem); line-height: 1; letter-spacing: -.045em; }
 .preferences-hero p { margin: 0; max-width: 660px; color: var(--muted); line-height: 1.55; }
@@ -51,6 +52,7 @@
 
 @media (max-width: 560px) {
   .preferences-page { padding: 12px 13px 30px; }
+  .preferences-page .page-back { padding-top: 4px; }
   .preferences-hero { padding-bottom: 14px; }
   .preferences-hero h1 { font-size: 2.05rem; }
   .preferences-hero p { font-size: .86rem; }
