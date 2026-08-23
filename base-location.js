@@ -1,11 +1,67 @@
-// Vacation Planner V2.6.3 — Orlando home base + current-location planning anchor
+// Vacation Planner V2.6.4 — Orlando home base + release-aware startup gate
 (()=>{
   'use strict';
+  const RELEASE='2.6.4';
+  const RELEASE_KEY='ffvp_release_version';
+  const MIN_SPLASH_MS=1500;
+  const MAX_SPLASH_MS=3800;
   const CENTRAL={south:27.45,north:29.35,west:-82.45,east:-80.55};
   let searchTimer=null,searchAbort=null,watchId=null,planningOrigin='base';
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const inCentral=(lat,lon)=>lat>=CENTRAL.south&&lat<=CENTRAL.north&&lon>=CENTRAL.west&&lon<=CENTRAL.east;
+
+  function beginStartupSplash(){
+    const started=performance.now();
+    document.body.classList.add('vp-starting');
+    const landing=$('#landingScreen'),onboarding=$('#onboarding'),actions=$('.landing-actions');
+    if(landing)landing.classList.remove('hidden');
+    if(onboarding)onboarding.classList.add('hidden');
+    if(actions){actions.dataset.vpStartupHidden='1';actions.style.visibility='hidden';actions.style.pointerEvents='none';}
+    const shell=$('.landing-splash');
+    if(shell&&!$('#orlandoStartupStatus')){
+      const status=document.createElement('div');status.id='orlandoStartupStatus';status.className='orlando-startup-status';status.innerHTML='<span class="orlando-startup-dot"></span><span>Getting your Orlando trip ready…</span>';shell.appendChild(status);
+    }
+    return started;
+  }
+
+  async function resetForReleaseIfNeeded(){
+    if(localStorage.getItem(RELEASE_KEY)===RELEASE)return false;
+    const preserveLocal=new Set(['ffvp_language','ffvp_unit']);
+    const localKeys=[];for(let i=0;i<localStorage.length;i++)localKeys.push(localStorage.key(i));
+    localKeys.filter(Boolean).forEach(key=>{
+      if((key.startsWith('ffvp_')&&!preserveLocal.has(key))||key.startsWith('vp_')||/demo/i.test(key))localStorage.removeItem(key);
+    });
+    const sessionKeys=[];for(let i=0;i<sessionStorage.length;i++)sessionKeys.push(sessionStorage.key(i));
+    sessionKeys.filter(Boolean).forEach(key=>{if(key.startsWith('ffvp_')||key.startsWith('vp_')||/demo/i.test(key))sessionStorage.removeItem(key);});
+    localStorage.setItem(RELEASE_KEY,RELEASE);
+    localStorage.setItem('ffvp_force_landing','1');
+    localStorage.setItem('ffvp_force_onboarding','1');
+    try{
+      if('caches' in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('ffvp-')).map(k=>caches.delete(k)));}
+    }catch(e){console.warn('Could not clear old Vacation Planner caches',e);}
+    location.reload();
+    return true;
+  }
+
+  function appLooksReady(){return !!$('#orlandoTimeStrip')&&!!$('#vpDecisionHome');}
+  function finishStartupSplash(started){
+    const finish=()=>{
+      const elapsed=performance.now()-started;
+      if((elapsed<MIN_SPLASH_MS||!appLooksReady())&&elapsed<MAX_SPLASH_MS){setTimeout(finish,100);return;}
+      const landing=$('#landingScreen'),onboarding=$('#onboarding'),actions=$('.landing-actions'),status=$('#orlandoStartupStatus');
+      document.body.classList.remove('vp-starting');
+      status?.remove();
+      if(actions){actions.style.visibility='';actions.style.pointerEvents='';delete actions.dataset.vpStartupHidden;}
+      const onboarded=!!localStorage.getItem('ffvp_onboarded');
+      if(landing)landing.classList.add('hidden');
+      if(onboarded){if(onboarding)onboarding.classList.add('hidden');}
+      else if(typeof showOnboarding==='function')showOnboarding();
+      else if(onboarding)onboarding.classList.remove('hidden');
+    };
+    finish();
+  }
+
   function profile(){try{return JSON.parse(localStorage.getItem('ffvp_profile')||'{}')||{};}catch{return {};}}
   function persist(patch){
     const p={...profile(),...patch,destinationPreset:'orlando'};localStorage.setItem('ffvp_profile',JSON.stringify(p));
@@ -84,11 +140,14 @@
     label.appendChild(picker);picker.querySelector('.vp-base-search-row>div').appendChild(input);
     input.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>searchBase(input.value),280);});$('#vpUseCurrentBase').addEventListener('click',useCurrentAsBase);renderSelected();
   }
-  function init(){
+  async function init(){
+    const splashStarted=beginStartupSplash();
+    if(await resetForReleaseIfNeeded())return;
     buildPicker();applyPlanningAnchor();renderOriginCard();renderSelected();patchDemoLocation();
     const form=$('#onboardingForm');form?.addEventListener('submit',()=>setTimeout(()=>{applyPlanningAnchor();renderOriginCard();patchDemoLocation();},160));
     document.addEventListener('click',e=>{if(e.target.closest('[data-vp-open]'))setTimeout(patchDemoLocation,25);});
     new MutationObserver(()=>{if($('#setupHomeBase')&&!$('#vpBasePicker'))buildPicker();if($('#orlandoTimeStrip'))renderOriginCard();}).observe(document.body,{childList:true,subtree:true});
+    finishStartupSplash(splashStarted);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
