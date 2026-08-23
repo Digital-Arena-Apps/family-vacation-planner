@@ -1,118 +1,21 @@
-/* Family roster polish: portrait-led, readable and roomy on phones. */
-
+/* FERDA family roster: portrait-led, compact and content-driven on phones. */
 @media (max-width: 560px) {
-  .crew-summary {
-    grid-template-columns: 36px minmax(0, 1fr) auto;
-    gap: 9px;
-    padding: 10px;
-    border-radius: 18px;
-  }
-
-  .crew-summary-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-  }
-
-  .crew-summary-copy b {
-    font-size: .9rem;
-  }
-
-  .crew-summary-copy span {
-    margin-top: 2px;
-    font-size: .67rem;
-  }
-
-  .family-list {
-    gap: 10px;
-    margin-top: 12px;
-  }
-
-  .member-card {
-    grid-template-columns: 30px minmax(0, 1fr);
-    min-height: 98px;
-    border-radius: 20px;
-  }
-
-  .drag-handle {
-    min-width: 30px;
-  }
-
-  .drag-handle i {
-    width: 13px;
-    height: 2px;
-  }
-
-  .member-main {
-    grid-template-columns: 64px minmax(0, 1fr) 12px;
-    gap: 12px;
-    padding: 12px 12px 12px 10px;
-    align-items: center;
-  }
-
-  .member-avatar {
-    width: 64px;
-    height: 64px;
-    font-size: .96rem;
-  }
-
-  .member-copy {
-    align-content: center;
-    gap: 6px;
-    min-height: 64px;
-  }
-
-  .member-title b {
-    font-size: 1rem;
-    line-height: 1.15;
-  }
-
-  .member-title small {
-    margin-top: 3px;
-    font-size: .72rem;
-    line-height: 1.2;
-  }
-
-  .member-meta {
-    flex-wrap: wrap;
-    gap: 5px;
-    min-width: 0;
-    overflow: visible;
-    font-size: .66rem;
-    line-height: 1;
-  }
-
-  .member-meta > span:first-child,
-  .thrill,
-  .member-food {
-    flex: 0 0 auto;
-    min-width: 0;
-    padding: 5px 8px;
-    white-space: nowrap;
-    line-height: 1.05;
-  }
-
-  .member-food {
-    color: #49724d;
-    background: #eef7eb;
-    border-radius: 999px;
-  }
-
-  .member-note {
-    max-width: 100%;
-    font-size: .68rem;
-  }
-
-  .member-chevron {
-    align-self: center;
-    font-size: 1.25rem;
-  }
-
-  .family-fab {
-    width: 52px;
-    height: 52px;
-    right: 16px;
-    bottom: calc(80px + env(safe-area-inset-bottom));
-    font-size: 1.8rem;
-  }
+  .crew-summary { gap: 9px; border-radius: 18px; }
+  .crew-summary-copy b { font-size: .9rem; }
+  .crew-summary-copy span { margin-top: 2px; font-size: .67rem; }
+  .family-list { gap: 9px; margin-top: 11px; }
+  .member-card { grid-template-columns: 30px minmax(0,1fr); min-height: 0; height: auto; border-radius: 20px; }
+  .drag-handle { min-width: 30px; }
+  .drag-handle i { width: 13px; height: 2px; }
+  .member-main { grid-template-columns: 60px minmax(0,1fr) 12px; gap: 11px; padding: 10px 12px 10px 9px; align-items: center; min-height: 0; height: auto; }
+  .member-avatar { width: 60px; height: 60px; font-size: .96rem; }
+  .member-copy { align-content: center; gap: 5px; min-height: 0; }
+  .member-title b { font-size: 1rem; line-height: 1.15; }
+  .member-title small { margin-top: 3px; font-size: .72rem; line-height: 1.2; }
+  .member-meta { flex-wrap: wrap; gap: 5px; min-width: 0; overflow: visible; font-size: .66rem; line-height: 1; }
+  .member-meta > span:first-child, .thrill, .member-food { flex: 0 0 auto; min-width: 0; padding: 5px 8px; white-space: nowrap; line-height: 1.05; }
+  .member-food { color: #3f6e50; background: #edf6ec; border-radius: 999px; }
+  .member-note { max-width: 100%; font-size: .68rem; }
+  .member-chevron { align-self: center; font-size: 1.25rem; }
+  .family-fab { width: 52px; height: 52px; right: 16px; bottom: calc(80px + env(safe-area-inset-bottom)); font-size: 1.8rem; }
 }
