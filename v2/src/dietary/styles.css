@@ -64,14 +64,45 @@
 .dietary-empty p { color: var(--muted); line-height: 1.5; }
 
 @media (max-width: 560px) {
-  .dietary-page { padding: 12px 13px 28px; }
-  .page-back { padding-top: 4px; }
-  .dietary-hero { padding-bottom: 14px; }
-  .dietary-hero h1 { font-size: 2.15rem; }
-  .dietary-hero p { font-size: .86rem; }
-  .need-type-grid { grid-template-columns: 1fr; }
-  .need-type-card span { min-height: 0; }
-  .dietary-actions { grid-template-columns: auto 1fr auto; }
+  .dietary-shell { padding-bottom: 0; }
+  .dietary-page { padding: 8px 13px 96px; }
+  .page-back { padding: 2px 2px 8px; font-size: .86rem; }
+  .dietary-hero { padding: 0 3px 10px; }
+  .dietary-hero h1 { margin: 2px 0 6px; font-size: 1.9rem; line-height: 1.02; }
+  .dietary-hero p { font-size: .8rem; line-height: 1.42; }
+
+  .dietary-principle { grid-template-columns: 32px minmax(0, 1fr); gap: 9px; padding: 10px 11px; border-radius: 16px; }
+  .dietary-principle > span { width: 32px; height: 32px; border-radius: 10px; font-size: .94rem; }
+  .dietary-principle b { font-size: .79rem; line-height: 1.28; }
+  .dietary-principle small { margin-top: 3px; font-size: .67rem; line-height: 1.35; }
+
+  .dietary-people { gap: 6px; padding: 9px 1px 2px; }
+  .dietary-person { grid-template-columns: 31px auto; gap: 6px; padding: 5px 8px 5px 5px; border-radius: 14px; }
+  .dietary-avatar { width: 31px; height: 31px; }
+  .dietary-person b { font-size: .73rem; }
+  .dietary-person small { font-size: .59rem; }
+
+  .dietary-editor { margin-top: 5px; }
+  .dietary-form { gap: 10px; padding-bottom: 24px; }
+  .dietary-editor-heading { padding: 7px 4px 4px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .dietary-editor-heading h2 { margin-top: 1px; font-size: 1.18rem; }
+  .dietary-editor-heading .dietary-avatar { width: 40px; height: 40px; }
+  .section-kicker { font-size: .57rem; }
+
+  .dietary-section { padding: 12px; border-radius: 16px; }
+  .dietary-section legend { font-size: .88rem; }
+  .dietary-section > p { margin-bottom: 9px; font-size: .68rem; }
+  .need-type-grid { grid-template-columns: 1fr; gap: 6px; }
+  .need-type-card span { min-height: 0; padding: 10px 11px; border-radius: 13px; }
+  .need-type-card b { font-size: .78rem; }
+  .need-type-card small { font-size: .63rem; }
+  .avoid-grid { gap: 6px; }
+  .avoid-chip span { padding: 8px 10px; font-size: .7rem; }
+  .cross-contact-row { padding: 12px; border-radius: 16px; }
+  .future-search-card { padding: 12px 13px; border-radius: 16px; }
+
+  .dietary-actions { grid-template-columns: auto 1fr auto; margin-left: -13px; margin-right: -13px; padding: 9px 13px calc(9px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(24,49,57,.07); background: rgba(250,252,251,.97); backdrop-filter: blur(12px); }
   .dietary-actions > span { display: none; }
   #dietaryCancel { display: none; }
+  .text-danger { padding-left: 0; font-size: .76rem; }
 }
