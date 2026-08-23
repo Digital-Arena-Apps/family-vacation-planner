@@ -1,9 +1,11 @@
-// Vacation Planner V2.6.1 — Orlando Early Access bootstrap
-// Keeps the proven V2.4 app intact, layers the decision demo on top, and turns
-// first-run setup into a focused Orlando onboarding test without wiping user data.
+// Vacation Planner V2.6.2 — Orlando Early Access bootstrap
+// Keeps the proven V2.4 app intact while making the public-facing test genuinely Orlando-first.
 (()=>{
-  const VERSION='2.6.1';
+  'use strict';
+
+  const VERSION='2.6.2';
   const ONBOARDING_METRICS_KEY='ffvp_orlando_onboarding_metrics';
+  const ORLANDO_ZONE='America/New_York';
   let onboardingStart=0;
   let stepStart=0;
   let lastStep=-1;
@@ -23,9 +25,7 @@
       const s=document.createElement('script');s.id=id;s.src=src;s.async=false;s.onload=resolve;s.onerror=reject;document.body.appendChild(s);
     });
   }
-  function readProfile(){
-    try{return JSON.parse(localStorage.getItem('ffvp_profile')||'{}')||{};}catch{return {};}
-  }
+  function readProfile(){try{return JSON.parse(localStorage.getItem('ffvp_profile')||'{}')||{};}catch{return {};}}
   function writeProfilePatch(patch){
     try{
       const p={...readProfile(),...patch,destinationPreset:'orlando'};
@@ -49,24 +49,28 @@
   function paceLabel(value){return ({relaxed:'Relaxed pace',balanced:'Balanced pace',packed:'Pack it in'})[value]||'Balanced pace';}
   function heightBandLabel(band){return ({under36:'Under 36″','36to41':'36–41″','42to47':'42–47″','48plus':'48″+','unknown':'Height not set'})[band]||'Height not set';}
   function thrillLabel(v){return ({low:'gentle rides',medium:'some thrills',high:'big thrills'})[v]||'some thrills';}
+  function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
   function markOrlandoOnly(){
     document.body.classList.add('orlando-early-access');
     setText(qs('.brand-kicker'),'ORLANDO EARLY ACCESS · V2.6');
 
+    // Keep the underlying controls in the DOM because the proven V2.4 submit handlers use them,
+    // but remove them from the customer experience without relying on a stylesheet race.
     const setupDestination=qs('#setupDestinationPreset');
-    if(setupDestination){setupDestination.value='orlando';setupDestination.closest('label')?.classList.add('orlando-only-hidden');}
+    if(setupDestination){setupDestination.value='orlando';const row=setupDestination.closest('label');if(row)row.style.display='none';}
     const profileDestination=qs('#destinationPreset');
-    if(profileDestination){profileDestination.value='orlando';profileDestination.closest('label')?.classList.add('orlando-only-hidden');}
-    const language=qs('#setupLanguage');if(language)language.closest('label')?.classList.add('orlando-only-hidden');
-    ['#newTripBtn','#newTripBtnFamily','#familyNewVacationBtn','#openDestinationFinder'].forEach(sel=>qs(sel)?.classList.add('orlando-only-hidden'));
-    qs('#newTripDialog')?.classList.add('orlando-only-hidden');
+    if(profileDestination){profileDestination.value='orlando';const row=profileDestination.closest('label');if(row)row.style.display='none';}
+    const language=qs('#setupLanguage');if(language){const row=language.closest('label');if(row)row.style.display='none';}
+    const locationStrip=qs('#locationStrip');if(locationStrip)locationStrip.style.display='none';
+    ['#newTripBtn','#newTripBtnFamily','#familyNewVacationBtn','#openDestinationFinder'].forEach(sel=>{const el=qs(sel);if(el)el.style.display='none';});
+    const newTrip=qs('#newTripDialog');if(newTrip)newTrip.style.display='none';
 
-    if(localStorage.getItem('ffvp_profile'))writeProfilePatch({destinationPreset:'orlando'});
+    writeProfilePatch({destinationPreset:'orlando'});
   }
 
   function addLandingPositioning(){
-    const primary=qs('#landingPrimary');if(primary)setText(primary,'Set up my Orlando trip ✦');
+    setText(qs('#landingPrimary'),'Set up my Orlando trip ✦');
     const shell=qs('.landing-splash');if(!shell||qs('#orlandoLandingCopy'))return;
     const copy=document.createElement('div');copy.id='orlandoLandingCopy';copy.className='orlando-landing-copy';
     copy.innerHTML='<span>ORLANDO EARLY ACCESS</span><b>The family helper you don’t know you need — until you need it.</b><small>Tell me your trip once. When the weather changes, everyone gets tired or you suddenly have a few free hours, I’ll help work out what makes sense next.</small>';
@@ -92,11 +96,32 @@
     }));
   }
 
+  function compactCrewRows(){
+    const root=qs('#setupMembers');if(!root)return;
+    qsa('.member-row',root).forEach(row=>{
+      if(row.classList.contains('orlando-crew-compact'))return;
+      row.classList.add('orlando-crew-compact');
+      const fields=qs('.member-fields',row);if(!fields)return;
+      const toggle=document.createElement('button');toggle.type='button';toggle.className='orlando-crew-more';
+      toggle.innerHTML='<span>Ride & height details <small>optional</small></span><b>＋</b>';
+      fields.after(toggle);
+      toggle.addEventListener('click',()=>{
+        const open=row.classList.toggle('orlando-crew-expanded');
+        setHTML(toggle,`<span>${open?'Hide ride details':'Ride & height details <small>optional</small>'}</span><b>${open?'−':'＋'}</b>`);
+      });
+    });
+  }
+  function watchCrewRows(){
+    const root=qs('#setupMembers');if(!root)return;
+    compactCrewRows();
+    new MutationObserver(()=>compactCrewRows()).observe(root,{childList:true,subtree:false});
+  }
+
   function rewriteOnboarding(){
     const onboarding=qs('#onboarding');if(!onboarding)return;
     const hero=qs('.onboarding-hero');
     if(hero){
-      const p=qs(':scope > p',hero);setText(p,'A few useful details now means less thinking once you’re in Orlando. I’ll remember the people, the pace and the practical bits for the whole trip.');
+      setText(qs(':scope > p',hero),'A few useful details now means less thinking once you’re in Orlando. I’ll remember the people, the pace and the practical bits for the whole trip.');
       if(!qs('.orlando-onboarding-badge',hero)){
         const badge=document.createElement('div');badge.className='orlando-onboarding-badge';badge.textContent='ORLANDO FAMILY HOLIDAY SETUP';
         const progress=qs('.setup-progress-wrap',hero);if(progress)hero.insertBefore(badge,progress);
@@ -117,8 +142,8 @@
     }
     if(steps[1]){
       setText(qs('h3',steps[1]),'Who am I planning for?');
-      setText(qs('.step-copy',steps[1]),'Names and ages make this feel personal. Ride-height bands and ride vibe stop me suggesting days that only work for half the family.');
-      setText(qs('.crew-count-intro small',steps[1]),'Keep it quick. Approximate ride height is enough — you can fine-tune profiles later.');
+      setText(qs('.step-copy',steps[1]),'Start with names and ages. Add ride-height and ride preferences only where they’re useful.');
+      setText(qs('.crew-count-intro small',steps[1]),'Build the crew first. Each person stays compact until you want to add Orlando ride details.');
       setText(qs('.setup-next',steps[1]),'How do you holiday? →');
       stepWhy(steps[1],'👨‍👩‍👧','<b>Why I ask:</b> A good Orlando recommendation has to work for the actual group — not an imaginary average family.');
     }
@@ -131,7 +156,8 @@
       setText(qs('button[type="submit"]',steps[2]),'Show me what makes sense ✦');
       if(!qs('.orlando-ready-card',steps[2])){const ready=document.createElement('div');ready.className='orlando-ready-card';ready.innerHTML='<span>⚡</span><div><b>Your first payoff is next.</b><small>I’ll show how the same Orlando afternoon changes when I know the family, the weather and a fixed dinner booking.</small></div>';const actions=qs('.setup-actions',steps[2]);if(actions)actions.parentNode.insertBefore(ready,actions);}
     }
-    qs('#skipSetup')?.classList.add('orlando-only-hidden');
+    const skip=qs('#skipSetup');if(skip)skip.style.display='none';
+    watchCrewRows();
   }
 
   function showDateError(message){const el=qs('#orlandoDateError');if(!el)return;setText(el,message);el.classList.toggle('show',!!message);}
@@ -160,11 +186,11 @@
 
   function wireOnboarding(){
     const onboarding=qs('#onboarding'),form=qs('#onboardingForm');if(!onboarding||!form)return;
-    const observer=new MutationObserver(()=>{
+    new MutationObserver(()=>{
       if(!onboarding.classList.contains('hidden')){
-        startMetrics();const step=qsa('.setup-step',form).findIndex(x=>x.classList.contains('active'));if(step>=0&&step!==lastStep)recordStep(step);
+        startMetrics();const step=qsa('.setup-step',form).findIndex(x=>x.classList.contains('active'));if(step>=0&&step!==lastStep)recordStep(step);compactCrewRows();
       }
-    });observer.observe(onboarding,{attributes:true,subtree:true,attributeFilter:['class']});
+    }).observe(onboarding,{attributes:true,subtree:true,attributeFilter:['class']});
 
     form.addEventListener('click',e=>{
       const next=e.target.closest('.setup-next');if(!next)return;
@@ -176,60 +202,80 @@
       writeProfilePatch({...pacePatch(pace),destinationPreset:'orlando'});
       finishMetrics();
       localStorage.removeItem('ffvp_force_landing');localStorage.removeItem('ffvp_force_onboarding');
-      setTimeout(()=>{personalizeDecisionExperience();renderSmokeStatus();},80);
+      localStorage.setItem('ffvp_test_location','orlando');
+      setTimeout(()=>{syncOrlandoLocation();personalizeDecisionExperience();renderSmokeStatus();},100);
     });
   }
 
-  function removeDemoShortcuts(){['#vpLandingDemo','#vpOnboardingDemo'].forEach(sel=>qs(sel)?.remove());}
+  function formatClock(date,timeZone){
+    try{return new Intl.DateTimeFormat(undefined,{timeZone,hour:'2-digit',minute:'2-digit'}).format(date);}catch{return date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+  }
+  function zoneLabel(zone){return String(zone||'Local time').replace(/_/g,' ').replace('Europe/','').replace('America/','');}
+  function ensureTimeStrip(){
+    const intro=qs('.view[data-view="today"] .today-intro');if(!intro)return;
+    let strip=qs('#orlandoTimeStrip');if(!strip){strip=document.createElement('section');strip.id='orlandoTimeStrip';strip.className='orlando-time-strip';strip.innerHTML='<div class="orlando-time-box primary"><span>ORLANDO TIME</span><b id="orlandoClock">--:--</b><small>Eastern Time</small></div><div class="orlando-time-box orlando-device-time"><span>YOUR TIME</span><b id="deviceClock">--:--</b><small id="deviceZone">Device time</small></div>';intro.after(strip);}
+    updateClocks();
+  }
+  function updateClocks(){
+    const now=new Date(),deviceZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+    setText(qs('#orlandoClock'),formatClock(now,ORLANDO_ZONE));setText(qs('#deviceClock'),formatClock(now,deviceZone||undefined));setText(qs('#deviceZone'),zoneLabel(deviceZone));
+    qs('#orlandoTimeStrip')?.classList.toggle('same-zone',deviceZone===ORLANDO_ZONE);
+  }
+
+  function syncOrlandoLocation(){
+    const strip=qs('#locationStrip');if(strip)strip.style.display='none';
+    const deviceZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+    let inTrip=false;try{inTrip=!!(typeof tripContext==='function'&&tripContext()?.inTrip);}catch{}
+
+    // When the phone itself is on Eastern Time during the trip, allow the proven GPS path
+    // to provide accurate "from here" distance. Otherwise we are planning Orlando remotely.
+    if(deviceZone===ORLANDO_ZONE&&inTrip&&typeof requestLocation==='function'){
+      try{if(typeof state!=='undefined')state.locationMode='gps';localStorage.setItem('ffvp_test_location','gps');requestLocation();return;}catch{}
+    }
+    localStorage.setItem('ffvp_test_location','orlando');
+    try{if(typeof applyPresetLocation==='function'){applyPresetLocation('orlando');return;}}catch{}
+    try{
+      if(typeof state!=='undefined'){state.locationMode='orlando';state.coords={lat:28.5383,lon:-81.3792};state.locationName='Orlando / Central Florida';}
+      if(typeof loadWeather==='function')loadWeather();
+    }catch(e){console.warn('Could not set Orlando planning location',e);}
+  }
 
   function personalizationSummary(){
     const p=readProfile(),members=Array.isArray(p.members)?p.members:[];
-    const notes=(p.quickNotes||[]).slice(0,2);
-    const vibes=[...new Set(members.map(m=>m.thrill).filter(Boolean))];
+    const notes=(p.quickNotes||[]).slice(0,2),vibes=[...new Set(members.map(m=>m.thrill).filter(Boolean))];
     const bits=[paceLabel(p.pace||paceFromProfile()),budgetLabel(p.budget)];
     if(notes.length)bits.push(notes.join(' · '));else if(vibes.length>1)bits.push('mixed ride preferences');
     return {p,members,bits};
   }
-
   function patchTripMemory(root=document){
     const {p,members,bits}=personalizationSummary();if(!members.length)return;
     setText(qs('.vp-memory-intro h2',root),p.familyName||'Our Orlando vacation');
     const sections=qsa('.vp-memory-grid section',root);
-    if(sections[0]){
-      const dates=p.arrivalDate&&p.departureDate?`${p.arrivalDate} → ${p.departureDate}`:'Dates saved';
-      setText(qs('b',sections[0]),`Orlando · ${dates}`);
-      setHTML(qs('small',sections[0]),`${p.homeBase?`${escapeForDemo(p.homeBase)}<br>`:''}Central Florida family trip`);
-    }
+    if(sections[0]){const dates=p.arrivalDate&&p.departureDate?`${p.arrivalDate} → ${p.departureDate}`:'Dates saved';setText(qs('b',sections[0]),`Orlando · ${dates}`);setHTML(qs('small',sections[0]),`${p.homeBase?`${esc(p.homeBase)}<br>`:''}Central Florida family trip`);}
     if(sections[1]){setText(qs('b',sections[1]),bits.slice(0,2).join(' · '));setText(qs('small',sections[1]),bits.slice(2).join(' · ')||'I’ll keep adapting as you make decisions.');}
-    const list=qs('.vp-traveller-list',root);if(list){const desired=members.map((m,i)=>`<div><b>${escapeForDemo(m.name||`Traveller ${i+1}`)} · ${Number.isFinite(+m.age)?+m.age:'Age not set'}</b><small>${heightBandLabel(m.heightBand)} · ${thrillLabel(m.thrill)}</small></div>`).join('');setHTML(list,desired);}
+    const list=qs('.vp-traveller-list',root);if(list)setHTML(list,members.map((m,i)=>`<div><b>${esc(m.name||`Traveller ${i+1}`)} · ${Number.isFinite(+m.age)?+m.age:'Age not set'}</b><small>${heightBandLabel(m.heightBand)} · ${thrillLabel(m.thrill)}</small></div>`).join(''));
   }
-  function escapeForDemo(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-
   function personalizeDecisionExperience(){
-    const {p,members,bits}=personalizationSummary();const count=members.length;
-    if(p.familyName)setText(qs('#todayGreeting'),p.familyName);
+    const {members,bits}=personalizationSummary(),count=members.length;
     setText(qs('#todayGreetingCopy'),'I’ve got your Orlando trip and your crew. You shouldn’t have to explain the holiday again every time you need a decision.');
     const memory=qs('#vpDecisionHome .vp-memory-card');if(memory){setText(qs('b',memory),`${count||'Your'} traveller${count===1?'':'s'} · Orlando trip remembered`);setText(qs('small',memory),bits.join(' · '));}
-    setText(qs('.vp-reason-hero p'),'I’ve ruled out outdoor plans after 3 PM. I’m also avoiding options that are a weak fit for the crew’s ride-height mix, ride preferences and lower-energy afternoon.');
-    qsa('.vp-rec-facts').forEach(f=>{const spans=qsa('span',f);const last=spans[spans.length-1];if(last&&count)setText(last,`👨‍👩‍👧 Whole group · ${count} traveller${count===1?'':'s'}`);});
+    setText(qs('.vp-reason-hero p'),'I’m using the Orlando weather window, the time you have, your fixed plans and the crew profile to rule out weaker options before you see them.');
+    qsa('.vp-rec-facts').forEach(f=>{const spans=qsa('span',f),last=spans.at(-1);if(last&&count)setText(last,`👨‍👩‍👧 Whole group · ${count} traveller${count===1?'':'s'}`);});
     patchTripMemory(document);
   }
 
-  function observeDemo(){
-    let scheduled=false;
-    const sync=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;removeDemoShortcuts();personalizeDecisionExperience();});};
-    const observer=new MutationObserver(sync);observer.observe(document.body,{childList:true,subtree:true});
-    document.addEventListener('click',e=>{if(e.target.closest('[data-vp-open]'))setTimeout(sync,0);});
-  }
+  function removeDemoShortcuts(){['#vpLandingDemo','#vpOnboardingDemo'].forEach(sel=>qs(sel)?.remove());}
+  function wireDemoPersonalization(){document.addEventListener('click',e=>{if(e.target.closest('[data-vp-open]'))setTimeout(personalizeDecisionExperience,20);});}
 
   function renderSmokeStatus(){
     const checks=[
       ['3 onboarding steps',qsa('.setup-step').length===3],
       ['Orlando locked',qs('#setupDestinationPreset')?.value==='orlando'],
-      ['Destination choice hidden',!!qs('#setupDestinationPreset')?.closest('.orlando-only-hidden')],
+      ['Destination question removed',qs('#setupDestinationPreset')?.closest('label')?.style.display==='none'],
       ['Dates required',!!qs('#setupArrivalDate')?.required&&!!qs('#setupDepartureDate')?.required],
-      ['Pace control present',!!qs('#setupOrlandoPace')],
-      ['Skip removed',!!qs('#skipSetup')?.classList.contains('orlando-only-hidden')],
+      ['Compact crew enabled',qsa('#setupMembers .orlando-crew-compact').length===qsa('#setupMembers .member-row').length],
+      ['Test location hidden',qs('#locationStrip')?.style.display==='none'],
+      ['Orlando clock present',!!qs('#orlandoTimeStrip')],
       ['Navigation contract intact',qsa('.bottom-nav .nav-item').length>0&&qsa('.bottom-nav .nav-item').every(b=>!!b.dataset.target)],
       ['Decision experience loaded',!!qs('#vpDecisionHome')]
     ];
@@ -241,27 +287,20 @@
 
   async function init(){
     const onboarded=!!localStorage.getItem('ffvp_onboarded');
-    if(onboarded){
-      localStorage.removeItem('ffvp_force_landing');localStorage.removeItem('ffvp_force_onboarding');
-      qs('#landingScreen')?.classList.add('hidden');qs('#onboarding')?.classList.add('hidden');
-    }
+    if(onboarded){localStorage.removeItem('ffvp_force_landing');localStorage.removeItem('ffvp_force_onboarding');qs('#landingScreen')?.classList.add('hidden');qs('#onboarding')?.classList.add('hidden');}
 
     loadStyle(`/decision-demo.css?v=${VERSION}`,'vpDecisionDemoCss');
     loadStyle(`/orlando-early-access.css?v=${VERSION}`,'vpOrlandoEarlyAccessCss');
-    markOrlandoOnly();addLandingPositioning();rewriteOnboarding();wireOnboarding();observeDemo();
+    markOrlandoOnly();addLandingPositioning();rewriteOnboarding();wireOnboarding();ensureTimeStrip();syncOrlandoLocation();
 
-    if(!onboarded){
-      qs('#onboarding')?.classList.add('hidden');
-      if(typeof showLanding==='function')showLanding();else qs('#landingScreen')?.classList.remove('hidden');
-      addLandingPositioning();
-    }
+    if(!onboarded){qs('#onboarding')?.classList.add('hidden');if(typeof showLanding==='function')showLanding();else qs('#landingScreen')?.classList.remove('hidden');addLandingPositioning();}
 
-    try{await loadScript(`/decision-demo.js?v=${VERSION}`,'vpDecisionDemoRuntime');}
-    catch(e){console.error('Decision experience failed to load',e);}
-    setTimeout(()=>{removeDemoShortcuts();personalizeDecisionExperience();renderSmokeStatus();},40);
+    try{await loadScript(`/decision-demo.js?v=${VERSION}`,'vpDecisionDemoRuntime');}catch(e){console.error('Decision experience failed to load',e);}
+    removeDemoShortcuts();personalizeDecisionExperience();wireDemoPersonalization();
 
-    try{await loadScript('/family-ui-test.js?v=3','vpFamilyUiTestRuntime');}catch(e){console.warn('Family UI test did not load',e);}
-    setTimeout(renderSmokeStatus,80);
+    try{await loadScript('/family-ui-test.js?v=4','vpFamilyUiTestRuntime');}catch(e){console.warn('Family UI test did not load',e);}
+    renderSmokeStatus();
+    setInterval(updateClocks,30000);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
