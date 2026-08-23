@@ -1,8 +1,8 @@
-// Vacation Planner V2.6 — Orlando Early Access bootstrap
+// Vacation Planner V2.6.1 — Orlando Early Access bootstrap
 // Keeps the proven V2.4 app intact, layers the decision demo on top, and turns
 // first-run setup into a focused Orlando onboarding test without wiping user data.
 (()=>{
-  const VERSION='2.6.0';
+  const VERSION='2.6.1';
   const ONBOARDING_METRICS_KEY='ffvp_orlando_onboarding_metrics';
   let onboardingStart=0;
   let stepStart=0;
@@ -10,6 +10,8 @@
 
   const qs=(s,r=document)=>r.querySelector(s);
   const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const setText=(el,value)=>{const text=String(value??'');if(el&&el.textContent!==text)el.textContent=text;};
+  const setHTML=(el,value)=>{const html=String(value??'');if(el&&el.innerHTML!==html)el.innerHTML=html;};
 
   function loadStyle(href,id){
     if(document.getElementById(id))return;
@@ -50,10 +52,8 @@
 
   function markOrlandoOnly(){
     document.body.classList.add('orlando-early-access');
-    const kicker=qs('.brand-kicker');if(kicker)kicker.textContent='ORLANDO EARLY ACCESS · V2.6';
+    setText(qs('.brand-kicker'),'ORLANDO EARLY ACCESS · V2.6');
 
-    // This launch is deliberately Orlando-only. Keep the broader architecture underneath,
-    // but don't make early-access customers configure or browse destinations we are not marketing yet.
     const setupDestination=qs('#setupDestinationPreset');
     if(setupDestination){setupDestination.value='orlando';setupDestination.closest('label')?.classList.add('orlando-only-hidden');}
     const profileDestination=qs('#destinationPreset');
@@ -66,11 +66,11 @@
   }
 
   function addLandingPositioning(){
+    const primary=qs('#landingPrimary');if(primary)setText(primary,'Set up my Orlando trip ✦');
     const shell=qs('.landing-splash');if(!shell||qs('#orlandoLandingCopy'))return;
     const copy=document.createElement('div');copy.id='orlandoLandingCopy';copy.className='orlando-landing-copy';
     copy.innerHTML='<span>ORLANDO EARLY ACCESS</span><b>The family helper you don’t know you need — until you need it.</b><small>Tell me your trip once. When the weather changes, everyone gets tired or you suddenly have a few free hours, I’ll help work out what makes sense next.</small>';
     shell.appendChild(copy);
-    const primary=qs('#landingPrimary');if(primary)primary.textContent='Set up my Orlando trip ✦';
   }
 
   function stepWhy(step,icon,html){
@@ -96,7 +96,7 @@
     const onboarding=qs('#onboarding');if(!onboarding)return;
     const hero=qs('.onboarding-hero');
     if(hero){
-      const p=qs(':scope > p',hero);if(p)p.textContent='A few useful details now means less thinking once you’re in Orlando. I’ll remember the people, the pace and the practical bits for the whole trip.';
+      const p=qs(':scope > p',hero);setText(p,'A few useful details now means less thinking once you’re in Orlando. I’ll remember the people, the pace and the practical bits for the whole trip.');
       if(!qs('.orlando-onboarding-badge',hero)){
         const badge=document.createElement('div');badge.className='orlando-onboarding-badge';badge.textContent='ORLANDO FAMILY HOLIDAY SETUP';
         const progress=qs('.setup-progress-wrap',hero);if(progress)hero.insertBefore(badge,progress);
@@ -104,37 +104,37 @@
     }
     const steps=qsa('.setup-step',onboarding);
     if(steps[0]){
-      qs('h3',steps[0]).textContent='Tell me about your Orlando trip';
-      qs('.step-copy',steps[0]).textContent='Just enough to know when you’re there and where the family is starting from.';
-      const labels=qsa('.field-label',steps[0]);if(labels[0])labels[0].textContent='Trip name (optional)';
+      setText(qs('h3',steps[0]),'Tell me about your Orlando trip');
+      setText(qs('.step-copy',steps[0]),'Just enough to know when you’re there and where the family is starting from.');
+      const labels=qsa('.field-label',steps[0]);if(labels[0])setText(labels[0],'Trip name (optional)');
       const family=qs('#setupFamilyName');if(family)family.placeholder='Our Orlando adventure';
-      const home=qs('#setupHomeBase');if(home){home.placeholder='Kissimmee villa, Disney resort, Universal hotel…';const help=home.parentElement?.querySelector('small');if(help)help.textContent='Approximate is fine — this helps make travel suggestions sensible.';}
+      const home=qs('#setupHomeBase');if(home){home.placeholder='Kissimmee villa, Disney resort, Universal hotel…';setText(home.parentElement?.querySelector('small'),'Approximate is fine — this helps make travel suggestions sensible.');}
       const arrival=qs('#setupArrivalDate'),departure=qs('#setupDepartureDate');if(arrival)arrival.required=true;if(departure)departure.required=true;
-      const dateHelp=qs('.field-help',steps[0]);if(dateHelp)dateHelp.textContent='Your dates tell me whether we’re planning ahead, deciding what to do today, or running out of holiday days.';
-      const next=qs('.setup-next',steps[0]);if(next)next.textContent='Who’s coming? →';
-      if(!qs('#orlandoDateError',steps[0])){const err=document.createElement('div');err.id='orlandoDateError';err.className='orlando-date-error';err.setAttribute('role','alert');const help=dateHelp||next;help?.parentNode.insertBefore(err,help?.nextSibling||null);}
+      const dateHelp=qs('.field-help',steps[0]);setText(dateHelp,'Your dates tell me whether we’re planning ahead, deciding what to do today, or running out of holiday days.');
+      setText(qs('.setup-next',steps[0]),'Who’s coming? →');
+      if(!qs('#orlandoDateError',steps[0])){const err=document.createElement('div');err.id='orlandoDateError';err.className='orlando-date-error';err.setAttribute('role','alert');const help=dateHelp||qs('.setup-next',steps[0]);help?.parentNode.insertBefore(err,help?.nextSibling||null);}
       stepWhy(steps[0],'📍','<b>Why I ask:</b> Orlando is spread out. Dates and your base change what is genuinely practical, especially around park days and evening bookings.');
     }
     if(steps[1]){
-      qs('h3',steps[1]).textContent='Who am I planning for?';
-      qs('.step-copy',steps[1]).textContent='Names and ages make this feel personal. Ride-height bands and ride vibe stop me suggesting days that only work for half the family.';
-      const intro=qs('.crew-count-intro small',steps[1]);if(intro)intro.textContent='Keep it quick. Approximate ride height is enough — you can fine-tune profiles later.';
-      const next=qs('.setup-next',steps[1]);if(next)next.textContent='How do you holiday? →';
+      setText(qs('h3',steps[1]),'Who am I planning for?');
+      setText(qs('.step-copy',steps[1]),'Names and ages make this feel personal. Ride-height bands and ride vibe stop me suggesting days that only work for half the family.');
+      setText(qs('.crew-count-intro small',steps[1]),'Keep it quick. Approximate ride height is enough — you can fine-tune profiles later.');
+      setText(qs('.setup-next',steps[1]),'How do you holiday? →');
       stepWhy(steps[1],'👨‍👩‍👧','<b>Why I ask:</b> A good Orlando recommendation has to work for the actual group — not an imaginary average family.');
     }
     if(steps[2]){
-      qs('h3',steps[2]).textContent='How do you want Orlando to feel?';
-      qs('.step-copy',steps[2]).textContent='Two families can stay in the same villa and want completely different holidays. Give me the rough pace, travel range and spending mood.';
-      const maxLabel=qs('.field-group .field-label',steps[2]);if(maxLabel)maxLabel.textContent='How far are you happy to travel?';
+      setText(qs('h3',steps[2]),'How do you want Orlando to feel?');
+      setText(qs('.step-copy',steps[2]),'Two families can stay in the same villa and want completely different holidays. Give me the rough pace, travel range and spending mood.');
+      const maxLabel=qs('.field-group .field-label',steps[2]);if(maxLabel)setText(maxLabel,'How far are you happy to travel?');
       injectPaceControl(steps[2]);
-      const launch=qs('.launch-card',steps[2]);if(launch)launch.innerHTML='<span>✨</span><div><b>That’s enough to start being useful.</b><small>Add bookings, must-dos and extra preferences later. I don’t need you to configure everything before you see value.</small></div>';
-      const submit=qs('button[type="submit"]',steps[2]);if(submit)submit.textContent='Show me what makes sense ✦';
+      const launch=qs('.launch-card',steps[2]);if(launch)setHTML(launch,'<span>✨</span><div><b>That’s enough to start being useful.</b><small>Add bookings, must-dos and extra preferences later. I don’t need you to configure everything before you see value.</small></div>');
+      setText(qs('button[type="submit"]',steps[2]),'Show me what makes sense ✦');
       if(!qs('.orlando-ready-card',steps[2])){const ready=document.createElement('div');ready.className='orlando-ready-card';ready.innerHTML='<span>⚡</span><div><b>Your first payoff is next.</b><small>I’ll show how the same Orlando afternoon changes when I know the family, the weather and a fixed dinner booking.</small></div>';const actions=qs('.setup-actions',steps[2]);if(actions)actions.parentNode.insertBefore(ready,actions);}
     }
     qs('#skipSetup')?.classList.add('orlando-only-hidden');
   }
 
-  function showDateError(message){const el=qs('#orlandoDateError');if(!el)return;el.textContent=message;el.classList.toggle('show',!!message);}
+  function showDateError(message){const el=qs('#orlandoDateError');if(!el)return;setText(el,message);el.classList.toggle('show',!!message);}
   function validateDates(){
     const a=qs('#setupArrivalDate')?.value,d=qs('#setupDepartureDate')?.value;
     if(!a||!d){showDateError('Add your Orlando arrival and departure dates so I know what stage of the trip I’m planning for.');return false;}
@@ -170,13 +170,7 @@
       const next=e.target.closest('.setup-next');if(!next)return;
       const active=qs('.setup-step.active',form);if(active?.dataset.setupStep==='0'&&!validateDates()){e.preventDefault();e.stopImmediatePropagation();qs('#setupArrivalDate')?.focus();}
     },true);
-
-    form.addEventListener('submit',e=>{
-      if(!validateDates()){e.preventDefault();e.stopImmediatePropagation();return;}
-    },true);
-
-    // Registered after the app's normal submit handler, so this enriches the saved profile
-    // rather than replacing the proven onboarding persistence code.
+    form.addEventListener('submit',e=>{if(!validateDates()){e.preventDefault();e.stopImmediatePropagation();}},true);
     form.addEventListener('submit',()=>{
       const pace=qs('#setupOrlandoPace')?.value||'balanced';
       writeProfilePatch({...pacePatch(pace),destinationPreset:'orlando'});
@@ -186,48 +180,46 @@
     });
   }
 
-  function removeDemoShortcuts(){
-    ['#vpLandingDemo','#vpOnboardingDemo'].forEach(sel=>qs(sel)?.remove());
-  }
+  function removeDemoShortcuts(){['#vpLandingDemo','#vpOnboardingDemo'].forEach(sel=>qs(sel)?.remove());}
 
   function personalizationSummary(){
     const p=readProfile(),members=Array.isArray(p.members)?p.members:[];
     const notes=(p.quickNotes||[]).slice(0,2);
     const vibes=[...new Set(members.map(m=>m.thrill).filter(Boolean))];
     const bits=[paceLabel(p.pace||paceFromProfile()),budgetLabel(p.budget)];
-    if(notes.length)bits.push(notes.join(' · '));
-    else if(vibes.length>1)bits.push('mixed ride preferences');
+    if(notes.length)bits.push(notes.join(' · '));else if(vibes.length>1)bits.push('mixed ride preferences');
     return {p,members,bits};
   }
 
   function patchTripMemory(root=document){
     const {p,members,bits}=personalizationSummary();if(!members.length)return;
-    const intro=qs('.vp-memory-intro h2',root);if(intro)intro.textContent=p.familyName||'Our Orlando vacation';
+    setText(qs('.vp-memory-intro h2',root),p.familyName||'Our Orlando vacation');
     const sections=qsa('.vp-memory-grid section',root);
     if(sections[0]){
-      const b=qs('b',sections[0]),small=qs('small',sections[0]);
       const dates=p.arrivalDate&&p.departureDate?`${p.arrivalDate} → ${p.departureDate}`:'Dates saved';
-      if(b)b.textContent=`Orlando · ${dates}`;if(small)small.innerHTML=`${p.homeBase?`${p.homeBase}<br>`:''}Central Florida family trip`;
+      setText(qs('b',sections[0]),`Orlando · ${dates}`);
+      setHTML(qs('small',sections[0]),`${p.homeBase?`${escapeForDemo(p.homeBase)}<br>`:''}Central Florida family trip`);
     }
-    if(sections[1]){const b=qs('b',sections[1]),small=qs('small',sections[1]);if(b)b.textContent=bits.slice(0,2).join(' · ');if(small)small.textContent=bits.slice(2).join(' · ')||'I’ll keep adapting as you make decisions.';}
-    const list=qs('.vp-traveller-list',root);if(list)list.innerHTML=members.map((m,i)=>`<div><b>${escapeForDemo(m.name||`Traveller ${i+1}`)} · ${Number.isFinite(+m.age)?+m.age:'Age not set'}</b><small>${heightBandLabel(m.heightBand)} · ${thrillLabel(m.thrill)}</small></div>`).join('');
+    if(sections[1]){setText(qs('b',sections[1]),bits.slice(0,2).join(' · '));setText(qs('small',sections[1]),bits.slice(2).join(' · ')||'I’ll keep adapting as you make decisions.');}
+    const list=qs('.vp-traveller-list',root);if(list){const desired=members.map((m,i)=>`<div><b>${escapeForDemo(m.name||`Traveller ${i+1}`)} · ${Number.isFinite(+m.age)?+m.age:'Age not set'}</b><small>${heightBandLabel(m.heightBand)} · ${thrillLabel(m.thrill)}</small></div>`).join('');setHTML(list,desired);}
   }
   function escapeForDemo(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
   function personalizeDecisionExperience(){
     const {p,members,bits}=personalizationSummary();const count=members.length;
-    const greeting=qs('#todayGreeting');if(greeting&&p.familyName)greeting.textContent=p.familyName;
-    const greetingCopy=qs('#todayGreetingCopy');if(greetingCopy)greetingCopy.textContent='I’ve got your Orlando trip and your crew. You shouldn’t have to explain the holiday again every time you need a decision.';
-    const memory=qs('#vpDecisionHome .vp-memory-card');if(memory){const b=qs('b',memory),small=qs('small',memory);if(b)b.textContent=`${count||'Your'} traveller${count===1?'':'s'} · Orlando trip remembered`;if(small)small.textContent=bits.join(' · ');}
-    const reason=qs('.vp-reason-hero p');if(reason)reason.textContent='I’ve ruled out outdoor plans after 3 PM. I’m also avoiding options that are a weak fit for the crew’s ride-height mix, ride preferences and lower-energy afternoon.';
-    qsa('.vp-rec-facts').forEach(f=>{const spans=qsa('span',f);const last=spans[spans.length-1];if(last&&count)last.textContent=`👨‍👩‍👧 Whole group · ${count} traveller${count===1?'':'s'}`;});
+    if(p.familyName)setText(qs('#todayGreeting'),p.familyName);
+    setText(qs('#todayGreetingCopy'),'I’ve got your Orlando trip and your crew. You shouldn’t have to explain the holiday again every time you need a decision.');
+    const memory=qs('#vpDecisionHome .vp-memory-card');if(memory){setText(qs('b',memory),`${count||'Your'} traveller${count===1?'':'s'} · Orlando trip remembered`);setText(qs('small',memory),bits.join(' · '));}
+    setText(qs('.vp-reason-hero p'),'I’ve ruled out outdoor plans after 3 PM. I’m also avoiding options that are a weak fit for the crew’s ride-height mix, ride preferences and lower-energy afternoon.');
+    qsa('.vp-rec-facts').forEach(f=>{const spans=qsa('span',f);const last=spans[spans.length-1];if(last&&count)setText(last,`👨‍👩‍👧 Whole group · ${count} traveller${count===1?'':'s'}`);});
     patchTripMemory(document);
   }
 
   function observeDemo(){
-    const observer=new MutationObserver(()=>{removeDemoShortcuts();personalizeDecisionExperience();});
-    observer.observe(document.body,{childList:true,subtree:true});
-    document.addEventListener('click',e=>{if(e.target.closest('[data-vp-open]'))setTimeout(personalizeDecisionExperience,0);});
+    let scheduled=false;
+    const sync=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;removeDemoShortcuts();personalizeDecisionExperience();});};
+    const observer=new MutationObserver(sync);observer.observe(document.body,{childList:true,subtree:true});
+    document.addEventListener('click',e=>{if(e.target.closest('[data-vp-open]'))setTimeout(sync,0);});
   }
 
   function renderSmokeStatus(){
@@ -248,12 +240,17 @@
   }
 
   async function init(){
+    const onboarded=!!localStorage.getItem('ffvp_onboarded');
+    if(onboarded){
+      localStorage.removeItem('ffvp_force_landing');localStorage.removeItem('ffvp_force_onboarding');
+      qs('#landingScreen')?.classList.add('hidden');qs('#onboarding')?.classList.add('hidden');
+    }
+
     loadStyle(`/decision-demo.css?v=${VERSION}`,'vpDecisionDemoCss');
     loadStyle(`/orlando-early-access.css?v=${VERSION}`,'vpOrlandoEarlyAccessCss');
     markOrlandoOnly();addLandingPositioning();rewriteOnboarding();wireOnboarding();observeDemo();
 
-    // First-time users see the proposition before setup; returning users keep their trip.
-    if(!localStorage.getItem('ffvp_onboarded')){
+    if(!onboarded){
       qs('#onboarding')?.classList.add('hidden');
       if(typeof showLanding==='function')showLanding();else qs('#landingScreen')?.classList.remove('hidden');
       addLandingPositioning();
@@ -263,7 +260,6 @@
     catch(e){console.error('Decision experience failed to load',e);}
     setTimeout(()=>{removeDemoShortcuts();personalizeDecisionExperience();renderSmokeStatus();},40);
 
-    // Keep the current Family UI test: it reduces profile-management friction without changing the data model.
     try{await loadScript('/family-ui-test.js?v=3','vpFamilyUiTestRuntime');}catch(e){console.warn('Family UI test did not load',e);}
     setTimeout(renderSmokeStatus,80);
   }
