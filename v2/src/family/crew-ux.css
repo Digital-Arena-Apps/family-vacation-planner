@@ -1,0 +1,107 @@
+/* Family roster polish: keep the cards compact and readable on phones. */
+
+@media (max-width: 560px) {
+  .crew-summary {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 18px;
+  }
+
+  .crew-summary-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .crew-summary-copy b {
+    font-size: .9rem;
+  }
+
+  .crew-summary-copy span {
+    margin-top: 1px;
+    font-size: .67rem;
+  }
+
+  .family-list {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .member-card {
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 0;
+    border-radius: 18px;
+  }
+
+  .drag-handle {
+    min-width: 28px;
+  }
+
+  .drag-handle i {
+    width: 12px;
+    height: 2px;
+  }
+
+  .member-main {
+    grid-template-columns: 44px minmax(0, 1fr) 12px;
+    gap: 9px;
+    padding: 9px 11px 9px 9px;
+    align-items: center;
+  }
+
+  .member-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: .96rem;
+  }
+
+  .member-copy {
+    gap: 4px;
+  }
+
+  .member-title b {
+    font-size: .96rem;
+    line-height: 1.15;
+  }
+
+  .member-title small {
+    margin-top: 1px;
+    font-size: .69rem;
+  }
+
+  .member-meta {
+    flex-wrap: nowrap;
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+    font-size: .66rem;
+  }
+
+  .member-meta > span:first-child,
+  .thrill {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 4px 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.05;
+  }
+
+  .member-note {
+    font-size: .67rem;
+  }
+
+  .member-chevron {
+    font-size: 1.2rem;
+  }
+
+  .family-fab {
+    width: 52px;
+    height: 52px;
+    right: 16px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    font-size: 1.8rem;
+  }
+}
