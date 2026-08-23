@@ -1,4 +1,4 @@
-// V2.5.3 demo bootstrap: clean first-use onboarding before the focused decision-engine scenario.
+// V2.5.5 demo bootstrap: clean first-use onboarding before the focused decision-engine scenario.
 (async()=>{
   const DEMO_SESSION_KEY='vp_v253_clean_session';
   const chunks={
@@ -17,7 +17,6 @@
       'ffvp_force_landing'
     ];
     resetKeys.forEach(k=>localStorage.removeItem(k));
-    // Remove only prior decision-demo state; leave unrelated UI preferences such as language alone.
     for(let i=localStorage.length-1;i>=0;i--){
       const key=localStorage.key(i);
       if(key && (/demo/i.test(key)||key.startsWith('vp_')))localStorage.removeItem(key);
@@ -48,7 +47,7 @@
     if(document.getElementById('vpFamilyUiTestRuntime'))return;
     const script=document.createElement('script');
     script.id='vpFamilyUiTestRuntime';
-    script.src='/family-ui-test.js?v=1';
+    script.src='/family-ui-test.js?v=2';
     script.async=false;
     document.body.appendChild(script);
   }
@@ -83,8 +82,6 @@
     script.textContent=js;
     document.body.appendChild(script);
 
-    // The Orlando scenario is the deliberate wedge for this demonstration. Keep the onboarding
-    // experience real, but prevent a destination choice that would contradict the seeded demo data.
     const destination=document.querySelector('#setupDestinationPreset');
     if(destination){
       destination.value='orlando';
@@ -93,18 +90,15 @@
       if(help)help.textContent='This decision-engine demo is set in Orlando / Central Florida.';
     }
 
-    // Landing is shown only to introduce the product; after the viewer starts, do not force it again.
     document.querySelector('#landingPrimary')?.addEventListener('click',()=>{
       localStorage.removeItem('ffvp_force_landing');
     },{once:true});
 
-    // Completing onboarding is the gate into the seeded decision-engine scenario.
     document.querySelector('#onboardingForm')?.addEventListener('submit',()=>{
       localStorage.removeItem('ffvp_force_landing');
       setTimeout(()=>launchWhenReady(),120);
     });
 
-    // If the viewer refreshes after completing onboarding in this same browser session, resume the demo.
     if(localStorage.getItem('ffvp_onboarded'))setTimeout(()=>launchWhenReady(),120);
 
     loadFamilyUiTest();
