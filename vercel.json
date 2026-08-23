@@ -15,6 +15,7 @@
     {"src": "decision-demo.js", "use": "@vercel/static"},
     {"src": "decision-demo.css", "use": "@vercel/static"},
     {"src": "orlando-early-access.css", "use": "@vercel/static"},
+    {"src": "base-location.js", "use": "@vercel/static"},
     {"src": "family-ui-test.js", "use": "@vercel/static"},
     {"src": ".demo-build/js1.txt", "use": "@vercel/static"},
     {"src": ".demo-build/js2.txt", "use": "@vercel/static"},
@@ -46,6 +47,7 @@
     {"source": "/decision-demo.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
     {"source": "/decision-demo.css", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
     {"source": "/orlando-early-access.css", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
+    {"source": "/base-location.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
     {"source": "/family-ui-test.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]}
   ]
 }
