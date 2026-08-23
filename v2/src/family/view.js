@@ -1,14 +1,9 @@
+import { AVATAR_OPTIONS, avatarMarkup, normaliseAvatar } from './avatars.js';
+
 function esc(value = '') {
   return String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
-}
-
-function initials(name, fallback) {
-  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return fallback;
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts.at(-1)[0]}`.toUpperCase();
 }
 
 function heightLabel(value) {
@@ -96,11 +91,17 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
       <wa-drawer id="memberDrawer" placement="bottom" label="Add person" class="member-drawer">
         <form id="memberForm" class="member-form">
           <input id="memberId" type="hidden" />
+          <input id="memberAvatar" type="hidden" value="explorer" />
 
           <label class="field span-2">
             <span>Name / nickname</span>
             <input id="memberName" type="text" maxlength="25" autocomplete="off" placeholder="e.g. Alex" required />
           </label>
+
+          <div class="field span-2 avatar-field">
+            <span>Choose their travel character</span>
+            <div id="avatarPicker" class="avatar-picker" role="radiogroup" aria-label="Choose traveller avatar"></div>
+          </div>
 
           <label class="field">
             <span>Age</span>
@@ -169,6 +170,8 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
   const drawer = root.querySelector('#memberDrawer');
   const form = root.querySelector('#memberForm');
   const memberId = root.querySelector('#memberId');
+  const memberAvatar = root.querySelector('#memberAvatar');
+  const avatarPicker = root.querySelector('#avatarPicker');
   const memberName = root.querySelector('#memberName');
   const memberAge = root.querySelector('#memberAge');
   const memberRole = root.querySelector('#memberRole');
@@ -188,6 +191,17 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
     toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
+  function renderAvatarPicker(selected) {
+    const active = normaliseAvatar(selected);
+    memberAvatar.value = active;
+    avatarPicker.innerHTML = AVATAR_OPTIONS.map(option => `
+      <button class="avatar-choice ${option.id === active ? 'active' : ''}" type="button" role="radio" aria-checked="${option.id === active}" data-avatar="${option.id}">
+        <span>${avatarMarkup(option.id, { label: option.label })}</span>
+        <small>${option.label}</small>
+      </button>
+    `).join('');
+  }
+
   function render() {
     const members = store.list();
     const adults = members.filter(member => member.role === 'adult').length;
@@ -201,16 +215,15 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
       foodNeedsSummary.textContent = names.length <= 2 ? names.join(' & ') : `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
     }
 
-    list.innerHTML = members.map((member, index) => {
+    list.innerHTML = members.map(member => {
       const thrill = thrillMeta(member.thrill);
-      const fallback = member.role === 'adult' ? `A${index + 1}` : `C${index + 1}`;
       const note = member.notes ? `<span class="member-note">${esc(member.notes)}</span>` : '';
       const food = member.dietary?.enabled ? '<span class="member-food">Food needs</span>' : '';
       return `
         <article class="member-card" data-member-id="${esc(member.id)}">
           <button class="drag-handle" type="button" aria-label="Reorder ${esc(member.name)}" title="Drag to reorder"><i></i><i></i><i></i></button>
           <button class="member-main" type="button" data-edit-member="${esc(member.id)}">
-            <span class="member-avatar ${member.role}">${esc(initials(member.name, fallback))}</span>
+            <span class="member-avatar illustrated">${avatarMarkup(member.avatar, { label: `${member.name} avatar` })}</span>
             <span class="member-copy">
               <span class="member-title"><b>${esc(member.name)}</b><small>${roleLabel(member)} · Age ${member.age}</small></span>
               <span class="member-meta"><span>${esc(heightLabel(member.heightBand))}</span><span class="thrill ${member.thrill}">${thrill.icon} ${thrill.label}</span>${food}</span>
@@ -234,6 +247,7 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
     memberHeightBand.value = member?.heightBand || 'unknown';
     memberDietaryEnabled.value = member?.dietary?.enabled ? 'yes' : 'no';
     memberNotes.value = member?.notes || '';
+    renderAvatarPicker(member?.avatar || AVATAR_OPTIONS[store.list().length % AVATAR_OPTIONS.length].id);
     deleteButton.hidden = !editing;
     drawer.open = true;
     requestAnimationFrame(() => memberName.focus());
@@ -248,6 +262,7 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
       ...existing,
       id: memberId.value || undefined,
       name: memberName.value,
+      avatar: memberAvatar.value,
       age: memberAge.value,
       role: memberRole.value,
       thrill: memberThrill.value,
@@ -264,6 +279,13 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
       setTimeout(() => options.onDietary?.(saved.id), 180);
     }
   }
+
+  avatarPicker.addEventListener('click', event => {
+    const button = event.target.closest('[data-avatar]');
+    if (!button) return;
+    renderAvatarPicker(button.dataset.avatar);
+    button.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  });
 
   root.querySelector('#addPersonTop').addEventListener('click', () => openMember());
   root.querySelector('#familyFab').addEventListener('click', () => openMember());
@@ -312,6 +334,7 @@ export function mountFamilyScreen(root, store, Sortable, options = {}) {
 
   const unsubscribe = store.subscribe(render);
   render();
+  renderAvatarPicker('explorer');
 
   return () => {
     unsubscribe();
