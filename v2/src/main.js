@@ -4,9 +4,11 @@ import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/drawer/drawer.js';
 import Sortable from 'sortablejs';
 import './styles.css';
+import './brand/styles.css';
 import './family/crew-ux.css';
 import './family/avatar-ux.css';
 import './family/dietary-trigger.css';
+import { applyFerdaBranding } from './brand/apply.js';
 import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
 import { enhanceMemberEditor } from './family/editor-ux.js';
@@ -38,6 +40,7 @@ function showFamily() {
   });
   const editorCleanup = enhanceMemberEditor(root);
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
+  applyFerdaBranding(root);
   cleanup = [viewCleanup, editorCleanup, preferencesCleanup];
   scrollTop();
 }
@@ -48,6 +51,7 @@ function showDietary(memberId) {
     memberId,
     onBack: showFamily
   });
+  applyFerdaBranding(root);
   cleanup = [dietaryCleanup];
   scrollTop();
 }
@@ -58,6 +62,7 @@ function showPreferences() {
     onBack: showFamily,
     onRemount: showPreferences
   });
+  applyFerdaBranding(root);
   cleanup = [preferencesCleanup];
   scrollTop();
 }
