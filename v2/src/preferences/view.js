@@ -1,5 +1,13 @@
 import './styles.css';
-import ART from './artwork-data.js';
+import ART_BASE from './artwork-data.js';
+import BUDGET_ART from './artwork-budget.js';
+import DISCOVERY_ART from './artwork-discovery.js';
+
+const ART = {
+  ...ART_BASE,
+  budget: BUDGET_ART,
+  discovery: DISCOVERY_ART
+};
 
 const GROUPS = {
   pace: {
