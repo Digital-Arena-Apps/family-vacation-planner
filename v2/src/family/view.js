@@ -34,7 +34,13 @@ function roleLabel(member) {
   return member.role === 'child' ? 'Child' : 'Adult';
 }
 
-export function mountFamilyScreen(root, store, Sortable) {
+function dietaryConfigured(dietary) {
+  return !!dietary && (
+    dietary.types?.length || dietary.avoids?.length || dietary.crossContact || dietary.notes
+  );
+}
+
+export function mountFamilyScreen(root, store, Sortable, options = {}) {
   root.innerHTML = `
     <div class="v2-shell">
       <header class="v2-topbar">
@@ -60,9 +66,15 @@ export function mountFamilyScreen(root, store, Sortable) {
 
         <section id="familyList" class="family-list" aria-label="Family members"></section>
 
+        <button id="foodNeedsRow" class="preference-row food-needs-row" type="button" hidden>
+          <span class="preference-icon">⌁</span>
+          <span><b>Food & dietary needs</b><small id="foodNeedsSummary"></small></span>
+          <span class="preference-action">Manage ›</span>
+        </button>
+
         <button id="familyPreferences" class="preference-row" type="button">
           <span class="preference-icon">⚙</span>
-          <span><b>Trip & family preferences</b><small>Budget, dietary notes, accessibility and holiday pace</small></span>
+          <span><b>Trip & family preferences</b><small>Budget, accessibility and holiday pace</small></span>
           <span class="preference-action">Coming next ›</span>
         </button>
 
@@ -123,9 +135,18 @@ export function mountFamilyScreen(root, store, Sortable) {
             </select>
           </label>
 
+          <label class="field span-2 dietary-question">
+            <span>Any food allergies, intolerances or dietary needs?</span>
+            <select id="memberDietaryEnabled">
+              <option value="no">No</option>
+              <option value="yes">Yes — set food needs</option>
+            </select>
+            <small class="field-hint">If yes, we’ll ask a few focused questions after saving and use them in food recommendations later.</small>
+          </label>
+
           <label class="field span-2">
-            <span>Anything useful to remember <em>optional</em></span>
-            <textarea id="memberNotes" rows="3" maxlength="180" placeholder="Gluten-free, stroller, gets motion sick, early riser…"></textarea>
+            <span>Anything else useful to remember <em>optional</em></span>
+            <textarea id="memberNotes" rows="3" maxlength="180" placeholder="Stroller, gets motion sick, early riser…"></textarea>
           </label>
         </form>
 
@@ -143,6 +164,8 @@ export function mountFamilyScreen(root, store, Sortable) {
 
   const list = root.querySelector('#familyList');
   const count = root.querySelector('#crewCount');
+  const foodNeedsRow = root.querySelector('#foodNeedsRow');
+  const foodNeedsSummary = root.querySelector('#foodNeedsSummary');
   const drawer = root.querySelector('#memberDrawer');
   const form = root.querySelector('#memberForm');
   const memberId = root.querySelector('#memberId');
@@ -151,6 +174,7 @@ export function mountFamilyScreen(root, store, Sortable) {
   const memberRole = root.querySelector('#memberRole');
   const memberThrill = root.querySelector('#memberThrill');
   const memberHeightBand = root.querySelector('#memberHeightBand');
+  const memberDietaryEnabled = root.querySelector('#memberDietaryEnabled');
   const memberNotes = root.querySelector('#memberNotes');
   const deleteButton = root.querySelector('#deleteMember');
   const toast = root.querySelector('#v2Toast');
@@ -168,12 +192,20 @@ export function mountFamilyScreen(root, store, Sortable) {
     const members = store.list();
     const adults = members.filter(member => member.role === 'adult').length;
     const children = members.length - adults;
+    const dietaryMembers = members.filter(member => member.dietary?.enabled);
     count.textContent = `${members.length} traveller${members.length === 1 ? '' : 's'} · ${adults} adult${adults === 1 ? '' : 's'}${children ? ` · ${children} younger` : ''}`;
+
+    foodNeedsRow.hidden = dietaryMembers.length === 0;
+    if (dietaryMembers.length) {
+      const names = dietaryMembers.map(member => member.name);
+      foodNeedsSummary.textContent = names.length <= 2 ? names.join(' & ') : `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
+    }
 
     list.innerHTML = members.map((member, index) => {
       const thrill = thrillMeta(member.thrill);
       const fallback = member.role === 'adult' ? `A${index + 1}` : `C${index + 1}`;
       const note = member.notes ? `<span class="member-note">${esc(member.notes)}</span>` : '';
+      const food = member.dietary?.enabled ? '<span class="member-food">Food needs</span>' : '';
       return `
         <article class="member-card" data-member-id="${esc(member.id)}">
           <button class="drag-handle" type="button" aria-label="Reorder ${esc(member.name)}" title="Drag to reorder"><i></i><i></i><i></i></button>
@@ -181,7 +213,7 @@ export function mountFamilyScreen(root, store, Sortable) {
             <span class="member-avatar ${member.role}">${esc(initials(member.name, fallback))}</span>
             <span class="member-copy">
               <span class="member-title"><b>${esc(member.name)}</b><small>${roleLabel(member)} · Age ${member.age}</small></span>
-              <span class="member-meta"><span>${esc(heightLabel(member.heightBand))}</span><span class="thrill ${member.thrill}">${thrill.icon} ${thrill.label}</span></span>
+              <span class="member-meta"><span>${esc(heightLabel(member.heightBand))}</span><span class="thrill ${member.thrill}">${thrill.icon} ${thrill.label}</span>${food}</span>
               ${note}
             </span>
             <span class="member-chevron">›</span>
@@ -200,6 +232,7 @@ export function mountFamilyScreen(root, store, Sortable) {
     memberRole.value = member?.role || 'adult';
     memberThrill.value = member?.thrill || 'medium';
     memberHeightBand.value = member?.heightBand || 'unknown';
+    memberDietaryEnabled.value = member?.dietary?.enabled ? 'yes' : 'no';
     memberNotes.value = member?.notes || '';
     deleteButton.hidden = !editing;
     drawer.open = true;
@@ -208,17 +241,28 @@ export function mountFamilyScreen(root, store, Sortable) {
 
   function saveCurrent() {
     if (!form.reportValidity()) return;
-    store.save({
+    const existing = memberId.value ? store.get(memberId.value) : null;
+    const dietaryEnabled = memberDietaryEnabled.value === 'yes';
+    const shouldOpenDietary = dietaryEnabled && (!existing?.dietary?.enabled || !dietaryConfigured(existing?.dietary));
+    const saved = store.save({
+      ...existing,
       id: memberId.value || undefined,
       name: memberName.value,
       age: memberAge.value,
       role: memberRole.value,
       thrill: memberThrill.value,
       heightBand: memberHeightBand.value,
+      dietary: {
+        ...(existing?.dietary || {}),
+        enabled: dietaryEnabled
+      },
       notes: memberNotes.value
     });
     drawer.open = false;
-    showToast(memberId.value ? 'Person updated' : 'Person added');
+    showToast(existing ? 'Person updated' : 'Person added');
+    if (shouldOpenDietary) {
+      setTimeout(() => options.onDietary?.(saved.id), 180);
+    }
   }
 
   root.querySelector('#addPersonTop').addEventListener('click', () => openMember());
@@ -226,6 +270,11 @@ export function mountFamilyScreen(root, store, Sortable) {
   root.querySelector('#cancelMember').addEventListener('click', () => { drawer.open = false; });
   root.querySelector('#saveMember').addEventListener('click', saveCurrent);
   form.addEventListener('submit', event => { event.preventDefault(); saveCurrent(); });
+
+  foodNeedsRow.addEventListener('click', () => {
+    const first = store.list().find(member => member.dietary?.enabled);
+    if (first) options.onDietary?.(first.id);
+  });
 
   deleteButton.addEventListener('click', () => {
     if (!memberId.value) return;
@@ -245,7 +294,7 @@ export function mountFamilyScreen(root, store, Sortable) {
     if (member) openMember(member);
   });
 
-  new Sortable(list, {
+  const sortable = new Sortable(list, {
     animation: 180,
     handle: '.drag-handle',
     ghostClass: 'drag-ghost',
@@ -261,6 +310,12 @@ export function mountFamilyScreen(root, store, Sortable) {
     }
   });
 
-  store.subscribe(render);
+  const unsubscribe = store.subscribe(render);
   render();
+
+  return () => {
+    unsubscribe();
+    sortable.destroy();
+    clearTimeout(toastTimer);
+  };
 }
