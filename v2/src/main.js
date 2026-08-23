@@ -11,8 +11,12 @@ import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
 import { enhanceMemberEditor } from './family/editor-ux.js';
 import { mountDietaryScreen } from './dietary/view.js';
+import { createTripPreferencesStore } from './preferences/store.js';
+import { mountPreferencesScreen } from './preferences/view.js';
+import { wirePreferencesRow } from './preferences/trigger.js';
 
 const store = createFamilyStore();
+const preferencesStore = createTripPreferencesStore();
 const root = document.querySelector('#app');
 let cleanup = [];
 
@@ -23,14 +27,19 @@ function unmount() {
   cleanup = [];
 }
 
+function scrollTop() {
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
 function showFamily() {
   unmount();
   const viewCleanup = mountFamilyScreen(root, store, Sortable, {
     onDietary: memberId => showDietary(memberId)
   });
   const editorCleanup = enhanceMemberEditor(root);
-  cleanup = [viewCleanup, editorCleanup];
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
+  cleanup = [viewCleanup, editorCleanup, preferencesCleanup];
+  scrollTop();
 }
 
 function showDietary(memberId) {
@@ -40,7 +49,17 @@ function showDietary(memberId) {
     onBack: showFamily
   });
   cleanup = [dietaryCleanup];
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  scrollTop();
+}
+
+function showPreferences() {
+  unmount();
+  const preferencesCleanup = mountPreferencesScreen(root, preferencesStore, {
+    onBack: showFamily,
+    onRemount: showPreferences
+  });
+  cleanup = [preferencesCleanup];
+  scrollTop();
 }
 
 showFamily();
