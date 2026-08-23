@@ -1,88 +1,28 @@
-.ferda-topbar {
-  min-height: 68px;
-}
-
-.ferda-brand {
-  gap: 12px;
-}
-
-.ferda-brand-mark {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 14px;
-  color: #fff;
-  font-size: 1.02rem;
-  font-weight: 950;
-  background: linear-gradient(145deg, #159a91, #076e68);
-  box-shadow: 0 9px 24px rgba(8, 113, 107, .24);
-}
-
-.ferda-brand-mark img,
-.ferda-ui-image img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.ferda-brand-mark.asset-missing img,
-.ferda-ui-image.asset-missing img {
-  display: none;
-}
-
-.ferda-brand-copy {
-  min-width: 0;
-  display: block;
-}
-
-.ferda-brand-copy b {
-  display: block;
-  color: var(--ink);
-  font-size: 1.02rem;
-  line-height: 1.05;
-  font-weight: 950;
-  letter-spacing: .08em;
-}
-
-.ferda-brand-copy small {
-  display: block;
-  margin-top: 4px;
-  color: var(--teal);
-  font-size: .55rem;
-  line-height: 1.1;
-  font-weight: 900;
-  letter-spacing: .11em;
-  white-space: nowrap;
-}
-
-.ferda-asset-fallback {
-  position: relative;
-  z-index: 0;
-}
-
-.ferda-ui-image {
-  position: relative;
-  overflow: hidden;
-}
-
-.ferda-ui-image img {
-  border-radius: inherit;
-}
-
-.ferda-eyebrow {
-  color: var(--teal-dark);
-}
-
+.ferda-topbar { height: auto; min-height: 0; padding-top: 10px; padding-bottom: 10px; }
+.ferda-brand { gap: 10px; }
+.ferda-brand-mark { position: relative; width: 52px; height: 38px; flex: 0 0 52px; display: grid; place-items: center; overflow: hidden; border-radius: 12px; color: #fff; font-weight: 950; background: var(--ferda-teal); box-shadow: 0 7px 18px rgba(7,83,79,.16); }
+.ferda-brand-mark img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; }
+.ferda-brand-copy { min-width: 0; display: block; }
+.ferda-brand-copy b { display: block; color: var(--ink); font-size: 1rem; line-height: 1; font-weight: 950; letter-spacing: .09em; }
+.ferda-brand-copy small { display: block; margin-top: 4px; color: var(--ferda-teal); font-size: .52rem; line-height: 1.1; font-weight: 900; letter-spacing: .10em; white-space: nowrap; }
+.ferda-asset-fallback { position: relative; z-index: 0; }
+.ferda-ui-image, .ferda-button-icon, .ferda-nav-icon { position: relative; display: inline-grid; place-items: center; overflow: hidden; }
+.ferda-ui-image img, .ferda-button-icon img, .ferda-nav-icon img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; }
+.ferda-ui-image.asset-missing img, .ferda-button-icon.asset-missing img, .ferda-nav-icon.asset-missing img, .ferda-brand-mark.asset-missing img { display: none; }
+.ferda-ui-image:not(.asset-missing) > .ferda-asset-fallback, .ferda-button-icon:not(.asset-missing) > .ferda-asset-fallback { opacity: 0; }
+.ferda-eyebrow { color: var(--ferda-teal-dark); }
+.crew-summary-icon.ferda-ui-image { width: 46px; height: 46px; border-radius: 14px; background: var(--ferda-mint); }
+.preference-icon.ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
+.ferda-button-icon { width: 23px; height: 23px; margin-right: 5px; vertical-align: middle; }
+.ferda-nav-icon { width: 28px; height: 28px; }
+.v2-nav button.active .ferda-nav-icon { transform: translateY(-1px); }
+.dietary-principle > .ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
 @media (max-width: 560px) {
-  .ferda-topbar { min-height: 64px; }
-  .ferda-brand-mark { width: 42px; height: 42px; flex-basis: 42px; }
-  .ferda-brand-copy b { font-size: .98rem; }
-  .ferda-brand-copy small { font-size: .5rem; letter-spacing: .09em; }
+  .ferda-topbar { padding-top: 9px; padding-bottom: 9px; }
+  .ferda-brand-mark { width: 48px; height: 35px; flex-basis: 48px; }
+  .ferda-brand-copy b { font-size: .96rem; }
+  .ferda-brand-copy small { font-size: .48rem; letter-spacing: .085em; }
+  .crew-summary-icon.ferda-ui-image { width: 44px; height: 44px; }
+  .preference-icon.ferda-ui-image { width: 42px; height: 42px; }
+  .ferda-nav-icon { width: 27px; height: 27px; }
 }
