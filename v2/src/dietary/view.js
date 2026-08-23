@@ -1,4 +1,5 @@
 import './styles.css';
+import { avatarMarkup } from '../family/avatars.js';
 
 const TYPE_OPTIONS = [
   ['allergy', 'Food allergy', 'Allergen information and preparation controls matter.'],
@@ -26,14 +27,6 @@ function esc(value = '') {
   return String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
-}
-
-function initials(name = '') {
-  const parts = String(name).trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  return parts.length === 1
-    ? parts[0].slice(0, 2).toUpperCase()
-    : `${parts[0][0]}${parts.at(-1)[0]}`.toUpperCase();
 }
 
 function selectedValues(form, name) {
@@ -88,7 +81,7 @@ export function mountDietaryScreen(root, store, options = {}) {
     if (!members.some(member => member.id === selectedId)) selectedId = members[0].id;
     people.innerHTML = members.map(member => `
       <button class="dietary-person ${member.id === selectedId ? 'active' : ''}" type="button" data-dietary-person="${esc(member.id)}">
-        <span class="dietary-avatar ${member.role}">${esc(initials(member.name))}</span>
+        <span class="dietary-avatar illustrated">${avatarMarkup(member.avatar, { label: `${member.name} avatar` })}</span>
         <span><b>${esc(member.name)}</b><small>${member.dietary.types?.length || member.dietary.avoids?.length ? 'Needs set' : 'Needs details'}</small></span>
       </button>
     `).join('');
@@ -113,7 +106,7 @@ export function mountDietaryScreen(root, store, options = {}) {
       <form id="dietaryForm" class="dietary-form">
         <div class="dietary-editor-heading">
           <div><span class="section-kicker">SETTING UP</span><h2>${esc(member.name)}</h2></div>
-          <span class="dietary-avatar ${member.role}">${esc(initials(member.name))}</span>
+          <span class="dietary-avatar illustrated">${avatarMarkup(member.avatar, { label: `${member.name} avatar` })}</span>
         </div>
 
         <fieldset class="dietary-section">
