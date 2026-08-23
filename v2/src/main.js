@@ -4,6 +4,7 @@ import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/drawer/drawer.js';
 import Sortable from 'sortablejs';
 import './styles.css';
+import './family/crew-ux.css';
 import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
 import { enhanceMemberEditor } from './family/editor-ux.js';
