@@ -1,0 +1,88 @@
+.ferda-topbar {
+  min-height: 68px;
+}
+
+.ferda-brand {
+  gap: 12px;
+}
+
+.ferda-brand-mark {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 1.02rem;
+  font-weight: 950;
+  background: linear-gradient(145deg, #159a91, #076e68);
+  box-shadow: 0 9px 24px rgba(8, 113, 107, .24);
+}
+
+.ferda-brand-mark img,
+.ferda-ui-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.ferda-brand-mark.asset-missing img,
+.ferda-ui-image.asset-missing img {
+  display: none;
+}
+
+.ferda-brand-copy {
+  min-width: 0;
+  display: block;
+}
+
+.ferda-brand-copy b {
+  display: block;
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.05;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.ferda-brand-copy small {
+  display: block;
+  margin-top: 4px;
+  color: var(--teal);
+  font-size: .55rem;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: .11em;
+  white-space: nowrap;
+}
+
+.ferda-asset-fallback {
+  position: relative;
+  z-index: 0;
+}
+
+.ferda-ui-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.ferda-ui-image img {
+  border-radius: inherit;
+}
+
+.ferda-eyebrow {
+  color: var(--teal-dark);
+}
+
+@media (max-width: 560px) {
+  .ferda-topbar { min-height: 64px; }
+  .ferda-brand-mark { width: 42px; height: 42px; flex-basis: 42px; }
+  .ferda-brand-copy b { font-size: .98rem; }
+  .ferda-brand-copy small { font-size: .5rem; letter-spacing: .09em; }
+}
