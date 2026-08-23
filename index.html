@@ -220,76 +220,314 @@
           </div>
         </section>
 
-        <section id="sponsoredTestSlot" class="sponsored-test hidden" aria-label="Test sponsored placement">
-          <div><span>SPONSORED · TEST PLACEMENT</span><b>Airport parking, attraction deal or family travel partner</b><small>Explorer only. Never changes which places the planner recommends.</small></div><button id="dismissSponsoredTest" type="button" aria-label="Hide test sponsored placement">×</button>
+        <section id="recommendations" class="section-block hidden">
+          <div class="section-title-row"><div><div id="recommendationsEyebrow" class="eyebrow">A FEW GOOD BETS</div><h2 id="recommendationsTitle">Here’s what looks good</h2></div><button id="rerunBtn" class="text-btn">Mix it up</button></div>
+          <p id="recommendationsContext" class="recommendations-context">Close enough to be worth it, with enough time left to enjoy it.</p>
+          <div id="recommendationList" class="card-list"></div>
         </section>
 
-        <section id="quickSection" class="section-block">
-          <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2 id="quickTitle">What are you in the mood for?</h2><p id="quickCopy">Pick the vibe and I’ll look for places nearby that suit it.</p></div></div>
-          <div class="quick-grid six-grid mood-grid">
-            <button class="quick-card" data-tag="chill"><span class="quick-symbol mood-chill">♨</span><b>Chill & Recharge</b><small>Villa, spa, beach, scenic downtime</small></button>
-            <button class="quick-card" data-tag="indoor"><span class="quick-symbol mood-indoor">▣</span><b>Indoor & Easy</b><small>Air-con, museums, cinema, bowling</small></button>
-            <button class="quick-card" data-tag="food"><span class="quick-symbol mood-food">♨</span><b>Food & Treats</b><small>Meals, cafés, desserts & snacks</small></button>
-            <button class="quick-card" data-tag="outdoors"><span class="quick-symbol mood-outdoor">♧</span><b>Outdoors & Explore</b><small>Parks, zoos, trails & nature</small></button>
-            <button class="quick-card" data-tag="thrills"><span class="quick-symbol mood-thrills">⌁</span><b>Thrills & Excitement</b><small>Theme parks, water, karting, adventure</small></button>
-            <button class="quick-card" data-tag="shopping"><span class="quick-symbol mood-shopping">◇</span><b>Shop & Browse</b><small>Malls, outlets, markets & districts</small></button>
+
+        <aside id="freeAdSlot" class="sponsored-test hidden" aria-label="Sponsored test placement">
+          <div><span>SPONSORED · TEST PLACEMENT</span><b>Useful travel offer could live here</b><small>Explorer only. Recommendations above are never changed by sponsors.</small></div>
+          <button id="dismissTestAd" type="button" aria-label="Hide test advert">×</button>
+        </aside>
+        <section class="section-block">
+          <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2 id="quickStartTitle">What are you in the mood for?</h2><p id="quickStartCopy" class="quick-start-copy">These adapt to where you are.</p></div></div>
+          <div class="quick-grid">
+            <button id="quickMood1" class="quick-card quick-relax" data-quick="stayin"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Chill & Recharge</b><small>Slow the pace for a while</small></button>
+            <button id="quickMood2" class="quick-card quick-indoor" data-quick="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor & Easy</b><small>Weather-proof family options</small></button>
+            <button id="quickMood3" class="quick-card quick-food" data-quick="food"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v8"/><path d="M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M15 3c3 1 4.5 3.5 4.5 6S18 13 15 13"/></svg></span><b>Food & Treats</b><small>Ratings, distance & family spend</small></button>
+            <button id="quickMood4" class="quick-card quick-logistics" data-quick="outdoors"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="17" cy="6" r="2.5"/><path d="M3 19h18"/><path d="m5 19 5-9 3 5 2-3 4 7"/></svg></span><b>Outdoors & Explore</b><small>Parks, walks & open-air ideas</small></button>
+            <button id="quickMood5" class="quick-card quick-park" data-quick="thrills"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7z"/></svg></span><b>Thrills & Excitement</b><small>Big-energy fun within range</small></button>
+            <button id="quickMood6" class="quick-card quick-shopping" data-quick="shopping"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span><b>Shop & Browse</b><small>Malls, markets & retail</small></button>
           </div>
+          <button id="quickEssentialsLink" class="essentials-shortcut" type="button"><span>Need groceries, fuel, pharmacy or practical help?</span><b>Essentials ›</b></button>
         </section>
-
-        <button id="essentialsShortcut" class="essentials-shortcut" type="button"><span class="essentials-symbol">＋</span><span><b>Need something practical?</b><small>Pharmacy · supermarket · fuel · urgent care</small></span><span class="essentials-arrow">→</span></button>
-
-        <section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">COMING UP</div><h2 id="upcomingTitle">Tomorrow & trip</h2></div><button id="openTomorrowPlanner" class="text-btn" type="button">Plan tomorrow →</button></div><div id="upcomingPlan" class="upcoming-plan"></div></section>
       </section>
 
-      <section class="view" data-view="tomorrow">
-        <div class="page-heading tomorrow-planner-heading"><button class="text-btn inline-back" data-go="today">← Today</button><div class="eyebrow">TOMORROW PLANNER</div><h2 id="tomorrowPlannerTitle">Shape tomorrow</h2><p id="tomorrowPlannerCopy">Set a broad mood now. We’ll combine it with the forecast and trip context when the day arrives.</p></div>
-        <section class="tomorrow-snapshot"><div><span>Date</span><b id="tomorrowDateLabel">Tomorrow</b></div><div><span>Weather</span><b id="tomorrowWeatherLabel">Checking forecast…</b></div><div><span>Trip context</span><b id="tomorrowTripLabel">Your next vacation day</b></div></section>
-        <section class="section-block tomorrow-mood-section"><div class="section-title-row"><div><div class="eyebrow">START WITH THE FEELING</div><h2>What should tomorrow feel like?</h2><p>Pick one — you can always change it.</p></div></div><div id="tomorrowMoodGrid" class="quick-grid six-grid mood-grid tomorrow-mood-grid"></div><button id="tomorrowBestBtn" class="primary-btn full tomorrow-best-btn" type="button">Surprise me with the best fit</button></section>
-        <section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">SAVED PLAN</div><h2>Tomorrow at a glance</h2></div></div><div id="tomorrowPlanPreview" class="tomorrow-plan-preview"></div></section>
+      <section class="view tomorrow-planner-view" data-view="tomorrow-planner">
+        <div class="page-heading tomorrow-planner-heading">
+          <button class="text-btn inline-back" data-back="today">← Today</button>
+          <div id="tomorrowPlannerEyebrow" class="eyebrow">PLAN TOMORROW</div>
+          <h2 id="tomorrowPlannerTitle">How should tomorrow feel?</h2>
+          <p id="tomorrowPlannerContext">Pick the vibe first and we’ll line up a few places that suit the day.</p>
+        </div>
+        <div id="tomorrowSnapshot" class="tomorrow-snapshot"></div>
+        <section class="section-block compact tomorrow-mood-section">
+          <div class="section-title-row"><div><div class="eyebrow">CHOOSE A MOOD</div><h2>What sounds good?</h2><p id="tomorrowMoodCopy" class="quick-start-copy">This is just about the kind of day you fancy — we can pick the exact place next.</p></div></div>
+          <div class="quick-grid tomorrow-mood-grid">
+            <button class="quick-card quick-relax tomorrow-mood" data-tomorrow-mood="chill"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg></span><b>Chill & Recharge</b><small>Slower pace, lighter effort</small></button>
+            <button class="quick-card quick-indoor tomorrow-mood" data-tomorrow-mood="indoor"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 16 0Z"/><path d="M12 4v16"/><path d="M12 20a2 2 0 0 0 4 0"/></svg></span><b>Indoor & Easy</b><small>Weather-proof, lower-stress ideas</small></button>
+            <button class="quick-card quick-food tomorrow-mood" data-tomorrow-mood="food"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v8"/><path d="M4.5 3v5a2.5 2.5 0 0 0 5 0V3"/><path d="M7 11v10"/><path d="M15 3v18"/><path d="M15 3c3 1 4.5 3.5 4.5 6S18 13 15 13"/></svg></span><b>Food & Treats</b><small>Make a meal part of the plan</small></button>
+            <button class="quick-card quick-logistics tomorrow-mood" data-tomorrow-mood="outdoors"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="17" cy="6" r="2.5"/><path d="M3 19h18"/><path d="m5 19 5-9 3 5 2-3 4 7"/></svg></span><b>Outdoors & Explore</b><small>Parks, water, walks & open air</small></button>
+            <button class="quick-card quick-park tomorrow-mood" data-tomorrow-mood="thrills"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7z"/></svg></span><b>Thrills & Excitement</b><small>Big-energy experiences</small></button>
+            <button class="quick-card quick-shopping tomorrow-mood" data-tomorrow-mood="shopping"><span class="quick-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span><b>Shop & Browse</b><small>Markets, malls & retail time</small></button>
+          </div>
+          <button id="tomorrowBestOverall" class="secondary-btn full tomorrow-best-btn" type="button">Pick for me — best overall for tomorrow</button>
+        </section>
+        <section id="tomorrowResults" class="section-block hidden">
+          <div class="section-title-row"><div><div id="tomorrowResultsEyebrow" class="eyebrow">IDEAS FOR TOMORROW</div><h2 id="tomorrowResultsTitle">A few good bets</h2></div><button id="tomorrowRerunBtn" class="text-btn">Mix it up</button></div>
+          <p id="tomorrowResultsContext" class="recommendations-context"></p>
+          <div id="tomorrowRecommendationList" class="card-list"></div>
+        </section>
       </section>
 
       <section class="view" data-view="explore">
-        <div class="page-heading"><button class="text-btn inline-back" data-go="today">← Today</button><div id="resultsEyebrow" class="eyebrow">WHAT NOW</div><h2 id="resultsTitle">Best fits right now</h2><p id="resultsSubtitle">Sorted by time-to-value for your family.</p></div>
-        <div id="resultsList" class="card-list"></div>
+        <div class="page-heading"><div class="eyebrow">EXPLORE</div><h2>Things to do</h2><p>Florida family options ranked by distance and family fit.</p></div>
+        <div id="exploreFilters" class="chip-row">
+          <button class="chip active" data-filter="all">All</button><button class="chip" data-filter="indoor">Indoor</button><button class="chip" data-filter="park">Parks</button><button class="chip" data-filter="food">Food</button><button class="chip" data-filter="shopping">Shopping</button><button class="chip" data-filter="beach">Outdoors</button><button class="chip" data-filter="lowcost">Low cost</button>
+        </div>
+        <div id="exploreList" class="card-list"></div>
+      </section>
+
+
+      <section class="view" data-view="discover">
+        <div class="page-heading discover-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div id="discoverEyebrow" class="eyebrow">NEARBY IDEAS</div><h2 id="discoverTitle">Explore nearby</h2><p id="discoverCopy">Real local options ranked around your selected location.</p></div>
+        <div id="discoverStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Having a look nearby…</b><small>Keeping it within the distance you’re happy to travel.</small></div></div>
+        <div id="discoverResults" class="card-list discover-results"></div>
+        <div class="notice"><b>Good to know:</b> Ratings and opening info come from local listings. Drive times are a rough guide, so traffic can still have the last laugh.</div>
       </section>
 
       <section class="view" data-view="food">
-        <div class="page-heading"><button class="text-btn inline-back" data-go="today">← Today</button><div class="eyebrow">EAT NEARBY</div><h2>Where should we eat?</h2><p id="foodSubtitle">Open now, rated well, sensible for your family.</p></div>
-        <div id="foodList" class="card-list"></div>
+        <div class="page-heading food-heading">
+          <button class="text-btn inline-back" data-back="today">← Today</button>
+          <div class="eyebrow">FOOD NEAR YOU</div>
+          <h2>Where shall we eat?</h2>
+          <p>Compare nearby options without bouncing between apps. Distance, ratings and price guidance first — Maps only when you choose Directions.</p>
+        </div>
+        <div class="food-sort-row" id="foodSort">
+          <button class="chip active" data-food-sort="distance">Closest</button>
+          <button class="chip" data-food-sort="rating">Top rated</button>
+          <button class="chip" data-food-sort="budget">Budget</button>
+          <button class="chip" data-food-sort="treat">Treat night</button>
+        </div>
+        <div id="foodStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding somewhere good to eat…</b><small>Looking close to where you are.</small></div></div>
+        <div id="foodResults" class="card-list food-results"></div>
+        <div class="notice"><b>Price guide:</b> Family spend is a rough guide — menus and prices can change, especially in tourist spots.</div>
       </section>
 
       <section class="view" data-view="essentials">
-        <div class="page-heading"><button class="text-btn inline-back" data-go="today">← Today</button><div class="eyebrow">ESSENTIALS</div><h2 id="essentialsTitle">What do you need?</h2><p>Choose a category and I’ll show the nearest useful options right here.</p></div>
-        <div id="essentialsCategories" class="essentials-grid"></div><div id="essentialsResults"></div>
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">NEARBY ESSENTIALS</div><h2>What do you need?</h2><p>A few useful places nearby. Maps only opens when you ask for directions.</p></div>
+        <div id="essentialsList" class="essentials-grid"></div>
+        <div class="notice"><b>Cost guide:</b> $ symbols and spend notes are broad category estimates, not live prices. Medical and fuel costs can vary significantly.</div>
+        <div class="notice"><b>Emergencies:</b> this feature is for finding places, not emergency triage. Use the local emergency service for your current destination.</div>
+      </section>
+
+      <section class="view" data-view="essential-detail">
+        <div class="page-heading essential-detail-heading">
+          <button class="text-btn inline-back" data-back="essentials">← Essentials</button>
+          <div class="essential-detail-hero">
+            <div id="essentialDetailIcon" class="essential-detail-icon">📍</div>
+            <div>
+              <div class="eyebrow">NEAREST OPTIONS</div>
+              <h2 id="essentialDetailTitle">Nearby essentials</h2>
+              <p id="essentialDetailCopy">Finding useful places around you.</p>
+            </div>
+          </div>
+        </div>
+        <div id="essentialsStatus" class="essentials-status"><span class="mini-spinner"></span><div><b>Finding the useful stuff nearby…</b><small>Looking close to where you are.</small></div></div>
+        <div id="essentialResults" class="card-list essentials-results"></div>
+        <div class="notice"><b>Price note:</b> these are category-level spend guides, not live shelf, fuel or medical prices.</div>
+      </section>
+
+      <section class="view" data-view="stayin">
+        <div class="page-heading"><button class="text-btn inline-back" data-back="today">← Today</button><div class="eyebrow">STAY IN</div><h2>A day without going anywhere</h2><p>Because sometimes the best family plan is to stop planning for a few hours.</p></div>
+        <div id="stayInList" class="card-list"></div>
       </section>
 
       <section class="view" data-view="parks">
-        <div class="page-heading"><div id="specialistEyebrow" class="eyebrow">DESTINATION SPECIALIST</div><h2 id="specialistTitle">Around here</h2><p id="specialistSubtitle">One useful destination-specific view, based on where this trip is going.</p></div>
-        <div id="parksNotice" class="notice">Loading destination view…</div><div id="parksGrid" class="park-grid"></div>
+        <div class="page-heading parks-heading">
+          <div class="eyebrow">PARK INTELLIGENCE</div>
+          <h2>Park pressure</h2>
+          <p>Don’t just ask “how long are the waits?” Compare live queues with how busy the day should feel.</p>
+        </div>
+        <div class="pressure-legend">
+          <div><span class="legend-dot green"></span><b>Low</b><small>lighter pressure</small></div>
+          <div><span class="legend-dot amber"></span><b>Moderate</b><small>watch the value</small></div>
+          <div><span class="legend-dot red"></span><b>High</b><small>consider alternatives</small></div>
+        </div>
+        <div class="insight-note"><b>How to read it:</b> Crowd outlook is a transparent beta season/day/weather model — not official park capacity. Live wait heat uses current standby waits. The value signal highlights when queues are unusually high or low for the expected crowd pressure.</div>
+        <div class="notice"><b>Family-fit note:</b> this is planning guidance, not ride eligibility. Always check each attraction's official height, age and accessibility requirements.</div>
+        <button id="refreshParks" class="secondary-btn full">Refresh park pressure</button>
+        <div id="parksList" class="park-grid"></div>
+        <div class="data-credit">Live waits: ThemeParks.wiki · V1.5 beta crowd model will be replaced by licensed or first-party historical data before commercial launch.</div>
       </section>
 
-      <section class="view" data-view="trip">
-        <div class="page-heading trip-page-heading"><div><div class="eyebrow">TRIP MEMORY</div><h2 id="tripHubTitle">Your vacation</h2><p id="tripHubSubtitle">Plans, ideas and memories in one place.</p></div><button id="newVacationBtn" class="secondary-btn new-trip-btn" type="button">＋ New vacation</button></div>
-        <section id="tripSummary" class="trip-summary"></section><section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">FIXED PLANS</div><h2>Bookings & commitments</h2></div><button id="addPlanBtn" class="text-btn">＋ Add</button></div><div id="planList" class="plan-list"></div></section><section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">PLACES</div><h2>Must-do, saved & visited</h2></div></div><div id="tripPlaces" class="card-list"></div></section><section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">MEMORIES</div><h2>Little moments worth keeping</h2></div><button id="addMemoryBtn" class="text-btn">＋ Add</button></div><div id="memoryList" class="memory-list"></div></section><section id="previousVacationsSection" class="section-block compact hidden"><div class="section-title-row"><div><div class="eyebrow">PREVIOUS VACATIONS</div><h2>Trip history</h2></div></div><div id="previousVacationsList" class="plan-list"></div></section>
+      <section class="view" data-view="saved">
+        <div class="page-heading trip-heading trip-page-heading"><div><div class="eyebrow">YOUR TRIP</div><h2>Plan, progress & memories</h2><p>Keep fixed plans, must-dos and places you’ve already done in one place.</p></div><button id="newTripBtn" class="secondary-btn new-trip-btn" type="button">＋ New vacation</button></div>
+        <section id="tripSummary" class="trip-summary"></section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">FIXED PLANS</div><h2>Bookings & commitments</h2></div></div>
+          <form id="planForm" class="mini-plan-form">
+            <input id="planTitle" type="text" maxlength="60" placeholder="Dinner reservation, flight, show…" required />
+            <div class="plan-grid"><input id="planDate" type="date" required /><input id="planTime" type="time" /></div>
+            <input id="planLocation" type="text" maxlength="80" placeholder="Location (optional)" />
+            <button class="secondary-btn full" type="submit">+ Add fixed plan</button>
+          </form>
+          <div id="plansList" class="trip-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">SHORTLIST</div><h2>Places for this trip</h2></div></div>
+          <p class="trip-help">Mark places Must do, Want to go, Been, Repeat, or Skip. “Been” and “Skip” won’t be recommended again.</p>
+          <div id="savedList" class="card-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">MEMORIES</div><h2>Where you’ve been</h2></div></div>
+          <div id="memoriesList" class="trip-list"></div>
+        </section>
+        <section class="section-block compact">
+          <div class="section-title-row"><div><div class="eyebrow">PREVIOUS VACATIONS</div><h2>Saved trips</h2><p>Starting a new vacation keeps a lightweight copy of the current trip on this device.</p></div></div>
+          <div id="previousTripsList" class="trip-list"></div>
+        </section>
       </section>
 
-      <section class="view" data-view="family"><div class="page-heading"><div class="eyebrow">FAMILY PROFILE</div><h2>Your crew</h2><p>The better this is, the better the recommendations.</p></div><form id="familyForm" class="form-card"><div class="setting-row"><span><b>Trip / family name</b><small>Used in trip summaries</small></span><input id="familyName" type="text" maxlength="40" placeholder="Family name" /></div><div id="memberEditor" class="member-list"></div><button id="addMemberBtn" class="small-btn" type="button">＋ Add traveller</button><fieldset><legend>Preferences</legend><div class="check-grid"><label class="check"><input type="checkbox" value="rides" /> Rides</label><label class="check"><input type="checkbox" value="outdoors" /> Outdoors</label><label class="check"><input type="checkbox" value="food" /> Food</label><label class="check"><input type="checkbox" value="shopping" /> Shopping</label></div></fieldset><label>Maximum drive<select id="maxDrive"><option value="10">10 miles</option><option value="20">20 miles</option><option value="30">30 miles</option><option value="60">60 miles</option></select></label><label>Budget style<select id="budget"><option value="low">Keep costs down</option><option value="medium">Balanced</option><option value="high">Treat ourselves</option></select></label><label class="toggle-row"><span>Prefer indoor in rain</span><input id="indoorRain" type="checkbox" /></label><label class="toggle-row"><span>Prefer lower walking</span><input id="lowWalking" type="checkbox" /></label><button class="primary-btn full" type="submit">Save family profile</button><div id="saveMsg" class="save-msg hidden">Saved ✓</div></form><section class="section-block compact settings-stack"><div class="section-title-row"><div><div class="eyebrow">APP</div><h2>Language & units</h2></div></div><div class="setting-row"><span><b>Language</b><small>Navigation, dates and place searches</small></span><select id="appLanguageSelect" class="compact-select"><option value="auto">Automatic</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div></section><section class="section-block compact commercial-plan-section"><div class="section-title-row"><div><div class="eyebrow">PLAN</div><h2>Your Vacation Planner plan</h2><p>Commercial beta controls only — no payment is taken.</p></div></div><div id="commercialStatusCard"></div></section><section class="section-block compact"><div class="section-title-row"><div><div class="eyebrow">VACATIONS</div><h2>Ready for somewhere new?</h2></div></div><button id="familyNewVacationBtn" class="secondary-btn full" type="button">＋ Start a new vacation</button></section><section class="section-block compact beta-tools"><div class="section-title-row"><div><div class="eyebrow">BETA TOOLS</div><h2>Landing & onboarding</h2><p>Temporary controls for testing the first-run experience.</p></div></div><div class="testing-card"><label class="toggle-row"><span><b>Force landing on launch</b><small>Show the branded welcome screen every time the app starts.</small></span><input id="testLandingOnLaunch" type="checkbox" /></label><label class="toggle-row"><span><b>Force onboarding on launch</b><small>Open the setup flow after the landing screen even when a profile already exists.</small></span><input id="testOnboardingOnLaunch" type="checkbox" /></label><div class="testing-actions"><button id="showLandingNow" class="small-btn" type="button">Show landing</button><button id="showOnboardingNow" class="small-btn" type="button">Restart onboarding</button><button id="showPricingTest" class="small-btn" type="button">Show pricing</button><button id="resetDecisionLearning" class="small-btn" type="button">Reset What Now learning</button><button id="startFreshNow" class="small-btn" type="button">Start as new user</button><button id="resetAppNow" class="danger-btn" type="button">Reset all app data</button></div><div id="decisionLearningSummary" class="decision-learning-box"></div></div></section></section>
+      <section class="view" data-view="family">
+        <div class="page-heading"><div class="eyebrow">YOUR VACATION CREW</div><h2>Everyone gets a better holiday</h2><p>Tell us who loves coasters, who would rather not, and who is still waiting to hit those ride-height markers.</p></div>
+        <form id="familyForm" class="form-card">
+          <label>Family / trip name<input id="familyName" type="text" maxlength="40" placeholder="The Jones family" /></label>
+          <label>Trip destination<select id="destinationPreset"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="winsford">Winsford / Cheshire</option><option value="london">London</option><option value="paris">Paris</option><option value="manchester">Manchester</option><option value="nairobi">Nairobi</option><option value="anaheim">Anaheim / Orange County</option><option value="maui">Maui</option></select></label>
+          <label>Home base<input id="homeBase" type="text" maxlength="80" placeholder="Villa, hotel or resort" /></label>
+          <div class="setup-grid trip-date-grid"><label>Arrival date<input id="arrivalDate" type="date" /></label><label>Departure date<input id="departureDate" type="date" /></label></div>
+          <div class="setup-heading"><b>Family members</b><button id="addMember" class="text-btn" type="button">+ Add person</button></div>
+          <div id="familyMembers" class="member-list"></div>
+          <label>How far are you prepared to travel?<select id="maxDrive"><option value="15">About 15 miles</option><option value="30">About 30 miles</option><option value="60">About 60 miles</option><option value="100">Up to 100 miles</option></select></label>
+          <label>Budget mood<select id="budget"><option value="low">Keep costs down</option><option value="medium">Reasonable</option><option value="high">Holiday mode</option></select></label>
+          <label>Optional holiday budget remaining<input id="budgetRemaining" type="number" min="0" step="25" placeholder="e.g. 600" /></label>
+          <label>Energy level<select id="energy"><option value="low">Easy day</option><option value="medium">Balanced</option><option value="high">Full-on day</option></select></label>
+          <label>Walking tolerance<select id="walkingTolerance"><option value="low">Keep walking light</option><option value="medium">Normal holiday walking</option><option value="high">Happy with big walking days</option></select></label>
+          <label>Dietary / access notes<input id="familyNotes" type="text" maxlength="120" placeholder="e.g. gluten-free, wheelchair access" /></label>
+          <fieldset><legend>Family interests</legend><div class="check-grid">
+            <label class="check"><input type="checkbox" name="interests" value="rides" /> Rides</label><label class="check"><input type="checkbox" name="interests" value="food" /> Food</label><label class="check"><input type="checkbox" name="interests" value="shopping" /> Shopping</label><label class="check"><input type="checkbox" name="interests" value="beach" /> Beaches</label><label class="check"><input type="checkbox" name="interests" value="indoor" /> Indoor</label><label class="check"><input type="checkbox" name="interests" value="nature" /> Nature</label>
+          </div></fieldset>
+          <label class="toggle-row"><span>Prefer indoor options in extreme heat</span><input id="heatAware" type="checkbox" /></label>
+          <button class="primary-btn full" type="submit">Save family profile</button><div id="saveProfileMsg" class="save-msg hidden">Saved ✓</div>
+        </form>
+        <section class="section-block compact settings-stack">
+          <div class="setting-row"><div><b id="languageSettingTitle">Language</b><small id="languageSettingCopy">App navigation, dates and place searches</small></div><select id="languageSelect" class="compact-select"><option value="auto">Automatic</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
+          <div class="setting-row"><div><b>Temperature</b><small>Used throughout the app</small></div><div class="segmented"><button id="unitC" data-unit="c">°C</button><button id="unitF" data-unit="f">°F</button></div></div>
+          <button id="newTripBtnFamily" class="secondary-btn full" type="button">＋ Start a new vacation</button>
+        </section>
+
+        <section class="section-block compact commercial-plan-section">
+          <div class="section-title-row"><div><div class="eyebrow">YOUR PLAN</div><h2>Make the free version work for you</h2><p>Explorer is there to try properly. Upgrade only when you want more trips and more fresh ideas.</p></div></div>
+          <div class="commercial-status-card">
+            <div class="commercial-status-top"><div><span id="commercialTierBadge" class="tier-badge">EXPLORER</span><h3 id="commercialTierTitle">Explorer · Free</h3><p id="commercialTierCopy">A proper taste of the planner, with a sensible limit on fresh searches.</p></div><button id="openPricingBtn" class="secondary-btn" type="button">See plans</button></div>
+            <div class="allowance-row"><div><span>Fresh Ideas</span><b id="freshIdeasLabel">20 left</b></div><div class="allowance-track"><span id="freshIdeasBar"></span></div><small id="freshIdeasCopy">Only a brand-new nearby search uses one.</small></div>
+            <div class="commercial-mini-grid"><div><span>Vacations</span><b id="tripAllowanceLabel">1 trip</b></div><div><span>Ads</span><b id="adsPlanLabel">Explorer only</b></div></div>
+          </div>
+        </section>
+
+        <section class="section-block compact beta-tools">
+          <div class="section-title-row"><div><div class="eyebrow">BETA TESTING</div><h2>Testing tools</h2><p>Temporary controls — these disappear before launch.</p></div></div>
+          <div class="testing-card">
+            <label class="toggle-row"><span><b>Force landing screen on launch</b><small>Show the branded welcome screen every time the app is freshly opened.</small></span><input id="forceLanding" type="checkbox" /></label>
+            <label class="toggle-row"><span><b>Force onboarding on launch</b><small>After the landing screen, keep onboarding available for repeated flow testing.</small></span><input id="forceOnboarding" type="checkbox" /></label>
+
+            <div class="commercial-test-box">
+              <div><b>Commercial test environment</b><small>Simulate a plan and allowance without taking payment.</small></div>
+              <label>Test plan<select id="testCommercialPlan"><option value="explorer">Explorer · Free</option><option value="traveller">Traveller · £8.99</option><option value="pro">Pro Family · £29.99/year</option></select></label>
+              <label>Fresh Ideas used<input id="testFreshUsed" type="number" min="0" step="1" value="0" /></label>
+              <label>Vacations used<input id="testTripUses" type="number" min="0" step="1" value="1" /></label>
+              <div class="commercial-test-actions"><button id="applyCommercialTest" class="secondary-btn" type="button">Apply test state</button><button id="exhaustFreshIdeas" class="secondary-btn" type="button">Set to last idea</button><button id="resetCommercialTest" class="secondary-btn" type="button">Reset commercial test</button></div>
+            </div>
+            <div class="commercial-test-box decision-learning-box">
+              <div><b>What Now learning</b><small>Local beta signals from this device — useful for checking whether recommendations are actually getting accepted.</small></div>
+              <div class="decision-metric-grid">
+                <div><span>Sets shown</span><b id="metricRecommendationSets">0</b></div>
+                <div><span>Accepted</span><b id="metricAccepted">0</b></div>
+                <div><span>Acceptance</span><b id="metricAcceptance">—</b></div>
+              </div>
+              <div id="metricTopReject" class="decision-metric-note">No rejection pattern yet.</div>
+              <button id="resetDecisionLearning" class="secondary-btn" type="button">Reset What Now learning</button>
+            </div>
+            <div class="testing-actions">
+              <button id="showLanding" class="secondary-btn" type="button">Show landing screen</button>
+              <button id="restartOnboarding" class="secondary-btn" type="button">Restart onboarding</button>
+              <button id="newUserTest" class="secondary-btn" type="button">Start as new user</button>
+              <button id="resetAppData" class="danger-btn" type="button">Reset all app data</button>
+            </div>
+          </div>
+        </section>
+      </section>
     </main>
 
-    <nav class="bottom-nav"><button class="nav-item active" data-go="today"><span class="nav-symbol nav-home">⌂</span><small id="navToday">Today</small></button><button class="nav-item" data-go="explore"><span class="nav-symbol nav-compass">⌁</span><small id="navExplore">Explore</small></button><button class="nav-item" data-go="parks"><span class="nav-symbol nav-parks">◇</span><small id="navParks">Parks</small></button><button class="nav-item" data-go="trip"><span class="nav-symbol nav-trip">▣</span><small id="navTrip">Trip</small></button><button class="nav-item" data-go="family"><span class="nav-symbol nav-family">●</span><small id="navFamily">Family</small></button></nav>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-item active" data-target="today"><span>⌂</span><small id="navTodayLabel">Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small id="navExploreLabel">Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small id="navTripLabel">Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small id="navFamilyLabel">Family</small></button>
+    </nav>
+  </div>
+  <div id="recommendationFeedbackDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div class="modal-card feedback-modal">
+      <button id="closeRecommendationFeedback" class="modal-close" type="button" aria-label="Close">×</button>
+      <div class="eyebrow">HELP ME LEARN THIS TRIP</div>
+      <h2 id="feedbackTitle">What ruled this one out?</h2>
+      <p id="feedbackPlaceName">A quick reason helps the next suggestions fit your family better.</p>
+      <div class="feedback-reason-grid">
+        <button type="button" data-feedback-reason="too_expensive"><span>£</span><b>Too expensive</b></button>
+        <button type="button" data-feedback-reason="too_far"><span>↗</span><b>Too far away</b></button>
+        <button type="button" data-feedback-reason="too_tiring"><span>◔</span><b>Too tiring</b></button>
+        <button type="button" data-feedback-reason="not_interested"><span>×</span><b>Not interested</b></button>
+        <button type="button" data-feedback-reason="already_done"><span>✓</span><b>Already done it</b></button>
+        <button type="button" data-feedback-reason="group_mismatch"><span>◎</span><b>Doesn’t suit us</b></button>
+        <button type="button" data-feedback-reason="wrong_type"><span>↺</span><b>Wrong kind of thing</b></button>
+        <button type="button" data-feedback-reason="other"><span>…</span><b>Something else</b></button>
+      </div>
+      <small class="feedback-footnote">This only teaches this vacation. You can reset the learning any time in Beta Testing.</small>
+    </div>
   </div>
 
-  <dialog id="planDialog"><form method="dialog" id="planForm" class="dialog-card"><h3>Add a fixed plan</h3><label>Date<input id="planDate" type="date" required /></label><label>Time<input id="planTime" type="time" required /></label><label>What is it?<input id="planTitle" type="text" placeholder="Dinner reservation" required /></label><label>Type<select id="planType"><option value="reservation">Reservation</option><option value="park">Park day</option><option value="show">Show / event</option><option value="travel">Travel</option><option value="other">Other</option></select></label><div class="dialog-actions"><button value="cancel" class="secondary-btn">Cancel</button><button value="default" class="primary-btn">Add plan</button></div></form></dialog>
-  <dialog id="memoryDialog"><form method="dialog" id="memoryForm" class="dialog-card"><h3>Add a memory</h3><label>Date<input id="memoryDate" type="date" required /></label><label>What happened?<input id="memoryText" type="text" maxlength="140" placeholder="The kids loved the fireworks…" required /></label><div class="dialog-actions"><button value="cancel" class="secondary-btn">Cancel</button><button value="default" class="primary-btn">Save memory</button></div></form></dialog>
+  <div id="newTripDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="newTripTitle">
+    <div class="modal-card new-trip-modal">
+      <button id="closeNewTrip" class="modal-close" type="button" aria-label="Close">×</button>
+      <div id="newTripStartPanel">
+        <div class="eyebrow" id="newTripEyebrow">NEW VACATION</div>
+        <h2 id="newTripTitle">Where shall we go next?</h2>
+        <p id="newTripIntro">Already got somewhere in mind? Great. If not, tell me the kind of holiday you fancy and we’ll narrow it down.</p>
+        <label class="field-group"><span id="knownDestinationLabel" class="field-label">I know where we’re going</span>
+          <select id="newTripDestination"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="nairobi">Nairobi</option><option value="maui">Maui</option><option value="anaheim">Anaheim / Orange County</option><option value="paris">Paris</option><option value="london">London</option><option value="winsford">Winsford / Cheshire</option><option value="manchester">Manchester</option></select>
+        </label>
+        <button id="startKnownTrip" class="primary-btn full" type="button">Start planning this vacation</button>
+        <div class="new-trip-divider"><span>or</span></div>
+        <button id="openDestinationFinder" class="secondary-btn full" type="button">Help me choose a destination</button>
+      </div>
+      <div id="destinationFinderPanel" class="hidden">
+        <button id="backNewTrip" class="text-btn" type="button">← Back</button>
+        <div class="eyebrow" id="finderEyebrow">FIND YOUR NEXT TRIP</div>
+        <h2 id="finderTitle">What kind of holiday sounds good?</h2>
+        <p id="finderCopy">Pick up to 3 things that matter most, then add budget and trip length. We’ll see what genuinely fits.</p>
+        <div id="destinationMoodChips" class="finder-chip-grid">
+          <button class="finder-chip" type="button" data-dest-mood="thrills">Thrills & Excitement</button><button class="finder-chip" type="button" data-dest-mood="wildlife">Wildlife</button><button class="finder-chip" type="button" data-dest-mood="beach">Beaches</button><button class="finder-chip" type="button" data-dest-mood="sights">Sights</button><button class="finder-chip" type="button" data-dest-mood="outdoors">Outdoors & Explore</button><button class="finder-chip" type="button" data-dest-mood="food">Food & Treats</button><button class="finder-chip" type="button" data-dest-mood="shopping">Shop & Browse</button><button class="finder-chip" type="button" data-dest-mood="chill">Chill & Recharge</button>
+        </div>
+        <div id="finderSelectionHint" class="finder-selection-hint">Choose at least one priority to get started.</div>
+        <div class="finder-grid finder-grid-four">
+          <label class="field-group finder-origin"><span id="finderOriginLabel" class="field-label">Travelling from</span><select id="finderOrigin"><option value="uk">United Kingdom / Ireland</option><option value="europe">Mainland Europe</option><option value="us-east">USA / Canada — East</option><option value="us-west">USA / Canada — West</option><option value="australia">Australia / New Zealand</option><option value="other">Elsewhere</option></select></label>
+          <label class="field-group"><span id="finderBudgetLabel" class="field-label">Budget feel</span><select id="finderBudget"><option value="low">Keep total trip cost down</option><option value="medium" selected>Comfortable</option><option value="high">Treat trip</option></select></label>
+          <label class="field-group"><span id="finderLengthLabel" class="field-label">Trip length</span><select id="finderLength"><option value="short">3–4 days</option><option value="week" selected>5–8 days</option><option value="long">9+ days</option></select></label>
+          <label class="field-group"><span id="finderClimateLabel" class="field-label">Weather feel</span><select id="finderClimate"><option value="any">Any</option><option value="hot">Hot & sunny</option><option value="warm">Warm / mild</option><option value="cool">Cool / fresh</option></select></label>
+          <label class="field-group"><span id="finderSettingLabel" class="field-label">Holiday setting</span><select id="finderSetting"><option value="any">Any</option><option value="city">City</option><option value="coast">Coast / island</option><option value="nature">Nature / scenery</option><option value="mixed">A bit of everything</option></select></label>
+        </div>
+        <button id="findDestinations" class="primary-btn full" type="button">Find me a few ideas</button>
+        <div id="destinationFinderResults" class="destination-results"><div class="finder-empty">Choose at least one priority to get started.</div></div>
+      </div>
+    </div>
+  </div>
 
-  <div id="newVacationDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="newVacationTitle"><div class="modal-card"><button id="closeNewVacation" class="modal-close" type="button" aria-label="Close">×</button><div id="newVacationStart"><div class="eyebrow">NEXT ADVENTURE</div><h2 id="newVacationTitle">Where shall we go next?</h2><p id="newVacationIntro">Already got somewhere in mind? Great. If not, tell me the kind of holiday you fancy and we’ll narrow it down.</p><div class="new-trip-start-actions"><button id="newTripKnownBtn" class="primary-btn full" type="button">I know where we’re going</button><button id="newTripFinderBtn" class="secondary-btn full" type="button">Help me choose a destination</button></div><div id="newTripArchives" class="hidden"><div class="new-trip-divider"><span>or revisit</span></div><div id="newTripArchiveList" class="plan-list"></div></div></div><form id="newVacationForm" class="hidden"><div class="eyebrow">NEW VACATION</div><h2>Tell me about the next trip</h2><div class="finder-grid"><label class="field-group"><span class="field-label">Trip name</span><input id="newTripName" type="text" maxlength="40" placeholder="Our next adventure" /></label><label class="field-group"><span class="field-label">Destination</span><select id="newTripDestination"><option value="orlando">Orlando / Central Florida</option><option value="new-york">New York City</option><option value="winsford">Winsford / Cheshire</option><option value="london">London</option><option value="paris">Paris</option><option value="manchester">Manchester</option><option value="nairobi">Nairobi</option><option value="anaheim">Anaheim / Orange County</option><option value="maui">Maui</option></select></label><label class="field-group"><span class="field-label">Arrival</span><input id="newTripArrival" type="date" required /></label><label class="field-group"><span class="field-label">Departure</span><input id="newTripDeparture" type="date" required /></label><label class="field-group"><span class="field-label">Holiday base</span><input id="newTripHomeBase" type="text" maxlength="80" placeholder="Hotel, villa or resort" /></label></div><div class="dialog-actions"><button id="newTripFormBack" class="secondary-btn" type="button">← Back</button><button class="primary-btn" type="submit">Start planning this vacation</button></div></form><div id="destinationFinder" class="hidden"><div class="eyebrow">DESTINATION FINDER · BETA</div><h2>What kind of holiday sounds good?</h2><p id="destinationFinderCopy">Pick up to 3 things that matter most. Add budget, trip length and where you’re travelling from, and we’ll see what fits.</p><div id="destinationFinderChips" class="finder-chip-grid"><button class="finder-chip" type="button" data-finder-tag="thrills">Thrills</button><button class="finder-chip" type="button" data-finder-tag="beaches">Beach time</button><button class="finder-chip" type="button" data-finder-tag="food">Food</button><button class="finder-chip" type="button" data-finder-tag="outdoors">Outdoors</button><button class="finder-chip" type="button" data-finder-tag="indoor">Easy indoor days</button><button class="finder-chip" type="button" data-finder-tag="shopping">Shopping</button><button class="finder-chip" type="button" data-finder-tag="wildlife">Wildlife</button><button class="finder-chip" type="button" data-finder-tag="sights">Sights & culture</button><button class="finder-chip" type="button" data-finder-tag="chill">Slow down</button></div><div id="destinationFinderHint" class="finder-selection-hint">Choose 1–3 priorities.</div><div class="finder-grid finder-grid-four"><label class="field-group finder-origin"><span class="field-label">Travelling from</span><select id="destinationFinderOrigin"><option value="uk">UK / Ireland</option><option value="europe">Mainland Europe</option><option value="us-east">US / Canada · East</option><option value="us-west">US / Canada · West</option><option value="other">Elsewhere / not sure</option></select></label><label class="field-group"><span class="field-label">Budget feel</span><select id="destinationFinderBudget"><option value="any">Any budget</option><option value="low">Value-conscious</option><option value="medium">Comfortable</option><option value="high">Big holiday</option></select></label><label class="field-group"><span class="field-label">Trip length</span><select id="destinationFinderLength"><option value="short">2–4 days</option><option value="week" selected>5–8 days</option><option value="long">9+ days</option></select></label><label class="field-group"><span class="field-label">Weather feel</span><select id="destinationFinderClimate"><option value="any">Any</option><option value="hot">Hot & sunny</option><option value="warm">Warm / mild</option><option value="cool">Cool / fresh</option></select></label><label class="field-group"><span class="field-label">Holiday setting</span><select id="destinationFinderSetting"><option value="any">Any</option><option value="city">City</option><option value="coast">Coast / island</option><option value="nature">Nature / scenery</option><option value="mixed">A bit of everything</option></select></label></div><button id="runDestinationFinder" class="primary-btn full" type="button">Find me a few ideas</button><div id="destinationFinderResults" class="destination-results"></div><div class="dialog-actions"><button id="destinationFinderBack" class="secondary-btn" type="button">← Back</button></div></div></div></div>
-
-  <div id="recommendationFeedbackDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackPlaceName"><div class="modal-card feedback-modal"><button id="closeRecommendationFeedback" class="modal-close" type="button" aria-label="Close">×</button><div class="eyebrow">HELP ME LEARN THIS TRIP</div><h2 id="feedbackPlaceName">Not quite right?</h2><p>One quick reason is enough. I’ll use it to shape the next set for this vacation.</p><div id="feedbackReasonGrid" class="feedback-reason-grid"><button type="button" data-feedback-reason="expensive"><span>£</span><b>Too expensive</b></button><button type="button" data-feedback-reason="far"><span>↗</span><b>Too far away</b></button><button type="button" data-feedback-reason="tiring"><span>−</span><b>Too tiring</b></button><button type="button" data-feedback-reason="not_interested"><span>×</span><b>Not interested</b></button><button type="button" data-feedback-reason="already_done"><span>✓</span><b>Already done it</b></button><button type="button" data-feedback-reason="not_suitable"><span>!</span><b>Doesn’t suit us</b></button><button type="button" data-feedback-reason="wrong_type"><span>↔</span><b>Wrong kind of thing</b></button><button type="button" data-feedback-reason="other"><span>…</span><b>Something else</b></button></div><small class="feedback-footnote">This is simple trip-level learning, not a permanent judgement about every future holiday.</small></div></div>
-
-  <div id="pricingDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pricingTitle"><div class="modal-card pricing-modal"><button id="closePricing" class="modal-close" type="button" aria-label="Close">×</button><div class="eyebrow">CHOOSE HOW YOU TRAVEL</div><h2 id="pricingTitle">Start free. Pay only when it earns its place on the holiday.</h2><p>The test environment keeps everything you’ve already planned. Paid tiers simply unlock more fresh planning and more vacations.</p><div class="pricing-grid"><article class="pricing-card" data-pricing-tier="explorer"><span class="pricing-kicker">TRY IT</span><h3>Explorer</h3><div class="pricing-price">Free</div><ul><li>1 vacation</li><li>20 Fresh Ideas</li><li>Today planning</li><li>Destination Finder taste</li><li>Sponsored placements</li></ul><button class="secondary-btn full choose-test-plan" data-plan="explorer" type="button">Stay on Explorer</button></article><article class="pricing-card featured" data-pricing-tier="traveller"><span class="pricing-kicker">MOST FAMILIES</span><h3>Traveller</h3><div class="pricing-price">£8.99 <small>one-off</small></div><ul><li>3 vacations</li><li>150 Fresh Ideas</li><li>Full Today + tomorrow planning</li><li>Full Destination Finder</li><li>No display ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="traveller" type="button">Try Traveller in beta</button></article><article class="pricing-card" data-pricing-tier="pro"><span class="pricing-kicker">FREQUENT TRAVELLERS</span><h3>Pro Family</h3><div class="pricing-price">£29.99 <small>/ year</small></div><ul><li>Unlimited vacations</li><li>Generous fair-use Fresh Ideas</li><li>All planning tools</li><li>Trip history & future family sharing</li><li>No ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="pro" type="button">Try Pro in beta</button></article></div><div class="pricing-footnote">Beta only — these buttons simulate an upgrade on this device. No payment is taken.</div></div></div>
+  <div id="pricingDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pricingTitle">
+    <div class="modal-card pricing-modal">
+      <button id="closePricing" class="modal-close" type="button" aria-label="Close">×</button>
+      <div class="eyebrow">CHOOSE WHAT SUITS YOU</div>
+      <h2 id="pricingTitle">Start free. Pay only when it earns its place on the holiday.</h2>
+      <p id="pricingReason">Everything you’ve already planned stays yours. Pick a bigger plan only when you want more.</p>
+      <div class="pricing-grid">
+        <article class="pricing-card" data-pricing-tier="explorer"><span class="pricing-kicker">TRY IT</span><h3>Explorer</h3><div class="pricing-price">Free</div><ul><li>1 vacation</li><li>20 Fresh Ideas</li><li>Today planning</li><li>Destination Finder taste</li><li>Sponsored placements</li></ul><button class="secondary-btn full choose-test-plan" data-plan="explorer" type="button">Stay on Explorer</button></article>
+        <article class="pricing-card featured" data-pricing-tier="traveller"><span class="pricing-kicker">MOST FAMILIES</span><h3>Traveller</h3><div class="pricing-price">£8.99 <small>one-off</small></div><ul><li>3 vacations</li><li>150 Fresh Ideas</li><li>Full Today + tomorrow planning</li><li>Full Destination Finder</li><li>No display ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="traveller" type="button">Try Traveller in beta</button></article>
+        <article class="pricing-card" data-pricing-tier="pro"><span class="pricing-kicker">FREQUENT TRAVELLERS</span><h3>Pro Family</h3><div class="pricing-price">£29.99 <small>/ year</small></div><ul><li>Unlimited vacations</li><li>Generous fair-use Fresh Ideas</li><li>All planning tools</li><li>Trip history & future family sharing</li><li>No ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="pro" type="button">Try Pro in beta</button></article>
+      </div>
+      <div class="pricing-footnote">Beta only — these buttons simulate an upgrade on this device. No payment is taken.</div>
+    </div>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
   <script src="app.js" defer></script>
-  <script src="decision-demo-loader.js?v=2.5.2" defer></script>
+  <script src="decision-demo-loader.js?v=2.5.4" defer></script>
 </body>
 </html>
