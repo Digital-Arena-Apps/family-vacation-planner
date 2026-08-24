@@ -1,24 +1,37 @@
+import FERDA_AVATAR_SPRITE from './ferda-avatar-sprite.js';
+
 export const AVATAR_OPTIONS = [
-  { id: 'explorer', label: 'Explorer', src: '/avatars/explorer.webp', cropScale: 1 },
-  { id: 'sunny', label: 'Sunshine', src: '/avatars/sunshine.webp', cropScale: 1.23 },
-  { id: 'stargazer', label: 'Stargazer', src: '/avatars/stargazer.webp', cropScale: 1.23 },
-  { id: 'thrill', label: 'Thrill seeker', src: '/avatars/thrill.webp', cropScale: 1.24 },
-  { id: 'beach', label: 'Beach day', src: '/avatars/beach.webp', cropScale: 1.43 },
-  { id: 'foodie', label: 'Foodie', src: '/avatars/foodie.webp', cropScale: 1.43 },
-  { id: 'wildlife', label: 'Wildlife fan', src: '/avatars/wildlife.webp', cropScale: 1.43 },
-  { id: 'chill', label: 'Chill mode', src: '/avatars/chill.webp', cropScale: 1.43 }
+  { id: 'alligator', label: 'Alligator', x: '0%', y: '0%' },
+  { id: 'blackbear', label: 'Black bear', x: '33.333%', y: '0%' },
+  { id: 'bobcat', label: 'Bobcat', x: '66.667%', y: '0%' },
+  { id: 'gecko', label: 'Gecko', x: '100%', y: '0%' },
+  { id: 'manatee', label: 'Manatee', x: '0%', y: '100%' },
+  { id: 'osprey', label: 'Osprey', x: '33.333%', y: '100%' },
+  { id: 'riverotter', label: 'River otter', x: '66.667%', y: '100%' },
+  { id: 'sea-turtle', label: 'Sea turtle', x: '100%', y: '100%' }
 ];
 
 const ids = new Set(AVATAR_OPTIONS.map(option => option.id));
+
+// Preserve existing V2 family data while migrating the temporary human avatars
+// to the permanent FERDA animal character set.
 const legacyAliases = {
-  'explorer-alt': 'explorer',
-  'sunny-alt': 'sunny',
-  'stargazer-alt': 'stargazer',
-  'thrill-alt': 'thrill',
-  'beach-alt': 'beach',
-  'foodie-alt': 'foodie',
-  'wildlife-alt': 'wildlife',
-  'chill-alt': 'chill'
+  explorer: 'alligator',
+  'explorer-alt': 'alligator',
+  sunny: 'blackbear',
+  'sunny-alt': 'blackbear',
+  stargazer: 'bobcat',
+  'stargazer-alt': 'bobcat',
+  thrill: 'gecko',
+  'thrill-alt': 'gecko',
+  beach: 'manatee',
+  'beach-alt': 'manatee',
+  foodie: 'osprey',
+  'foodie-alt': 'osprey',
+  wildlife: 'riverotter',
+  'wildlife-alt': 'riverotter',
+  chill: 'sea-turtle',
+  'chill-alt': 'sea-turtle'
 };
 
 function escAttr(value = '') {
@@ -29,7 +42,7 @@ function escAttr(value = '') {
 
 export function normaliseAvatar(value) {
   const next = legacyAliases[value] || value;
-  return ids.has(next) ? next : 'explorer';
+  return ids.has(next) ? next : 'alligator';
 }
 
 export function avatarAsset(value) {
@@ -39,6 +52,6 @@ export function avatarAsset(value) {
 
 export function avatarMarkup(value, options = {}) {
   const avatar = avatarAsset(value);
-  const label = escAttr(options.label || `${avatar.label} traveller avatar`);
-  return `<img class="traveller-avatar-img" src="${avatar.src}" alt="${label}" loading="lazy" decoding="async" style="--avatar-scale:${avatar.cropScale}" />`;
+  const label = escAttr(options.label || `${avatar.label} FERDA avatar`);
+  return `<span class="traveller-avatar-img ferda-avatar-sprite" role="img" aria-label="${label}" style="background-image:url('${FERDA_AVATAR_SPRITE}');background-size:400% 200%;background-position:${avatar.x} ${avatar.y};background-repeat:no-repeat;--avatar-scale:1"></span>`;
 }
