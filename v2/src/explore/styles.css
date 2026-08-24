@@ -1,0 +1,68 @@
+.explore-shell { min-height:100dvh; padding-bottom:112px; }
+.explore-page { width:min(100%,760px); margin:0 auto; padding:14px 13px 126px; }
+.ask-ferda-hero { position:relative; overflow:hidden; padding:22px 20px 20px 78px; border:1px solid rgba(14,94,91,.14); border-radius:25px; background:linear-gradient(145deg, rgba(158,219,212,.44), rgba(255,252,247,.98)); box-shadow:0 12px 30px rgba(14,94,91,.07); }
+.ask-ferda-mark { position:absolute; left:18px; top:20px; width:46px; height:46px; display:grid; place-items:center; border-radius:15px; background:#0E5E5B; color:#FFF3E4; font-size:1.15rem; font-weight:600; box-shadow:0 9px 20px rgba(14,94,91,.2); }
+.ask-ferda-hero h1 { margin:5px 0 4px; font-size:1.6rem; line-height:1.08; }
+.ask-ferda-hero p { margin:0; max-width:540px; color:var(--muted); font-size:.72rem; line-height:1.5; }
+.ferda-context-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.ferda-context-strip div { min-width:0; padding:11px 8px; border:1px solid rgba(14,94,91,.08); border-radius:16px; background:rgba(255,252,247,.95); text-align:center; }
+.ferda-context-strip b { display:block; overflow:hidden; color:#0E5E5B; font-size:.72rem; text-overflow:ellipsis; white-space:nowrap; text-transform:capitalize; }
+.ferda-context-strip small { display:block; margin-top:3px; color:var(--muted); font-size:.52rem; }
+.ferda-question { margin-top:24px; }
+.ferda-moods { display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding:1px 1px 5px; scrollbar-width:none; }
+.ferda-moods::-webkit-scrollbar { display:none; }
+.ferda-moods button { flex:0 0 auto; border:1px solid rgba(14,94,91,.16); border-radius:999px; padding:9px 12px; background:rgba(255,252,247,.98); color:#0E5E5B; font-size:.62rem; font-weight:600; }
+.ferda-moods button.active { border-color:#0E5E5B; background:#0E5E5B; color:#fff; }
+.ferda-results-heading { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; margin:24px 4px 11px; }
+.ferda-results-heading h2 { margin:4px 0 0; font-size:1.1rem; }
+.ferda-results-heading > small { max-width:190px; color:var(--muted); font-size:.54rem; line-height:1.4; text-align:right; }
+.ferda-results { display:grid; gap:13px; }
+.ferda-result-card { padding:14px; border:1px solid rgba(14,94,91,.1); border-radius:22px; background:rgba(255,252,247,.98); box-shadow:0 10px 26px rgba(14,94,91,.055); }
+.ferda-result-card.top-pick { border-color:rgba(33,182,168,.48); box-shadow:0 13px 30px rgba(14,94,91,.09); }
+.ferda-result-head { display:grid; grid-template-columns:58px minmax(0,1fr) auto; gap:11px; align-items:center; }
+.ferda-result-icon { width:58px; height:58px; display:grid; place-items:center; overflow:hidden; border-radius:16px; background:rgba(158,219,212,.24); }
+.ferda-result-icon img { width:100%; height:100%; object-fit:contain; }
+.ferda-result-title { min-width:0; }
+.ferda-result-title > span { display:block; color:#0E5E5B; font-size:.54rem; font-weight:600; letter-spacing:.07em; text-transform:uppercase; }
+.ferda-result-title h2 { margin:4px 0 0; font-size:.88rem; line-height:1.2; }
+.ferda-fit { width:54px; height:54px; display:grid; align-content:center; justify-items:center; border-radius:17px; background:#0E5E5B; color:white; }
+.ferda-fit b { font-size:.78rem; line-height:1; }
+.ferda-fit small { margin-top:3px; font-size:.44rem; opacity:.85; }
+.ferda-result-summary { margin:11px 2px 0; color:var(--muted); font-size:.66rem; line-height:1.5; }
+.ferda-why { display:grid; gap:6px; margin:11px 0 0; padding:0; list-style:none; }
+.ferda-why li { position:relative; padding-left:18px; color:var(--ink); font-size:.62rem; line-height:1.45; }
+.ferda-why li::before { content:'✓'; position:absolute; left:0; top:0; color:#21B6A8; font-weight:600; }
+.ferda-tradeoff { display:grid; gap:3px; margin-top:11px; padding:10px 11px; border-radius:14px; background:rgba(255,179,71,.12); }
+.ferda-tradeoff b { color:#8A5B18; font-size:.56rem; }
+.ferda-tradeoff span { color:#6f6658; font-size:.59rem; line-height:1.4; }
+.ferda-result-actions { display:grid; grid-template-columns:1.25fr 1fr; gap:9px; margin-top:13px; }
+.ferda-result-actions button { border-radius:14px; padding:10px 11px; font-size:.62rem; font-weight:600; }
+.ferda-add-today { border:0; background:#0E5E5B; color:#fff; }
+.ferda-add-today:disabled { opacity:.65; }
+.ferda-secondary { border:1px solid rgba(14,94,91,.2); background:white; color:#0E5E5B; }
+.ferda-why-dialog { width:min(calc(100% - 24px),470px); border:0; border-radius:24px; padding:0; background:#FFFCF7; color:var(--ink); box-shadow:0 24px 60px rgba(14,94,91,.28); }
+.ferda-why-dialog::backdrop { background:rgba(8,31,31,.48); backdrop-filter:blur(3px); }
+.ferda-why-dialog form { padding:18px; }
+.ferda-dialog-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.ferda-dialog-head h2 { margin:4px 0 0; font-size:1.1rem; }
+.ferda-dialog-head > button { width:34px; height:34px; border:0; border-radius:50%; background:rgba(14,94,91,.07); color:#0E5E5B; font-size:1.1rem; }
+#whyBody { margin-top:14px; }
+#whyBody p, #whyBody li { color:var(--muted); font-size:.65rem; line-height:1.5; }
+#whyBody h3 { margin:14px 0 5px; font-size:.72rem; }
+#whyBody ul { padding-left:20px; }
+.why-score { width:76px; height:76px; display:grid; align-content:center; justify-items:center; border-radius:22px; background:#0E5E5B; color:white; }
+.why-score b { font-size:1.2rem; }
+.why-score span { font-size:.52rem; }
+.ferda-dialog-close { width:100%; margin-top:15px; border:0; border-radius:14px; padding:12px; background:#0E5E5B; color:#fff; font-weight:600; }
+@media (max-width:560px) {
+  .explore-page { padding:10px 12px 126px; }
+  .ask-ferda-hero { padding:19px 16px 18px 72px; border-radius:22px; }
+  .ask-ferda-mark { left:15px; top:17px; width:44px; height:44px; }
+  .ask-ferda-hero h1 { font-size:1.45rem; }
+  .ferda-context-strip { grid-template-columns:1fr 1fr; gap:8px; }
+  .ferda-results-heading { grid-template-columns:1fr; gap:5px; }
+  .ferda-results-heading > small { max-width:none; text-align:left; }
+  .ferda-result-head { grid-template-columns:54px minmax(0,1fr) 52px; }
+  .ferda-result-icon { width:54px; height:54px; }
+  .ferda-fit { width:52px; height:52px; border-radius:16px; }
+}
