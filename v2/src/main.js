@@ -18,12 +18,14 @@ import { mountPreferencesScreen } from './preferences/view.js';
 import { wirePreferencesRow } from './preferences/trigger.js';
 import { createTripStore } from './trip/store.js';
 import { mountTripScreen } from './trip/view.js';
+import { createTodayStore } from './today/store.js';
 import { mountHomeScreen } from './home/view.js';
 import { wireV2Navigation } from './navigation/wire.js';
 
 const store = createFamilyStore();
 const preferencesStore = createTripPreferencesStore();
 const tripStore = createTripStore();
+const todayStore = createTodayStore();
 const root = document.querySelector('#app');
 let cleanup = [];
 
@@ -45,9 +47,10 @@ function brandAndScroll() {
 
 function showHome() {
   unmount();
-  const homeCleanup = mountHomeScreen(root, tripStore, store, {
+  const homeCleanup = mountHomeScreen(root, tripStore, store, preferencesStore, todayStore, {
     onTrip: showTrip,
-    onFamily: showFamily
+    onFamily: showFamily,
+    onRemount: showHome
   });
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
