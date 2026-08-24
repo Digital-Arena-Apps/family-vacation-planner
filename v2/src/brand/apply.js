@@ -1,4 +1,5 @@
 import { FERDA_ASSETS } from './assets.js';
+import { FERDA_APP_ICON } from './runtime-assets.js';
 
 function image(src, fallback = '', className = 'ferda-ui-image', alt = '') {
   return `<span class="${className}" ${alt ? '' : 'aria-hidden="true"'}><span class="ferda-asset-fallback">${fallback}</span><img src="${src}" alt="${alt}" /></span>`;
@@ -23,7 +24,7 @@ export function applyFerdaBranding(root) {
     const brand = topbar.querySelector('.v2-brand');
     if (brand) {
       brand.classList.add('ferda-brand');
-      brand.innerHTML = `${image(FERDA_ASSETS.brand.logoMark, 'F', 'ferda-brand-mark', 'FERDA')}<span class="ferda-brand-copy"><b>FERDA</b><small>FAMILY VACATION PLANNER · V2 PREVIEW</small></span>`;
+      brand.innerHTML = `${image(FERDA_APP_ICON, 'F', 'ferda-brand-mark', 'FERDA app icon')}<span class="ferda-brand-copy"><b>FERDA</b><small>FAMILY VACATION PLANNER · V2 PREVIEW</small></span>`;
     }
   }
   const crewIcon = root.querySelector('.crew-summary-icon');
