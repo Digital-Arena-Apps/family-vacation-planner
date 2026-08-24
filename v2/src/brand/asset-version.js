@@ -1,0 +1,1 @@
+export const FERDA_ASSET_VERSION = '2026-08-24';
