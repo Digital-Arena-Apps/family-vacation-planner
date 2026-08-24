@@ -76,9 +76,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
             <small>Prototype scores use your saved profiles and trip preferences.</small>
           </section>
 
-          <section class="ferda-results">
-            ${ranked.map(resultCard).join('')}
-          </section>
+          <section class="ferda-results">${ranked.map(resultCard).join('')}</section>
         </main>
 
         <dialog class="ferda-why-dialog" id="ferdaWhyDialog">
@@ -126,6 +124,11 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
         ${rankedItem.caution ? `<h3>Trade-off</h3><p>${esc(rankedItem.caution)}</p>` : ''}`;
       dialog.showModal();
     }));
+
+    const nav = root.querySelectorAll('.v2-nav button');
+    nav[0]?.addEventListener('click', () => options.onToday?.());
+    nav[2]?.addEventListener('click', () => options.onTrip?.());
+    nav[3]?.addEventListener('click', () => options.onFamily?.());
   }
 
   render();
