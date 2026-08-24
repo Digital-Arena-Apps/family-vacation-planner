@@ -79,22 +79,24 @@ function groupMarkup(key, value) {
   const strip = ART[key];
   const positions = ['0%', '50%', '100%'];
   return `
-    <fieldset class="preference-section">
-      <legend>${group.title}</legend>
-      <p>${group.hint}</p>
-      <div class="preference-choice-grid">
-        ${group.options.map(([optionValue, label, hint, artIndex]) => `
-          <label class="preference-choice with-image">
-            <input type="radio" name="${key}" value="${optionValue}" ${value === optionValue ? 'checked' : ''} />
-            <span class="preference-choice-body has-image">
-              <span class="preference-choice-image" role="img" aria-label="${label}" style="background-image:url('${strip}');background-position:${positions[artIndex]} center"></span>
-              <span class="preference-choice-copy"><b>${label}</b><small>${hint}</small></span>
-              <span class="preference-check">✓</span>
-            </span>
-          </label>
-        `).join('')}
+    <section class="preference-group" aria-labelledby="preference-${key}-title">
+      <h2 id="preference-${key}-title" class="preference-section-title">${group.title}</h2>
+      <div class="preference-section">
+        <p>${group.hint}</p>
+        <div class="preference-choice-grid">
+          ${group.options.map(([optionValue, label, hint, artIndex]) => `
+            <label class="preference-choice with-image">
+              <input type="radio" name="${key}" value="${optionValue}" ${value === optionValue ? 'checked' : ''} />
+              <span class="preference-choice-body has-image">
+                <span class="preference-choice-image" role="img" aria-label="${label}" style="background-image:url('${strip}');background-position:${positions[artIndex]} center"></span>
+                <span class="preference-choice-copy"><b>${label}</b><small>${hint}</small></span>
+                <span class="preference-check">✓</span>
+              </span>
+            </label>
+          `).join('')}
+        </div>
       </div>
-    </fieldset>
+    </section>
   `;
 }
 
@@ -138,18 +140,20 @@ export function mountPreferencesScreen(root, store, options = {}) {
           ${groupMarkup('discovery', value.discovery)}
           ${groupMarkup('walking', value.walking)}
 
-          <fieldset class="preference-section accessibility-section">
-            <legend>Anything the whole trip should be considerate of?</legend>
-            <p>Choose any that matter. These can influence routes, venue suggestions and how demanding a day plan feels.</p>
-            <div class="accessibility-grid">
-              ${ACCESSIBILITY.map(([key, label, hint]) => `
-                <label class="accessibility-choice">
-                  <input type="checkbox" name="accessibility" value="${key}" ${value.accessibility[key] ? 'checked' : ''} />
-                  <span class="accessibility-copy"><b>${label}</b><small>${hint}</small></span>
-                </label>
-              `).join('')}
+          <section class="preference-group accessibility-section" aria-labelledby="accessibility-title">
+            <h2 id="accessibility-title" class="preference-section-title">Anything the whole trip should be considerate of?</h2>
+            <div class="preference-section">
+              <p>Choose any that matter. These can influence routes, venue suggestions and how demanding a day plan feels.</p>
+              <div class="accessibility-grid">
+                ${ACCESSIBILITY.map(([key, label, hint]) => `
+                  <label class="accessibility-choice">
+                    <input type="checkbox" name="accessibility" value="${key}" ${value.accessibility[key] ? 'checked' : ''} />
+                    <span class="accessibility-copy"><b>${label}</b><small>${hint}</small></span>
+                  </label>
+                `).join('')}
+              </div>
             </div>
-          </fieldset>
+          </section>
 
           <label class="preferences-notes">
             <span>Anything else about how your family likes to travel? <em>optional</em></span>
