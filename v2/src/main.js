@@ -16,9 +16,14 @@ import { mountDietaryScreen } from './dietary/view.js';
 import { createTripPreferencesStore } from './preferences/store.js';
 import { mountPreferencesScreen } from './preferences/view.js';
 import { wirePreferencesRow } from './preferences/trigger.js';
+import { createTripStore } from './trip/store.js';
+import { mountTripScreen } from './trip/view.js';
+import { mountHomeScreen } from './home/view.js';
+import { wireV2Navigation } from './navigation/wire.js';
 
 const store = createFamilyStore();
 const preferencesStore = createTripPreferencesStore();
+const tripStore = createTripStore();
 const root = document.querySelector('#app');
 let cleanup = [];
 
@@ -33,6 +38,27 @@ function scrollTop() {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
+function brandAndScroll() {
+  applyFerdaBranding(root);
+  scrollTop();
+}
+
+function showHome() {
+  unmount();
+  const homeCleanup = mountHomeScreen(root, tripStore, store, {
+    onTrip: showTrip,
+    onFamily: showFamily
+  });
+  const navCleanup = wireV2Navigation(root, {
+    onToday: showHome,
+    onExplore: showHome,
+    onTrip: showTrip,
+    onFamily: showFamily
+  });
+  brandAndScroll();
+  cleanup = [homeCleanup, navCleanup];
+}
+
 function showFamily() {
   unmount();
   const viewCleanup = mountFamilyScreen(root, store, Sortable, {
@@ -40,9 +66,14 @@ function showFamily() {
   });
   const editorCleanup = enhanceMemberEditor(root);
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
-  applyFerdaBranding(root);
-  cleanup = [viewCleanup, editorCleanup, preferencesCleanup];
-  scrollTop();
+  const navCleanup = wireV2Navigation(root, {
+    onToday: showHome,
+    onExplore: showHome,
+    onTrip: showTrip,
+    onFamily: showFamily
+  });
+  brandAndScroll();
+  cleanup = [viewCleanup, editorCleanup, preferencesCleanup, navCleanup];
 }
 
 function showDietary(memberId) {
@@ -51,9 +82,8 @@ function showDietary(memberId) {
     memberId,
     onBack: showFamily
   });
-  applyFerdaBranding(root);
+  brandAndScroll();
   cleanup = [dietaryCleanup];
-  scrollTop();
 }
 
 function showPreferences() {
@@ -62,9 +92,18 @@ function showPreferences() {
     onBack: showFamily,
     onRemount: showPreferences
   });
-  applyFerdaBranding(root);
+  brandAndScroll();
   cleanup = [preferencesCleanup];
-  scrollTop();
 }
 
-showFamily();
+function showTrip() {
+  unmount();
+  const tripCleanup = mountTripScreen(root, tripStore, {
+    onBack: showHome,
+    onRemount: showTrip
+  });
+  brandAndScroll();
+  cleanup = [tripCleanup];
+}
+
+showHome();
