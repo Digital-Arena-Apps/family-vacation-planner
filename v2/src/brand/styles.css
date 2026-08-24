@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --ferda-teal-dark: #0E5E5B;
+  --ferda-teal: #21B6A8;
+  --ferda-mint: #9EDBD4;
+  --ferda-orange: #FFB347;
+  --ferda-cream: #FFF3E4;
+  --ferda-cream-soft: #FFF8EE;
+  --ferda-surface: #FFFCF7;
+  --ink: #153F3E;
+  --muted: #667B79;
+  --teal: var(--ferda-teal-dark);
+  --teal-dark: var(--ferda-teal-dark);
+  --surface: rgba(255,252,247,.97);
+  --line: rgba(14,94,91,.10);
+  --shadow: 0 12px 30px rgba(14,94,91,.08);
+}
+
+html, body { background: var(--ferda-cream); }
+body, button, input, select, textarea, wa-button { font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important; }
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 104% -4%, rgba(33,182,168,.12), transparent 27rem),
+    radial-gradient(circle at -8% 34%, rgba(255,179,71,.12), transparent 22rem),
+    var(--ferda-cream);
+}
+h1, h2, h3, h4, legend, .member-title b, .preference-choice b, .preferences-principle b, .dietary-principle b {
+  color: var(--ink);
+  font-family: 'Poppins', system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: -.025em;
+}
+p, small, label, input, select, textarea { font-weight: 400; }
+
+.v2-topbar { background: rgba(255,243,228,.92); border-bottom-color: rgba(14,94,91,.08); }
+.ferda-topbar { height: auto; min-height: 0; padding-top: 10px; padding-bottom: 10px; }
+.ferda-brand { gap: 11px; }
+.ferda-brand-mark {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 15px;
+  color: #fff;
+  font-weight: 600;
+  background: var(--ferda-teal-dark);
+  box-shadow: 0 7px 18px rgba(14,94,91,.18);
+}
+.ferda-brand-mark img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+.ferda-brand-copy { min-width: 0; display: block; }
+.ferda-brand-copy b { display: block; color: var(--ferda-teal-dark); font-size: 1.08rem; line-height: 1; font-weight: 600; letter-spacing: .08em; }
+.ferda-brand-copy small { display: block; margin-top: 5px; color: var(--ferda-teal-dark); font-size: .52rem; line-height: 1.1; font-weight: 600; letter-spacing: .10em; white-space: nowrap; }
+
+.ferda-asset-fallback { position: relative; z-index: 0; }
+.ferda-ui-image, .ferda-button-icon, .ferda-nav-icon { position: relative; display: inline-grid; place-items: center; overflow: hidden; }
+.ferda-ui-image img, .ferda-button-icon img, .ferda-nav-icon img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; }
+.ferda-ui-image.asset-missing img, .ferda-button-icon.asset-missing img, .ferda-nav-icon.asset-missing img, .ferda-brand-mark.asset-missing img { display: none; }
+.ferda-ui-image:not(.asset-missing) > .ferda-asset-fallback, .ferda-button-icon:not(.asset-missing) > .ferda-asset-fallback { opacity: 0; }
+.ferda-eyebrow { color: var(--ferda-teal-dark); font-weight: 600 !important; letter-spacing: .15em !important; }
+
+.crew-summary, .member-card, .preference-row, .preference-section, .dietary-section, .dietary-editor-heading, .dietary-person, .accessibility-choice, .preference-choice-body { background: var(--ferda-surface); }
+.crew-summary { grid-template-columns: 46px minmax(0,1fr) auto; height: auto; min-height: 0; padding: 10px 12px; border-color: rgba(14,94,91,.13); }
+.crew-summary-icon.ferda-ui-image { width: 46px; height: 46px; border-radius: 14px; background: rgba(158,219,212,.34); }
+.member-card, .member-main, .member-copy { min-height: 0 !important; height: auto; }
+.preference-row { grid-template-columns: 44px minmax(0,1fr) auto; min-height: 0; height: auto; padding: 10px 12px; opacity: 1; border-color: rgba(14,94,91,.11); }
+.preference-icon.ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
+.family-preferences-row, .food-needs-row { background: rgba(255,252,247,.96); }
+.preference-action, .page-back { color: var(--ferda-teal-dark); font-weight: 600; }
+.family-fab { background: linear-gradient(145deg, #21B6A8, #0E5E5B); box-shadow: 0 14px 30px rgba(14,94,91,.28); }
+.ferda-button-icon { width: 23px; height: 23px; margin-right: 5px; vertical-align: middle; }
+.v2-nav { background: rgba(255,252,247,.97); border-color: rgba(14,94,91,.09); }
+.ferda-nav-icon { width: 28px; height: 28px; }
+.v2-nav button.active { color: var(--ferda-teal-dark); }
+.v2-nav button.active .ferda-nav-icon { transform: translateY(-1px); }
+
+.preferences-principle, .dietary-principle { background: rgba(158,219,212,.34); border-color: rgba(14,94,91,.17); height: auto; min-height: 0; }
+.preferences-principle-art { object-fit: contain !important; background: var(--ferda-cream); }
+.dietary-principle > .ferda-ui-image { width: 44px; height: 44px; border-radius: 14px; background: var(--ferda-cream); }
+.preference-choice-body, .need-type-card span { min-height: 0 !important; height: auto; }
+.preference-choice input:checked + .preference-choice-body, .need-type-card input:checked + span, .accessibility-choice:has(input:checked) {
+  border-color: rgba(33,182,168,.58);
+  background: rgba(158,219,212,.22);
+}
+.preference-check { background: var(--ferda-teal-dark); }
+.preference-future-card, .future-search-card { background: var(--ferda-teal-dark); }
+.preference-future-card > span, .future-search-card > span { color: var(--ferda-mint); }
+.cross-contact-row { border-color: rgba(255,179,71,.35); background: rgba(255,179,71,.10); }
+.preferences-actions, .dietary-actions { background: linear-gradient(to bottom, rgba(255,243,228,0), var(--ferda-cream) 22%); }
+
+wa-button[variant='brand']::part(base) { background: var(--ferda-teal-dark); border-color: var(--ferda-teal-dark); }
+wa-button[variant='brand'][appearance='outlined']::part(base) { color: var(--ferda-teal-dark); background: transparent; border-color: var(--ferda-teal-dark); }
+
+@media (max-width: 560px) {
+  .ferda-topbar { padding-top: 9px; padding-bottom: 9px; }
+  .ferda-brand-mark { width: 48px; height: 48px; flex-basis: 48px; border-radius: 14px; }
+  .ferda-brand-copy b { font-size: 1rem; }
+  .ferda-brand-copy small { font-size: .48rem; letter-spacing: .085em; }
+  .crew-summary { grid-template-columns: 44px minmax(0,1fr) auto !important; padding: 9px 10px !important; }
+  .crew-summary-icon.ferda-ui-image { width: 44px; height: 44px; }
+  .preference-row { grid-template-columns: 42px minmax(0,1fr) auto; padding: 9px 10px; }
+  .preference-icon.ferda-ui-image { width: 42px; height: 42px; }
+  .ferda-nav-icon { width: 27px; height: 27px; }
+  .preference-choice-body.has-image { grid-template-columns: 74px minmax(0,1fr) !important; gap: 10px !important; padding: 8px 9px !important; }
+  .preference-choice-image { width: 74px !important; height: 74px !important; border-radius: 15px !important; }
+  .preferences-principle { grid-template-columns: 48px minmax(0,1fr) !important; padding: 10px !important; }
+  .preferences-principle-art { width: 48px !important; height: 48px !important; }
+  .dietary-principle { grid-template-columns: 42px minmax(0,1fr) !important; align-items: center !important; }
+  .dietary-actions { background: rgba(255,243,228,.98) !important; }
+}
