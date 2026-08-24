@@ -16,6 +16,13 @@ function dayDiff(from, to) {
   return Math.ceil((to.getTime() - from.getTime()) / 86400000);
 }
 
+function dateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function tripStatus(trip) {
   const start = parseDate(trip.arrivalDate);
   const end = parseDate(trip.departureDate);
@@ -59,11 +66,49 @@ function formatDates(trip) {
   return start ? `From ${fmt(start)}` : `Until ${fmt(end)}`;
 }
 
-export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
+function todayLabel() {
+  return new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function ferdaSuggestion(items, preferences) {
+  if (!items.length) return 'Start with one anchor plan, then leave enough breathing room for the day to develop naturally.';
+  if (preferences.walking === 'low') return 'Keep the next stop compact and avoid unnecessary backtracking — your crew prefers lower walking days.';
+  if (preferences.pace === 'relaxed') return 'You prefer easy-going days. Keep at least one open gap rather than filling every hour.';
+  if (preferences.pace === 'full') return 'Your crew likes fuller days. There is room to add another anchor without making the plan feel scattered.';
+  if (preferences.discovery === 'discover') return 'Your crew is open to surprises — leave one flexible slot for something local or unexpected.';
+  if (preferences.rhythm === 'late') return 'You are later starters, so avoid making the morning do too much heavy lifting.';
+  return 'This looks balanced. Keep one flexible gap so FERDA can adapt if timing, energy or weather changes.';
+}
+
+function periodMarkup(period, items) {
+  const labels = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' };
+  const icons = { activity: '★', meal: '⌁', travel: '↗', other: '•' };
+  const rows = items.filter(item => item.period === period);
+  const content = rows.length
+    ? rows.map(item => `
+        <div class="today-item">
+          <span class="today-item-icon ${item.type}">${icons[item.type] || '•'}</span>
+          <span class="today-item-copy"><b>${esc(item.title)}</b>${item.note ? `<small>${esc(item.note)}</small>` : ''}</span>
+          <button class="today-item-remove" type="button" data-remove-today="${esc(item.id)}" aria-label="Remove ${esc(item.title)}">×</button>
+        </div>`).join('')
+    : '<div class="today-empty">Nothing planned yet — keep it flexible or add something.</div>';
+
+  return `
+    <section class="today-period">
+      <div class="today-period-head"><h3>${labels[period]}</h3><button type="button" data-add-period="${period}">+ Add</button></div>
+      <div class="today-period-list">${content}</div>
+    </section>`;
+}
+
+export function mountHomeScreen(root, tripStore, familyStore, preferencesStore, todayStore, options = {}) {
   const trip = tripStore.get();
   const people = familyStore.list();
+  const preferences = preferencesStore.get();
   const configured = tripStore.isConfigured();
   const status = tripStatus(trip);
+  const currentKey = dateKey(new Date());
+  const dayItems = todayStore.list(currentKey);
+  const transportLabel = ({ car: 'Car available', rideshare: 'Rideshare', public: 'Public transport', mixed: 'Mixed transport', none: 'Transport not set' })[trip.transport] || 'Transport not set';
 
   root.innerHTML = `
     <div class="v2-shell home-shell">
@@ -83,6 +128,40 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
           </div>
         </section>
 
+        <section class="today-overview">
+          <div>
+            <span class="section-kicker">TODAY · ${esc(todayLabel().toUpperCase())}</span>
+            <h2>Your day, without the faff</h2>
+            <p>${dayItems.length ? `${dayItems.length} plan item${dayItems.length === 1 ? '' : 's'} saved for today.` : 'Nothing is locked in yet. Build the day around how the crew actually feels.'}</p>
+          </div>
+          <button id="todayAddPlan" class="today-primary-action" type="button">+ Add plan</button>
+        </section>
+
+        <section class="today-context-grid">
+          <div class="today-context-card"><b>${people.length || '—'}</b><small>Travellers</small></div>
+          <div class="today-context-card"><b>${esc(transportLabel)}</b><small>Getting around</small></div>
+          <div class="today-context-card wide"><b>${esc(trip.destination || 'Destination not set')}</b><small>Today’s base</small></div>
+        </section>
+
+        <section class="today-ferda-card">
+          <div class="today-ferda-badge">F</div>
+          <div><span class="section-kicker">FERDA SAYS</span><p>${esc(ferdaSuggestion(dayItems, preferences))}</p></div>
+        </section>
+
+        <section class="today-quick-actions" aria-label="Today quick actions">
+          <button type="button" data-quick-type="activity"><span>★</span><b>Add activity</b></button>
+          <button type="button" data-quick-type="meal"><span>⌁</span><b>Add meal</b></button>
+          <button type="button" data-quick-type="travel"><span>↗</span><b>Add journey</b></button>
+          <button type="button" id="todayChangeTrip"><span>⚙</span><b>Trip details</b></button>
+        </section>
+
+        <section class="today-plan-section">
+          <div class="today-section-heading"><span class="section-kicker">TODAY’S PLAN</span><h2>Morning to night</h2></div>
+          ${periodMarkup('morning', dayItems)}
+          ${periodMarkup('afternoon', dayItems)}
+          ${periodMarkup('evening', dayItems)}
+        </section>
+
         <section class="home-trip-card ${configured ? '' : 'is-empty'}">
           <div class="home-trip-copy">
             <span class="section-kicker">YOUR TRIP</span>
@@ -90,12 +169,6 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
             <p>${configured ? `${esc(formatDates(trip))}${trip.accommodation ? ` · ${esc(trip.accommodation)}` : ''}` : 'Tell FERDA where and when you’re going. You can change it any time.'}</p>
           </div>
           <button id="editTripHome" class="home-trip-action" type="button">${configured ? 'Edit trip' : 'Set up trip'} <span>›</span></button>
-        </section>
-
-        <section class="home-glance">
-          <div class="home-glance-card"><b>${people.length || '—'}</b><small>Travellers</small></div>
-          <div class="home-glance-card"><b>${trip.destination ? esc(trip.destination) : 'Not set'}</b><small>Destination</small></div>
-          <div class="home-glance-card"><b>${esc(formatDates(trip))}</b><small>Trip dates</small></div>
         </section>
 
         <section class="home-section">
@@ -111,6 +184,17 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
         </section>
       </main>
 
+      <dialog class="today-dialog" id="todayDialog">
+        <form method="dialog" id="todayForm">
+          <div class="today-dialog-head"><div><span class="section-kicker">ADD TO TODAY</span><h2>What’s the plan?</h2></div><button value="cancel" aria-label="Close">×</button></div>
+          <label>Time of day<select id="todayPeriod"><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select></label>
+          <label>Type<select id="todayType"><option value="activity">Activity</option><option value="meal">Meal</option><option value="travel">Journey</option><option value="other">Other</option></select></label>
+          <label>Plan<input id="todayTitle" maxlength="80" placeholder="e.g. Pool morning, Magic Kingdom, dinner" /></label>
+          <label>Optional note<input id="todayNote" maxlength="140" placeholder="Time, booking note, meeting point…" /></label>
+          <div class="today-dialog-actions"><button value="cancel" class="secondary">Cancel</button><button id="todaySave" value="default" class="primary">Add to today</button></div>
+        </form>
+      </dialog>
+
       <nav class="v2-nav" aria-label="Primary navigation">
         <button class="active" type="button"><span>⌂</span><b>Today</b></button>
         <button type="button"><span>⌕</span><b>Explore</b></button>
@@ -120,9 +204,50 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
     </div>
   `;
 
+  const dialog = root.querySelector('#todayDialog');
+  const periodInput = root.querySelector('#todayPeriod');
+  const typeInput = root.querySelector('#todayType');
+  const titleInput = root.querySelector('#todayTitle');
+  const noteInput = root.querySelector('#todayNote');
+
+  function openAdd(period = 'morning', type = 'activity') {
+    periodInput.value = period;
+    typeInput.value = type;
+    titleInput.value = '';
+    noteInput.value = '';
+    dialog.showModal();
+    requestAnimationFrame(() => titleInput.focus());
+  }
+
+  root.querySelector('#todayAddPlan')?.addEventListener('click', () => openAdd());
+  root.querySelectorAll('[data-add-period]').forEach(button => button.addEventListener('click', () => openAdd(button.dataset.addPeriod, 'activity')));
+  root.querySelectorAll('[data-quick-type]').forEach(button => button.addEventListener('click', () => openAdd('morning', button.dataset.quickType)));
+  root.querySelectorAll('[data-remove-today]').forEach(button => button.addEventListener('click', () => {
+    todayStore.remove(currentKey, button.dataset.removeToday);
+    options.onRemount?.();
+  }));
+
+  root.querySelector('#todaySave')?.addEventListener('click', event => {
+    event.preventDefault();
+    const title = titleInput.value.trim();
+    if (!title) {
+      titleInput.focus();
+      return;
+    }
+    todayStore.add(currentKey, {
+      period: periodInput.value,
+      type: typeInput.value,
+      title,
+      note: noteInput.value
+    });
+    dialog.close();
+    options.onRemount?.();
+  });
+
   root.querySelector('#editTripHome')?.addEventListener('click', () => options.onTrip?.());
+  root.querySelector('#todayChangeTrip')?.addEventListener('click', () => options.onTrip?.());
   root.querySelector('#homeFamily')?.addEventListener('click', () => options.onFamily?.());
   root.querySelector('#homeItinerary')?.addEventListener('click', () => options.onTrip?.());
 
-  return () => {};
+  return () => { if (dialog?.open) dialog.close(); };
 }
