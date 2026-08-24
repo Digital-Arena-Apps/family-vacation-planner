@@ -1,4 +1,8 @@
 import FERDA_AVATAR_SPRITE from './ferda-avatar-sprite.js';
+import FERDA_MANATEE from './avatar-manatee.js';
+import FERDA_OSPREY from './avatar-osprey.js';
+import FERDA_RIVEROTTER from './avatar-riverotter.js';
+import FERDA_SEA_TURTLE from './avatar-sea-turtle.js';
 import { FERDA_PANTHER } from '../brand/runtime-assets.js';
 
 export const AVATAR_OPTIONS = [
@@ -6,10 +10,10 @@ export const AVATAR_OPTIONS = [
   { id: 'blackbear', label: 'Black bear', col: 1, row: 0 },
   { id: 'bobcat', label: 'Bobcat', col: 2, row: 0 },
   { id: 'gecko', label: 'Gecko', col: 3, row: 0 },
-  { id: 'manatee', label: 'Manatee', col: 0, row: 1 },
-  { id: 'osprey', label: 'Osprey', col: 1, row: 1 },
-  { id: 'riverotter', label: 'River otter', col: 2, row: 1 },
-  { id: 'sea-turtle', label: 'Sea turtle', col: 3, row: 1 },
+  { id: 'manatee', label: 'Manatee', src: FERDA_MANATEE },
+  { id: 'osprey', label: 'Osprey', src: FERDA_OSPREY },
+  { id: 'riverotter', label: 'River otter', src: FERDA_RIVEROTTER },
+  { id: 'sea-turtle', label: 'Sea turtle', src: FERDA_SEA_TURTLE },
   { id: 'panther', label: 'Florida panther', src: FERDA_PANTHER }
 ];
 
