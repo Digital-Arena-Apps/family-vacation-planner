@@ -1,4 +1,5 @@
 import './styles.css';
+import { FERDA_HOME_HERO } from './hero-data.js';
 
 function esc(value = '') {
   return String(value).replace(/[&<>"']/g, char => ({
@@ -74,7 +75,7 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
 
       <main class="home-page">
         <section class="home-hero">
-          <div class="home-hero-art" aria-hidden="true"></div>
+          <div class="home-hero-art" style="background-image:url('${FERDA_HOME_HERO}')" aria-hidden="true"></div>
           <div class="home-hero-shade"></div>
           <div class="home-hero-copy">
             <div class="eyebrow">${status.eyebrow}</div>
