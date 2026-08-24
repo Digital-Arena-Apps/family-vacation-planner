@@ -1,11 +1,15 @@
 import './styles.css';
 import ART_BASE from './artwork-data.js';
+import PACE_ART from './artwork-ferda-pace.js';
 import BUDGET_ART from './artwork-budget.js';
+import RHYTHM_ART from './artwork-ferda-rhythm.js';
 import DISCOVERY_ART from './artwork-discovery.js';
 
 const ART = {
   ...ART_BASE,
+  pace: PACE_ART,
   budget: BUDGET_ART,
+  rhythm: RHYTHM_ART,
   discovery: DISCOVERY_ART
 };
 
