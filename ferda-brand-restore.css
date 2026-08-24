@@ -1,0 +1,29 @@
+:root{
+  --ferda-teal:#0b4b46;
+  --ferda-teal-deep:#073b37;
+  --ferda-teal-mid:#14665f;
+  --ferda-cream:#fff7e5;
+  --ferda-cream-2:#f7efdc;
+  --ferda-orange:#f2a13a;
+  --ferda-ink:#173a35;
+  --ferda-muted:#6f827e;
+}
+.ferda-core-v1{background:linear-gradient(180deg,#fffaf0 0%,var(--ferda-cream) 58%,#f4ead6 100%)!important}
+.ferda-core-v1 .topbar{height:82px!important;background:rgba(7,59,55,.97)!important;border-bottom:0!important;box-shadow:0 10px 28px rgba(7,59,55,.14)!important}
+.ferda-brand{gap:11px!important;color:var(--ferda-cream)!important}
+.ferda-production-mark{width:48px;height:48px;object-fit:contain;display:block;filter:drop-shadow(0 5px 8px rgba(0,0,0,.18))}
+.ferda-wordmark b{color:var(--ferda-cream)!important;font-size:21px!important;letter-spacing:.13em!important}.ferda-wordmark small{color:rgba(255,247,229,.76)!important}
+.ferda-version{color:rgba(255,247,229,.72)!important;border-color:rgba(255,247,229,.16)!important;background:rgba(255,255,255,.06)!important}
+.ferda-trip-hero{background:linear-gradient(145deg,#073b37 0%,#0b4b46 58%,#14665f 100%)!important;border:1px solid rgba(255,247,229,.08)!important;box-shadow:0 16px 36px rgba(7,59,55,.18)!important}
+.ferda-trip-hero:before{content:"";position:absolute;width:120px;height:120px;border-radius:50%;right:-24px;top:-38px;background:radial-gradient(circle,rgba(242,161,58,.18),rgba(242,161,58,0) 70%)}
+.ferda-status-grid article,.ferda-today-plan,.ferda-core-v1 .form-card,.ferda-core-v1 .section-block{background:rgba(255,253,247,.94)!important;border:1px solid rgba(11,75,70,.10)!important;box-shadow:0 8px 24px rgba(11,75,70,.06)!important}
+.ferda-action-card{background:linear-gradient(180deg,#f7b34f,#f2a13a)!important;border:1px solid rgba(126,78,12,.10)!important;box-shadow:0 10px 22px rgba(153,96,18,.18)!important}.ferda-action-card.quieter{background:#e5f0ed!important;border-color:#cfe0dc!important;box-shadow:none!important}
+.ferda-core-v1 .bottom-nav{height:86px!important;background:rgba(255,250,239,.98)!important;border-top:1px solid rgba(11,75,70,.10)!important;box-shadow:0 -10px 30px rgba(7,59,55,.10)!important;padding-top:6px!important}
+.ferda-core-v1 .nav-item{gap:1px!important;border-radius:18px!important;padding:4px 6px!important}.ferda-core-v1 .nav-item.active{background:transparent!important;color:var(--ferda-teal-deep)!important}.ferda-core-v1 .nav-item.active:after{content:"";width:22px;height:3px;border-radius:999px;background:var(--ferda-orange);position:absolute;bottom:3px}.ferda-core-v1 .nav-item{position:relative}
+.ferda-nav-icon{width:38px;height:38px;object-fit:contain;display:block;transition:transform .18s ease,filter .18s ease}.ferda-core-v1 .nav-item.active .ferda-nav-icon{transform:translateY(-1px) scale(1.08);filter:drop-shadow(0 4px 5px rgba(7,59,55,.16))}.ferda-core-v1 .nav-item small{font-size:10.5px!important;color:#617773!important}.ferda-core-v1 .nav-item.active small{color:var(--ferda-teal-deep)!important}
+.ferda-sticky-add-person{background:linear-gradient(180deg,#f7b34f,#f2a13a)!important;color:#2c2a20!important;box-shadow:0 12px 28px rgba(121,79,18,.20)!important;border:1px solid rgba(126,78,12,.10)!important}
+.ferda-production-inline-icon{width:34px;height:34px;object-fit:contain;margin-right:6px;vertical-align:middle}
+.ferda-landing{background:linear-gradient(160deg,#073b37 0%,#0b4b46 64%,#125f59 100%)!important}.ferda-landing-copy{position:relative}.ferda-landing-copy:after{content:"";position:absolute;width:260px;height:260px;right:-150px;top:-100px;border-radius:50%;background:radial-gradient(circle,rgba(242,161,58,.20),transparent 68%);pointer-events:none}.ferda-landing-logo{width:90px;height:90px;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.20))}.ferda-landing-word{color:#f8e7bd!important}.ferda-landing-copy h1{color:var(--ferda-cream)!important}.ferda-landing-copy p{color:rgba(255,247,229,.78)!important}.ferda-landing .landing-primary{background:linear-gradient(180deg,#f8b54f,#f2a13a)!important;color:#2f2a20!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 12px 30px rgba(0,0,0,.15)!important}
+.ferda-onboarding-brand img{width:48px;height:48px;object-fit:contain}.ferda-onboarding-brand b{color:var(--ferda-teal-deep)!important;letter-spacing:.14em!important}
+.ferda-core-v1 .primary-btn{background:linear-gradient(180deg,#12625b,#0b4b46)!important;color:var(--ferda-cream)!important;box-shadow:0 8px 18px rgba(7,59,55,.15)!important}.ferda-core-v1 .chip.active,.ferda-core-v1 .now-context-chip.active{background:var(--ferda-teal)!important;color:var(--ferda-cream)!important;border-color:var(--ferda-teal)!important}
+@media(max-width:520px){.ferda-production-mark{width:44px;height:44px}.ferda-wordmark b{font-size:19px!important}.ferda-wordmark small{font-size:9.5px!important}.ferda-nav-icon{width:36px;height:36px}}
