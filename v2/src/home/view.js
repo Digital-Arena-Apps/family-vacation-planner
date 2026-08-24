@@ -1,4 +1,5 @@
 import './styles.css';
+import './today-polish.css';
 
 const TODAY_ICONS = Object.freeze({
   activity: '/brand/ferda-ui-icon-nav-explore.webp',
