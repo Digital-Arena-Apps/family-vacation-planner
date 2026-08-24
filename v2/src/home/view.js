@@ -74,7 +74,7 @@ export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
 
       <main class="home-page">
         <section class="home-hero">
-          <img class="home-hero-img" src="/ferda-home-hero.webp?v=20260824-2100" alt="" aria-hidden="true" />
+          <img class="home-hero-img" src="/ferda-home-hero-v4.jpg" alt="" aria-hidden="true" />
           <div class="home-hero-shade"></div>
           <div class="home-hero-copy">
             <div class="eyebrow">${status.eyebrow}</div>
