@@ -1,0 +1,1 @@
+FERDA hero artwork lives in this folder.
