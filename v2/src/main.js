@@ -20,6 +20,7 @@ import { createTripStore } from './trip/store.js';
 import { mountTripScreen } from './trip/view.js';
 import { createTodayStore } from './today/store.js';
 import { mountHomeScreen } from './home/view.js';
+import { mountExploreScreen } from './explore/view.js';
 import { wireV2Navigation } from './navigation/wire.js';
 
 const store = createFamilyStore();
@@ -40,8 +41,12 @@ function scrollTop() {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function brandAndScroll() {
+function brandOnly() {
   applyFerdaBranding(root);
+}
+
+function brandAndScroll() {
+  brandOnly();
   scrollTop();
 }
 
@@ -54,12 +59,24 @@ function showHome() {
   });
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showHome,
+    onExplore: showExplore,
     onTrip: showTrip,
     onFamily: showFamily
   });
   brandAndScroll();
   cleanup = [homeCleanup, navCleanup];
+}
+
+function showExplore() {
+  unmount();
+  const exploreCleanup = mountExploreScreen(root, tripStore, store, preferencesStore, todayStore, {
+    onToday: showHome,
+    onTrip: showTrip,
+    onFamily: showFamily,
+    onRebrand: brandOnly
+  });
+  brandAndScroll();
+  cleanup = [exploreCleanup];
 }
 
 function showFamily() {
@@ -71,7 +88,7 @@ function showFamily() {
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showHome,
+    onExplore: showExplore,
     onTrip: showTrip,
     onFamily: showFamily
   });
