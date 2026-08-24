@@ -1,5 +1,13 @@
 import './styles.css';
 
+const TODAY_ICONS = Object.freeze({
+  activity: '/brand/ferda-ui-icon-nav-explore.webp',
+  meal: '/brand/ferda-ui-icon-food-dietary.webp',
+  travel: '/brand/ferda-ui-icon-nav-today.webp',
+  other: '/brand/ferda-ui-icon-trip-preferences.webp',
+  trip: '/brand/ferda-ui-icon-nav-trip.webp'
+});
+
 function esc(value = '') {
   return String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -80,14 +88,18 @@ function ferdaSuggestion(items, preferences) {
   return 'This looks balanced. Keep one flexible gap so FERDA can adapt if timing, energy or weather changes.';
 }
 
+function todayIcon(type, extraClass = '') {
+  const src = TODAY_ICONS[type] || TODAY_ICONS.other;
+  return `<span class="today-brand-icon ${extraClass}"><img src="${src}" alt="" aria-hidden="true" /></span>`;
+}
+
 function periodMarkup(period, items) {
   const labels = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' };
-  const icons = { activity: '★', meal: '⌁', travel: '↗', other: '•' };
   const rows = items.filter(item => item.period === period);
   const content = rows.length
     ? rows.map(item => `
         <div class="today-item">
-          <span class="today-item-icon ${item.type}">${icons[item.type] || '•'}</span>
+          ${todayIcon(item.type, `today-item-icon ${item.type}`)}
           <span class="today-item-copy"><b>${esc(item.title)}</b>${item.note ? `<small>${esc(item.note)}</small>` : ''}</span>
           <button class="today-item-remove" type="button" data-remove-today="${esc(item.id)}" aria-label="Remove ${esc(item.title)}">×</button>
         </div>`).join('')
@@ -149,10 +161,10 @@ export function mountHomeScreen(root, tripStore, familyStore, preferencesStore, 
         </section>
 
         <section class="today-quick-actions" aria-label="Today quick actions">
-          <button type="button" data-quick-type="activity"><span>★</span><b>Add activity</b></button>
-          <button type="button" data-quick-type="meal"><span>⌁</span><b>Add meal</b></button>
-          <button type="button" data-quick-type="travel"><span>↗</span><b>Add journey</b></button>
-          <button type="button" id="todayChangeTrip"><span>⚙</span><b>Trip details</b></button>
+          <button type="button" data-quick-type="activity">${todayIcon('activity')}<b>Add activity</b></button>
+          <button type="button" data-quick-type="meal">${todayIcon('meal')}<b>Add meal</b></button>
+          <button type="button" data-quick-type="travel">${todayIcon('travel')}<b>Add journey</b></button>
+          <button type="button" id="todayChangeTrip">${todayIcon('trip')}<b>Trip details</b></button>
         </section>
 
         <section class="today-plan-section">
