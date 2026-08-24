@@ -8,18 +8,47 @@
 .home-hero-copy h1 { margin: 5px 0 4px; color: white; font-size: clamp(1.75rem, 7vw, 2.5rem); line-height: 1.05; }
 .home-hero-copy p { margin: 0; max-width: 520px; color: rgba(255,255,255,.92); font-size: .82rem; line-height: 1.45; }
 
-.home-trip-card { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; margin-top: 16px; padding: 16px; border: 1px solid rgba(14,94,91,.12); border-radius: 22px; background: rgba(255,252,247,.97); box-shadow: 0 9px 26px rgba(14,94,91,.06); }
+.today-overview { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center; margin-top:18px; padding:16px; border:1px solid rgba(14,94,91,.11); border-radius:22px; background:rgba(255,252,247,.97); box-shadow:0 9px 26px rgba(14,94,91,.055); }
+.today-overview h2 { margin:4px 0; font-size:1.08rem; line-height:1.2; }
+.today-overview p { margin:0; color:var(--muted); font-size:.72rem; line-height:1.5; }
+.today-primary-action { border:0; border-radius:14px; padding:11px 13px; background:#0E5E5B; color:white; font-weight:600; white-space:nowrap; }
+.today-context-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:11px; }
+.today-context-card { min-width:0; padding:13px 12px; border:1px solid rgba(14,94,91,.08); border-radius:18px; background:rgba(255,252,247,.94); }
+.today-context-card.wide { grid-column:1/-1; }
+.today-context-card b { display:block; overflow:hidden; color:#0E5E5B; font-size:.8rem; line-height:1.3; text-overflow:ellipsis; white-space:nowrap; }
+.today-context-card small { display:block; margin-top:4px; color:var(--muted); font-size:.58rem; }
+.today-ferda-card { display:grid; grid-template-columns:42px minmax(0,1fr); gap:12px; align-items:center; margin-top:12px; padding:14px; border:1px solid rgba(14,94,91,.15); border-radius:20px; background:linear-gradient(145deg, rgba(158,219,212,.33), rgba(255,252,247,.98)); }
+.today-ferda-badge { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; background:#0E5E5B; color:#FFF3E4; font-weight:600; font-size:1.05rem; box-shadow:0 8px 18px rgba(14,94,91,.18); }
+.today-ferda-card p { margin:4px 0 0; color:var(--ink); font-size:.7rem; line-height:1.5; }
+.today-quick-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:12px; }
+.today-quick-actions button { min-width:0; display:grid; gap:6px; justify-items:center; padding:11px 6px; border:1px solid rgba(14,94,91,.1); border-radius:17px; background:rgba(255,252,247,.96); color:#0E5E5B; }
+.today-quick-actions button span { font-size:1rem; line-height:1; }
+.today-quick-actions button b { font-size:.57rem; line-height:1.2; text-align:center; }
+.today-plan-section { margin-top:28px; }
+.today-section-heading { margin:0 5px 12px; }
+.today-section-heading h2 { margin:4px 0 0; font-size:1.08rem; }
+.today-period { margin-top:12px; padding:14px; border:1px solid rgba(14,94,91,.09); border-radius:20px; background:rgba(255,252,247,.98); box-shadow:0 8px 22px rgba(14,94,91,.045); }
+.today-period-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.today-period-head h3 { margin:0; font-size:.88rem; }
+.today-period-head button { border:0; background:transparent; color:#0E5E5B; font-size:.64rem; font-weight:600; }
+.today-period-list { display:grid; gap:8px; margin-top:10px; }
+.today-empty { padding:11px 12px; border-radius:14px; background:rgba(158,219,212,.12); color:var(--muted); font-size:.64rem; line-height:1.45; }
+.today-item { display:grid; grid-template-columns:36px minmax(0,1fr) 28px; gap:10px; align-items:center; padding:10px; border:1px solid rgba(14,94,91,.08); border-radius:15px; background:#fff; }
+.today-item-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:12px; background:rgba(158,219,212,.3); color:#0E5E5B; font-weight:600; }
+.today-item-icon.meal { background:rgba(255,179,71,.18); }
+.today-item-icon.travel { background:rgba(33,182,168,.16); }
+.today-item-copy { min-width:0; }
+.today-item-copy b { display:block; font-size:.72rem; line-height:1.3; }
+.today-item-copy small { display:block; margin-top:3px; color:var(--muted); font-size:.59rem; line-height:1.35; }
+.today-item-remove { width:28px; height:28px; border:0; border-radius:50%; background:transparent; color:#879593; font-size:1rem; }
+
+.home-trip-card { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 14px; align-items: center; margin-top: 22px; padding: 16px; border: 1px solid rgba(14,94,91,.12); border-radius: 22px; background: rgba(255,252,247,.97); box-shadow: 0 9px 26px rgba(14,94,91,.06); }
 .home-trip-card.is-empty { background: linear-gradient(145deg, rgba(158,219,212,.26), rgba(255,252,247,.98)); }
 .section-kicker { display: block; color: #0E5E5B; font-size: .61rem; font-weight: 600; letter-spacing: .15em; }
 .home-trip-copy h2, .home-section-heading h2 { margin: 4px 0 4px; font-size: 1.08rem; line-height: 1.2; }
 .home-trip-copy p { margin: 0; color: var(--muted); font-size: .72rem; line-height: 1.5; }
 .home-trip-action { border: 1px solid rgba(14,94,91,.34); border-radius: 14px; background: transparent; color: #0E5E5B; padding: 10px 12px; font-weight: 600; white-space: nowrap; }
 .home-trip-action span { margin-left: 4px; }
-
-.home-glance { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 12px; }
-.home-glance-card { min-width: 0; padding: 13px 12px; border: 1px solid rgba(14,94,91,.08); border-radius: 18px; background: rgba(255,252,247,.94); }
-.home-glance-card b { display: block; overflow: hidden; color: #0E5E5B; font-size: .82rem; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
-.home-glance-card small { display: block; margin-top: 4px; color: var(--muted); font-size: .58rem; }
 
 .home-section { margin-top: 28px; }
 .home-section-heading { margin: 0 5px 13px; }
@@ -37,15 +66,31 @@
 .home-plan-art.shopping { background-image: url('/brand/ferda-ui-icon-trip-preferences.webp'); }
 .home-plan-art.family { background-image: url('/brand/ferda-ui-icon-holiday-crew.webp'); }
 
+.today-dialog { width:min(calc(100% - 24px), 470px); border:0; border-radius:24px; padding:0; background:#FFFCF7; color:var(--ink); box-shadow:0 24px 60px rgba(14,94,91,.28); }
+.today-dialog::backdrop { background:rgba(8,31,31,.48); backdrop-filter:blur(3px); }
+.today-dialog form { display:grid; gap:12px; padding:18px; }
+.today-dialog-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.today-dialog-head h2 { margin:4px 0 0; font-size:1.1rem; }
+.today-dialog-head > button { width:34px; height:34px; border:0; border-radius:50%; background:rgba(14,94,91,.07); color:#0E5E5B; font-size:1.1rem; }
+.today-dialog label { display:grid; gap:6px; color:#536866; font-size:.63rem; font-weight:600; }
+.today-dialog input, .today-dialog select { width:100%; box-sizing:border-box; border:1px solid rgba(14,94,91,.16); border-radius:14px; padding:12px; background:white; color:var(--ink); font-size:.72rem; }
+.today-dialog-actions { display:grid; grid-template-columns:1fr 1.35fr; gap:10px; margin-top:4px; }
+.today-dialog-actions button { border-radius:14px; padding:12px; font-weight:600; }
+.today-dialog-actions .secondary { border:1px solid rgba(14,94,91,.18); background:white; color:#0E5E5B; }
+.today-dialog-actions .primary { border:0; background:#0E5E5B; color:white; }
+
 @media (max-width: 560px) {
   .home-shell { padding-bottom: 112px; }
   .home-page { padding: 10px 12px 126px; }
   .home-hero { min-height: 224px; border-radius: 24px; }
   .home-hero-copy { left: 17px; right: 17px; bottom: 16px; }
+  .today-overview { padding:14px; border-radius:20px; }
+  .today-primary-action { padding:10px 11px; font-size:.68rem; }
+  .today-quick-actions { gap:7px; }
+  .today-quick-actions button { padding:10px 4px; border-radius:15px; }
+  .today-period { padding:12px; border-radius:18px; }
   .home-trip-card { padding: 14px; border-radius: 20px; }
   .home-trip-action { padding: 9px 10px; font-size: .72rem; }
-  .home-glance { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .home-glance-card:last-child { grid-column: 1 / -1; }
   .home-section { margin-top: 30px; }
   .home-plan-grid { grid-template-columns: 1fr; gap: 14px; }
   .home-plan-card { min-height: 88px; grid-template-columns: 62px minmax(0,1fr) auto; gap: 13px; padding: 13px 14px; border-radius: 21px; }
