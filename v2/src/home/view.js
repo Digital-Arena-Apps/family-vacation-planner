@@ -61,8 +61,7 @@ function formatDates(trip) {
 
 export function mountHomeScreen(root, tripStore, familyStore, options = {}) {
   const trip = tripStore.get();
-  const family = familyStore.get();
-  const people = Array.isArray(family) ? family : (family.members || family.people || []);
+  const people = familyStore.list();
   const configured = tripStore.isConfigured();
   const status = tripStatus(trip);
 
