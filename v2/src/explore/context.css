@@ -25,6 +25,30 @@
   color: #0E5E5B;
 }
 
+.ferda-plan-target {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255,179,71,.28);
+  border-radius: 16px;
+  background: rgba(255,179,71,.1);
+}
+.ferda-plan-target > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: #FFB347;
+  color: #6E4814;
+  font-weight: 900;
+}
+.ferda-plan-target b { display: block; font-size: .72rem; }
+.ferda-plan-target small { display: block; margin-top: 2px; color: #776A57; font-size: .58rem; line-height: 1.35; }
+
 .ferda-empty-results {
   padding: 22px 18px;
   border: 1px dashed rgba(14,94,91,.2);
