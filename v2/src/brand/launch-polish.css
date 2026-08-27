@@ -1,0 +1,140 @@
+/* Launch-focused mobile polish.
+   Keeps controls comfortably tappable/readable and prevents modal forms
+   being crushed by the on-screen keyboard. */
+
+button, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(33, 182, 168, .22);
+  outline-offset: 2px;
+}
+
+.home-hero-img,
+.ferda-ui-image img,
+.ferda-nav-icon img,
+.ferda-button-icon img,
+.itinerary-item-icon img,
+.ferda-result-icon img {
+  image-rendering: auto;
+  backface-visibility: hidden;
+}
+
+@media (max-width: 560px) {
+  /* Avoid Android/iOS text zoom and clipped native select text. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.35 !important;
+  }
+
+  .field input,
+  .field select,
+  .field textarea,
+  .trip-field input,
+  .trip-field select,
+  .trip-notes textarea {
+    min-height: 54px !important;
+    padding: 13px 15px !important;
+    border-radius: 16px !important;
+  }
+
+  .today-dialog,
+  .itinerary-dialog,
+  .ferda-why-dialog {
+    width: calc(100% - 16px) !important;
+    max-width: 520px !important;
+    max-height: calc(100dvh - 16px) !important;
+    margin: auto !important;
+    overflow: hidden !important;
+    border-radius: 26px !important;
+  }
+
+  .today-dialog form,
+  .itinerary-dialog form,
+  .ferda-why-dialog form {
+    max-height: calc(100dvh - 16px) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 18px max(16px, env(safe-area-inset-bottom)) !important;
+    scrollbar-width: thin;
+  }
+
+  .today-dialog-head,
+  .itinerary-dialog-head,
+  .ferda-dialog-head {
+    position: sticky;
+    top: -20px;
+    z-index: 3;
+    margin: -20px -18px 4px;
+    padding: 20px 18px 12px;
+    background: rgba(255, 252, 247, .98);
+    backdrop-filter: blur(12px);
+  }
+
+  .today-dialog-head > button,
+  .itinerary-dialog-head > button,
+  .ferda-dialog-head > button {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px;
+  }
+
+  .today-dialog label,
+  .itinerary-dialog label {
+    gap: 8px !important;
+    font-size: .78rem !important;
+    line-height: 1.35;
+  }
+
+  .today-dialog input,
+  .today-dialog select,
+  .itinerary-dialog input,
+  .itinerary-dialog select {
+    min-height: 58px !important;
+    padding: 0 16px !important;
+    border-radius: 17px !important;
+    font-size: 16px !important;
+    line-height: 1.35 !important;
+  }
+
+  .today-dialog select,
+  .itinerary-dialog select {
+    padding-right: 42px !important;
+  }
+
+  .today-dialog-actions,
+  .itinerary-dialog-actions {
+    position: sticky;
+    bottom: -16px;
+    z-index: 4;
+    grid-template-columns: 1fr 1.35fr !important;
+    gap: 10px !important;
+    margin: 4px -6px -16px !important;
+    padding: 12px 6px max(16px, env(safe-area-inset-bottom)) !important;
+    background: linear-gradient(to bottom, rgba(255,252,247,.72), #FFFCF7 24%);
+  }
+
+  .today-dialog-actions button,
+  .itinerary-dialog-actions button,
+  .ferda-dialog-close {
+    min-height: 54px !important;
+    font-size: .92rem !important;
+    line-height: 1.2;
+  }
+
+  /* Keep important tap targets comfortably above the 44px minimum. */
+  .today-primary-action,
+  .home-trip-action,
+  .itinerary-day-actions button,
+  .ferda-result-actions button,
+  .ferda-transport-actions button {
+    min-height: 46px;
+  }
+}
