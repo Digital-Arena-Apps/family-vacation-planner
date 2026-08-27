@@ -33,9 +33,26 @@ function currentPeriod() {
   return hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
 }
 
-function resultCard(option, index, intent) {
+function targetDate(key) {
+  const date = new Date(`${key}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function targetLongLabel(key) {
+  return targetDate(key).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function targetShortLabel(key) {
+  return targetDate(key).toLocaleDateString('en-GB', { weekday: 'short' });
+}
+
+function resultCard(option, index, intent, targetKey) {
   const reasons = option.reasons.map(reason => `<li>${esc(reason)}</li>`).join('');
-  const addLabel = intent === 'dining' ? 'Add meal to today' : 'Add to today';
+  const isToday = targetKey === todayKey();
+  const day = targetShortLabel(targetKey);
+  const addLabel = intent === 'dining'
+    ? (isToday ? 'Add meal to today' : `Add meal to ${day}`)
+    : (isToday ? 'Add to today' : `Add to ${day}`);
   return `
     <article class="ferda-result-card ${index === 0 ? 'top-pick' : ''}">
       <div class="ferda-result-head">
@@ -60,6 +77,15 @@ function focusTabs(intent) {
     </div>`;
 }
 
+function planningTarget(targetKey) {
+  if (targetKey === todayKey()) return '';
+  return `
+    <div class="ferda-plan-target">
+      <span>→</span>
+      <div><b>Planning ${esc(targetLongLabel(targetKey))}</b><small>Anything you add here goes onto that itinerary day, not Today.</small></div>
+    </div>`;
+}
+
 function contextStrip(family, preferences, trip) {
   const dietary = family.filter(person => person.dietary?.enabled).length;
   const transport = ({ car: 'car', rideshare: 'rideshare', public: 'public', mixed: 'mixed', none: 'not set' })[trip.transport] || 'not set';
@@ -72,8 +98,10 @@ function contextStrip(family, preferences, trip) {
     </section>`;
 }
 
-function transportMarkup(trip, preferences, todayItems) {
-  const advice = buildTransportAdvice(trip, preferences, todayItems);
+function transportMarkup(trip, preferences, dayItems, targetKey) {
+  const advice = buildTransportAdvice(trip, preferences, dayItems);
+  const isToday = targetKey === todayKey();
+  const addLabel = isToday ? 'Add a journey to Today' : `Add journey to ${targetShortLabel(targetKey)}`;
   return `
     <section class="ferda-transport-summary">
       <img src="/brand/ferda-ui-icon-nav-today.webp" alt="" aria-hidden="true" />
@@ -84,7 +112,7 @@ function transportMarkup(trip, preferences, todayItems) {
       </div>
     </section>
     <div class="ferda-transport-actions">
-      <button type="button" class="primary" data-add-journey>Add a journey to Today</button>
+      <button type="button" class="primary" data-add-journey>${esc(addLabel)}</button>
       <button type="button" class="secondary" data-edit-transport>Edit transport setup</button>
     </div>
     <section class="ferda-transport-list">
@@ -100,6 +128,8 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
   let intent = normaliseExploreIntent(options.intent);
   let config = getExploreIntent(intent);
   let mood = config.moods[0]?.[0] || 'best';
+  const requestedTarget = String(options.targetDate || '');
+  const targetKey = /^\d{4}-\d{2}-\d{2}$/.test(requestedTarget) ? requestedTarget : todayKey();
   const trip = tripStore.get();
   const family = familyStore.list();
   const preferences = preferencesStore.get();
@@ -128,9 +158,10 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
           </section>
 
           ${focusTabs(intent)}
+          ${planningTarget(targetKey)}
           ${contextStrip(family, preferences, trip)}
 
-          ${isTransport ? transportMarkup(trip, preferences, todayStore.list(todayKey())) : `
+          ${isTransport ? transportMarkup(trip, preferences, todayStore.list(targetKey), targetKey) : `
             <section class="ferda-question">
               <span class="section-kicker">${esc(config.question)}</span>
               <div class="ferda-moods" role="group" aria-label="Recommendation priority">
@@ -144,7 +175,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
             </section>
 
             <section class="ferda-results">
-              ${ranked.length ? ranked.map((option, index) => resultCard(option, index, intent)).join('') : '<div class="ferda-empty-results">FERDA does not have enough suitable options in this prototype yet. Change the focus or priority and keep the rest of the day flexible.</div>'}
+              ${ranked.length ? ranked.map((option, index) => resultCard(option, index, intent, targetKey)).join('') : '<div class="ferda-empty-results">FERDA does not have enough suitable options in this prototype yet. Change the focus or priority and keep the rest of the day flexible.</div>'}
             </section>`}
         </main>
 
@@ -182,26 +213,29 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
       const item = ranked.find(row => row.id === button.dataset.addResult);
       if (!item) return;
       const type = addTypeForIntent(intent);
-      todayStore.add(todayKey(), {
-        period: currentPeriod(),
+      todayStore.add(targetKey, {
+        period: targetKey === todayKey() ? currentPeriod() : 'morning',
         type,
         title: item.name,
         note: `FERDA recommendation · ${item.category}`
       });
-      button.textContent = type === 'meal' ? 'Meal added ✓' : 'Added ✓';
+      button.textContent = targetKey === todayKey()
+        ? (type === 'meal' ? 'Meal added ✓' : 'Added ✓')
+        : `Added to ${targetShortLabel(targetKey)} ✓`;
       button.disabled = true;
     }));
 
     root.querySelector('[data-add-journey]')?.addEventListener('click', event => {
-      todayStore.add(todayKey(), {
-        period: currentPeriod(),
+      todayStore.add(targetKey, {
+        period: targetKey === todayKey() ? currentPeriod() : 'morning',
         type: 'travel',
         title: 'Journey / transfer',
-        note: 'FERDA added a travel slot — edit it on Today with the destination, time or pickup details.'
+        note: 'FERDA added a travel slot — edit it in your itinerary with the destination, time or pickup details.'
       });
-      event.currentTarget.textContent = 'Journey added ✓';
+      event.currentTarget.textContent = targetKey === todayKey() ? 'Journey added ✓' : `Added to ${targetShortLabel(targetKey)} ✓`;
       event.currentTarget.disabled = true;
-      event.currentTarget.insertAdjacentHTML('afterend', '<div class="ferda-added-note">It is now on Today. Use Edit there to turn it into the real journey.</div>');
+      const destination = targetKey === todayKey() ? 'Today' : targetLongLabel(targetKey);
+      event.currentTarget.insertAdjacentHTML('afterend', `<div class="ferda-added-note">It is now on ${esc(destination)}. Use Edit in the itinerary to turn it into the real journey.</div>`);
     });
 
     root.querySelector('[data-edit-transport]')?.addEventListener('click', () => options.onTrip?.());
