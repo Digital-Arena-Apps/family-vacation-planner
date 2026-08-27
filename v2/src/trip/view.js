@@ -12,8 +12,8 @@ export function mountTripScreen(root, tripStore, options = {}) {
   root.innerHTML = `
     <div class="v2-shell trip-shell">
       <header class="v2-topbar">
-        <div class="v2-brand"><div class="v2-brand-mark">F</div><div><b>Family Vacation Planner</b><small>V2 PREVIEW</small></div></div>
-        <div class="v2-status"><span></span> Fresh build</div>
+        <div class="v2-brand"><div class="v2-brand-mark">F</div><div><b>Family Vacation Planner</b><small>V3 PREVIEW</small></div></div>
+        <div class="v2-status"><span></span> Trip context</div>
       </header>
 
       <main class="trip-page">
@@ -21,7 +21,7 @@ export function mountTripScreen(root, tripStore, options = {}) {
         <section class="trip-hero-copy">
           <div class="eyebrow">WHERE THE ADVENTURE STARTS</div>
           <h1>Trip details</h1>
-          <p>Give FERDA the basics once. We’ll use them later for countdowns, day plans, travel time and recommendations that make sense where you’re staying.</p>
+          <p>Give FERDA the basics once. We’ll use them for countdowns, day plans, travel effort and recommendations that make sense where you’re staying.</p>
         </section>
 
         <form id="tripForm" class="trip-form">
@@ -37,8 +37,10 @@ export function mountTripScreen(root, tripStore, options = {}) {
             <div class="trip-field-heading"><b>How will you mainly get around?</b><small>This helps FERDA judge distance and whether something is genuinely convenient.</small></div>
             <div class="trip-transport-grid">
               <label><input type="radio" name="tripTransport" value="car" ${trip.transport === 'car' ? 'checked' : ''}/><span><b>We’ll have a car</b><small>Driving and parking can be part of the plan.</small></span></label>
-              <label><input type="radio" name="tripTransport" value="no-car" ${trip.transport === 'no-car' ? 'checked' : ''}/><span><b>No car</b><small>Prioritise walkable options, shuttles and rides.</small></span></label>
-              <label><input type="radio" name="tripTransport" value="unsure" ${trip.transport === 'unsure' ? 'checked' : ''}/><span><b>Not sure yet</b><small>Keep transport assumptions flexible.</small></span></label>
+              <label><input type="radio" name="tripTransport" value="rideshare" ${trip.transport === 'rideshare' ? 'checked' : ''}/><span><b>Rideshare</b><small>Prioritise simple pickups and realistic transfer buffers.</small></span></label>
+              <label><input type="radio" name="tripTransport" value="public" ${trip.transport === 'public' ? 'checked' : ''}/><span><b>Public transport</b><small>Prefer clustered plans that work with the route.</small></span></label>
+              <label><input type="radio" name="tripTransport" value="mixed" ${trip.transport === 'mixed' ? 'checked' : ''}/><span><b>A mixture</b><small>Choose the easiest transport for each part of the day.</small></span></label>
+              <label><input type="radio" name="tripTransport" value="none" ${trip.transport === 'none' ? 'checked' : ''}/><span><b>Not decided yet</b><small>Keep transport assumptions flexible for now.</small></span></label>
             </div>
           </section>
 
@@ -71,7 +73,7 @@ export function mountTripScreen(root, tripStore, options = {}) {
       arrivalDate,
       departureDate,
       accommodation: root.querySelector('#tripAccommodation').value,
-      transport: form.querySelector('input[name="tripTransport"]:checked')?.value || 'unsure',
+      transport: form.querySelector('input[name="tripTransport"]:checked')?.value || 'none',
       notes: root.querySelector('#tripNotes').value
     });
     options.onBack?.();
