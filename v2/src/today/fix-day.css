@@ -1,4 +1,15 @@
+.today-overview-actions {
+  min-width: 142px;
+  display: grid;
+  gap: 7px;
+}
+
+.today-overview-actions .today-primary-action {
+  width: 100%;
+}
+
 .today-fix-action {
+  width: 100%;
   appearance: none;
   border: 1px solid rgba(14, 94, 91, .16);
   background: rgba(255, 255, 255, .9);
@@ -8,6 +19,7 @@
   padding: 7px 12px 7px 8px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
   box-shadow: 0 8px 24px rgba(19, 78, 75, .08);
   cursor: pointer;
@@ -253,8 +265,27 @@
     gap: 10px;
   }
 
+  .today-overview-actions {
+    min-width: 132px;
+  }
+
   .today-fix-action {
     min-height: 46px;
+    padding-right: 9px;
+  }
+
+  .today-fix-action b {
+    font-size: .78rem;
+  }
+
+  .today-fix-action small {
+    font-size: .59rem;
+  }
+
+  .today-fix-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
   }
 
   .fix-day-score {
