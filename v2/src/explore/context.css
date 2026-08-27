@@ -133,7 +133,8 @@
 }
 
 .ferda-added-note {
-  margin-top: 9px;
+  grid-column: 1 / -1;
+  margin-top: 0;
   padding: 9px 11px;
   border-radius: 13px;
   background: rgba(33,182,168,.12);
