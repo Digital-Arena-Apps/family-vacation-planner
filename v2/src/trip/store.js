@@ -6,7 +6,7 @@ const DEFAULT_TRIP = Object.freeze({
   arrivalDate: '',
   departureDate: '',
   accommodation: '',
-  transport: 'car',
+  transport: 'none',
   notes: ''
 });
 
@@ -19,7 +19,7 @@ function normalise(value = {}) {
     arrivalDate: String(value.arrivalDate || ''),
     departureDate: String(value.departureDate || ''),
     accommodation: String(value.accommodation || '').trim(),
-    transport: ['car', 'rideshare', 'public', 'mixed', 'none'].includes(value.transport) ? value.transport : 'car',
+    transport: ['car', 'rideshare', 'public', 'mixed', 'none'].includes(value.transport) ? value.transport : 'none',
     notes: String(value.notes || '').trim()
   };
 }
