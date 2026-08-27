@@ -1,6 +1,7 @@
 import './styles.css';
 import './context.css';
 import { FERDA_CONTEXT_OPTIONS } from './context-dataset.js';
+import { adjustRankedForDay, describeDayForFerda } from './day-fit.js';
 import {
   addTypeForIntent,
   buildTransportAdvice,
@@ -137,15 +138,21 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
   function render() {
     config = getExploreIntent(intent);
     if (!config.moods.some(([key]) => key === mood)) mood = config.moods[0]?.[0] || 'best';
+    const dayItems = todayStore.list(targetKey);
     const ranked = intent === 'transport'
       ? []
-      : rankForIntent(FERDA_CONTEXT_OPTIONS, { trip, family, preferences }, intent, mood).slice(0, 5);
+      : adjustRankedForDay(
+          rankForIntent(FERDA_CONTEXT_OPTIONS, { trip, family, preferences }, intent, mood),
+          intent,
+          dayItems,
+          preferences
+        ).slice(0, 5);
     const isTransport = intent === 'transport';
 
     root.innerHTML = `
       <div class="v2-shell explore-shell">
         <header class="v2-topbar">
-          <div class="v2-brand"><div class="v2-brand-mark">F</div><div><b>Family Vacation Planner</b><small>V3 PREVIEW</small></div></div>
+          <div class="v2-brand"><div class="v2-brand-mark">F</div><div><b>FERDA</b><small>FAMILY TRAVEL PLANNER</small></div></div>
           <div class="v2-status"><span></span> Context-aware</div>
         </header>
 
@@ -161,7 +168,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
           ${planningTarget(targetKey)}
           ${contextStrip(family, preferences, trip)}
 
-          ${isTransport ? transportMarkup(trip, preferences, todayStore.list(targetKey), targetKey) : `
+          ${isTransport ? transportMarkup(trip, preferences, dayItems, targetKey) : `
             <section class="ferda-question">
               <span class="section-kicker">${esc(config.question)}</span>
               <div class="ferda-moods" role="group" aria-label="Recommendation priority">
@@ -171,11 +178,11 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
 
             <section class="ferda-results-heading">
               <div><span class="section-kicker">FERDA RECOMMENDS</span><h2>${esc(config.resultTitle)}</h2></div>
-              <small>${esc(config.hint)}</small>
+              <small>${esc(describeDayForFerda(dayItems))} ${esc(config.hint)}</small>
             </section>
 
             <section class="ferda-results">
-              ${ranked.length ? ranked.map((option, index) => resultCard(option, index, intent, targetKey)).join('') : '<div class="ferda-empty-results">FERDA does not have enough suitable options in this prototype yet. Change the focus or priority and keep the rest of the day flexible.</div>'}
+              ${ranked.length ? ranked.map((option, index) => resultCard(option, index, intent, targetKey)).join('') : '<div class="ferda-empty-results">FERDA does not have enough suitable options for this context yet. Change the focus or priority and keep the rest of the day flexible.</div>'}
             </section>`}
         </main>
 
