@@ -18,11 +18,13 @@ import { mountPreferencesScreen } from './preferences/view.js';
 import { wirePreferencesRow } from './preferences/trigger.js';
 import { createTripStore } from './trip/store.js';
 import { mountTripScreen } from './trip/view.js';
+import { mountItineraryScreen } from './trip/itinerary-view.js';
 import { createTodayStore } from './today/store.js';
 import { enhanceFixMyDay } from './today/fix-day.js';
 import { enhanceTodayEditor } from './today/editor.js';
 import { mountHomeScreen } from './home/view.js';
 import { wireHomeExploreLinks } from './home/explore-links.js';
+import { wireHomeItineraryLink } from './home/itinerary-link.js';
 import { mountExploreScreen } from './explore/context-view.js';
 import { wireV2Navigation } from './navigation/wire.js';
 
@@ -61,6 +63,7 @@ function showHome() {
     onRemount: showHome
   });
   const homeExploreCleanup = wireHomeExploreLinks(root, showExplore);
+  const homeItineraryCleanup = wireHomeItineraryLink(root, showItinerary);
   const fixDayCleanup = enhanceFixMyDay(root, todayStore, store, preferencesStore, {
     onRemount: showHome
   });
@@ -74,7 +77,7 @@ function showHome() {
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [homeCleanup, homeExploreCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
+  cleanup = [homeCleanup, homeExploreCleanup, homeItineraryCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
 }
 
 function showExplore(requestedIntent = 'all') {
@@ -89,6 +92,20 @@ function showExplore(requestedIntent = 'all') {
   });
   brandAndScroll();
   cleanup = [exploreCleanup];
+}
+
+function showItinerary() {
+  unmount();
+  const itineraryCleanup = mountItineraryScreen(root, tripStore, todayStore, {
+    onBack: showHome,
+    onTrip: showTrip,
+    onToday: showHome,
+    onExplore: () => showExplore('all'),
+    onFamily: showFamily,
+    onRebrand: brandOnly
+  });
+  brandAndScroll();
+  cleanup = [itineraryCleanup];
 }
 
 function showFamily() {
