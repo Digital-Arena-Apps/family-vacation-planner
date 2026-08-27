@@ -1,3 +1,5 @@
+import { applyRecommendationLearning } from './feedback.js';
+
 function clamp(value) {
   return Math.max(45, Math.min(96, Math.round(value)));
 }
@@ -103,7 +105,7 @@ function dayAdjustment(option, intent, profile, preferences = {}) {
 export function adjustRankedForDay(ranked = [], intent = 'all', dayItems = [], preferences = {}) {
   const profile = planProfile(dayItems);
 
-  return ranked
+  const dayAdjusted = ranked
     .filter(option => !profile.names.has(normalise(option.name)))
     .map(option => {
       const adjustment = dayAdjustment(option, intent, profile, preferences);
@@ -119,6 +121,8 @@ export function adjustRankedForDay(ranked = [], intent = 'all', dayItems = [], p
       };
     })
     .sort((a, b) => b.score - a.score);
+
+  return applyRecommendationLearning(dayAdjusted, intent);
 }
 
 export function describeDayForFerda(dayItems = []) {
