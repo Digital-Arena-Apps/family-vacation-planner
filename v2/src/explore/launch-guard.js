@@ -1,3 +1,5 @@
+import './launch-guard.css';
+
 const HIDE_SELECTORS = [
   '.ferda-focus-tabs',
   '.ferda-context-strip',
