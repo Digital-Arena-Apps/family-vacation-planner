@@ -80,11 +80,13 @@ function showHome() {
   cleanup = [homeCleanup, homeExploreCleanup, homeItineraryCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
 }
 
-function showExplore(requestedIntent = 'all') {
+function showExplore(requestedIntent = 'all', requestedDate = '') {
   const intent = typeof requestedIntent === 'string' ? requestedIntent : 'all';
+  const targetDate = typeof requestedDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? requestedDate : '';
   unmount();
   const exploreCleanup = mountExploreScreen(root, tripStore, store, preferencesStore, todayStore, {
     intent,
+    targetDate,
     onToday: showHome,
     onTrip: showTrip,
     onFamily: showFamily,
@@ -100,7 +102,7 @@ function showItinerary() {
     onBack: showHome,
     onTrip: showTrip,
     onToday: showHome,
-    onExplore: () => showExplore('all'),
+    onExplore: showExplore,
     onFamily: showFamily,
     onRebrand: brandOnly
   });
