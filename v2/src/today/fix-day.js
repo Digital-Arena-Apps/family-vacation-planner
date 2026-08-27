@@ -154,13 +154,22 @@ export function enhanceFixMyDay(root, todayStore, familyStore, preferencesStore,
   const existing = overview.querySelector('[data-fix-my-day]');
   if (existing) return () => {};
 
-  const actionsHost = overview;
+  const primaryAction = overview.querySelector('.today-primary-action');
+  const actionStack = document.createElement('div');
+  actionStack.className = 'today-overview-actions';
+  if (primaryAction) {
+    primaryAction.before(actionStack);
+    actionStack.append(primaryAction);
+  } else {
+    overview.append(actionStack);
+  }
+
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'today-fix-action';
   button.dataset.fixMyDay = 'true';
   button.innerHTML = '<span class="today-fix-mark">F</span><span><b>Fix my day</b><small>FERDA balance check</small></span>';
-  actionsHost.append(button);
+  actionStack.append(button);
 
   const shell = root.querySelector('.v2-shell') || root;
   const dialog = document.createElement('dialog');
@@ -238,6 +247,7 @@ export function enhanceFixMyDay(root, todayStore, familyStore, preferencesStore,
     dialog.removeEventListener('click', closeFromBackdrop);
     if (dialog.open) dialog.close();
     dialog.remove();
-    button.remove();
+    if (primaryAction && actionStack.isConnected) overview.append(primaryAction);
+    actionStack.remove();
   };
 }
