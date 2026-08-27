@@ -1,0 +1,90 @@
+name: FERDA Native Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ferda/core-v3
+    paths:
+      - 'v2/**'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/native-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android debug build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package.json
+
+      - name: Use Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build FERDA web bundle
+        run: npm run build
+
+      - name: Generate Android wrapper
+        run: npx cap add android
+
+      - name: Sync Android wrapper
+        run: npx cap sync android
+
+      - name: Compile Android debug app
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+  ios:
+    name: iOS simulator build
+    runs-on: macos-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build FERDA web bundle
+        run: npm run build
+
+      - name: Generate iOS wrapper
+        run: npx cap add ios
+
+      - name: Sync iOS wrapper
+        run: npx cap sync ios
+
+      - name: Compile unsigned iOS simulator app
+        run: >-
+          xcodebuild
+          -workspace ios/App/App.xcworkspace
+          -scheme App
+          -sdk iphonesimulator
+          -configuration Debug
+          CODE_SIGNING_ALLOWED=NO
+          build
