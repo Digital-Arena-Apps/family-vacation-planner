@@ -19,6 +19,7 @@ import { wirePreferencesRow } from './preferences/trigger.js';
 import { createTripStore } from './trip/store.js';
 import { mountTripScreen } from './trip/view.js';
 import { createTodayStore } from './today/store.js';
+import { enhanceFixMyDay } from './today/fix-day.js';
 import { mountHomeScreen } from './home/view.js';
 import { mountExploreScreen } from './explore/view.js';
 import { wireV2Navigation } from './navigation/wire.js';
@@ -57,6 +58,9 @@ function showHome() {
     onFamily: showFamily,
     onRemount: showHome
   });
+  const fixDayCleanup = enhanceFixMyDay(root, todayStore, store, preferencesStore, {
+    onRemount: showHome
+  });
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
     onExplore: showExplore,
@@ -64,7 +68,7 @@ function showHome() {
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [homeCleanup, navCleanup];
+  cleanup = [homeCleanup, fixDayCleanup, navCleanup];
 }
 
 function showExplore() {
