@@ -121,7 +121,10 @@ export function mountItineraryScreen(root, tripStore, todayStore, options = {}) 
                         <h2>${esc(dayHeading(date))}${key === current ? ' · Today' : ''}</h2>
                         <small>${items.length ? `${items.length} plan item${items.length === 1 ? '' : 's'}` : 'Keep it open or add an anchor plan'}</small>
                       </div>
-                      <button type="button" class="itinerary-day-add" data-itinerary-add="${key}">+ Add</button>
+                      <div class="itinerary-day-actions">
+                        <button type="button" class="itinerary-day-ask" data-itinerary-ask="${key}">Ask FERDA</button>
+                        <button type="button" class="itinerary-day-add" data-itinerary-add="${key}">+ Add</button>
+                      </div>
                     </div>
                     <div class="itinerary-items">
                       ${items.length ? items.map(item => itemMarkup(item, key)).join('') : '<div class="itinerary-empty">Nothing fixed yet. That can be deliberate — FERDA does not need every hour filled.</div>'}
@@ -205,6 +208,7 @@ export function mountItineraryScreen(root, tripStore, todayStore, options = {}) 
     }
 
     root.querySelectorAll('[data-itinerary-add]').forEach(button => button.addEventListener('click', () => openEditor(button.dataset.itineraryAdd)));
+    root.querySelectorAll('[data-itinerary-ask]').forEach(button => button.addEventListener('click', () => options.onExplore?.('all', button.dataset.itineraryAsk)));
     root.querySelectorAll('[data-itinerary-edit]').forEach(button => button.addEventListener('click', () => openEditor(button.dataset.itineraryDate, button.dataset.itineraryEdit)));
     root.querySelectorAll('[data-itinerary-remove]').forEach(button => button.addEventListener('click', () => {
       todayStore.remove(button.dataset.itineraryDate, button.dataset.itineraryRemove);
@@ -251,7 +255,7 @@ export function mountItineraryScreen(root, tripStore, todayStore, options = {}) 
 
     const nav = root.querySelectorAll('.v2-nav button');
     nav[0]?.addEventListener('click', () => options.onToday?.());
-    nav[1]?.addEventListener('click', () => options.onExplore?.());
+    nav[1]?.addEventListener('click', () => options.onExplore?.('all'));
     nav[2]?.addEventListener('click', () => options.onTrip?.());
     nav[3]?.addEventListener('click', () => options.onFamily?.());
   }
