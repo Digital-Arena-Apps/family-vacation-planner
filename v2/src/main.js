@@ -28,6 +28,7 @@ import { wireHomeExploreLinks } from './home/explore-links.js';
 import { wireHomeItineraryLink } from './home/itinerary-link.js';
 import { mountExploreScreen } from './explore/context-view.js';
 import { enhanceRecommendationFeedback } from './explore/feedback-ui.js';
+import { enhanceExploreLaunchGuard } from './explore/launch-guard.js';
 import { wireV2Navigation } from './navigation/wire.js';
 import './brand/launch-polish.css';
 
@@ -95,9 +96,10 @@ function showExplore(requestedIntent = 'all', requestedDate = '') {
     onFamily: showFamily,
     onRebrand: brandOnly
   });
+  const guardCleanup = enhanceExploreLaunchGuard(root, tripStore, { onTrip: showTrip });
   const feedbackCleanup = enhanceRecommendationFeedback(root);
   brandAndScroll();
-  cleanup = [exploreCleanup, feedbackCleanup];
+  cleanup = [exploreCleanup, guardCleanup, feedbackCleanup];
 }
 
 function showItinerary() {
