@@ -82,6 +82,10 @@ const INTENTS = Object.freeze({
   }
 });
 
+const BUDGET_VALUE = Object.freeze({ value: 1, balanced: 2, flexible: 3 });
+const DISCOVERY_VALUE = Object.freeze({ familiar: 1, mix: 2, discover: 3 });
+const WALKING_VALUE = Object.freeze({ low: 1, normal: 2, high: 3 });
+
 export function normaliseExploreIntent(value) {
   return Object.prototype.hasOwnProperty.call(INTENTS, value) ? value : 'all';
 }
@@ -106,34 +110,143 @@ export function optionsForIntent(options, intent) {
   return options.filter(option => optionSupportsIntent(option, key));
 }
 
-function contextualBonus(option, mood) {
-  if (mood === 'nearby') {
-    const bonus = Math.max(0, 12 - Math.round((option.drive || 0) / 5));
-    return { bonus, reason: bonus >= 7 ? 'One of the easier options to reach from an Orlando base.' : '' };
-  }
-  if (mood === 'dietary') {
-    const bonus = (option.dietary || 1) * 4;
-    return { bonus, reason: option.dietary >= 3 ? 'Stronger fit when the crew needs food choices to be planned carefully.' : '' };
-  }
-  if (mood === 'value') {
-    const bonus = (4 - (option.cost || 2)) * 4;
-    return { bonus, reason: option.cost === 1 ? 'One of the lower-cost ways to use this part of the day.' : '' };
-  }
-  return { bonus: 0, reason: '' };
+function clampScore(value) {
+  return Math.max(52, Math.min(96, Math.round(value)));
+}
+
+function closeness(value, target, maximum) {
+  return Math.max(0, maximum - Math.abs(value - target) * (maximum / 2));
+}
+
+function diningRank(options, context, mood) {
+  const family = context.family || [];
+  const preferences = context.preferences || {};
+  const dietaryCrew = family.filter(person => person.dietary?.enabled);
+  const strictDietary = dietaryCrew.some(person => person.dietary?.crossContact || person.dietary?.types?.includes('coeliac') || person.dietary?.types?.includes('allergy'));
+  const budgetTarget = BUDGET_VALUE[preferences.budget] || 2;
+  const discoveryTarget = DISCOVERY_VALUE[preferences.discovery] || 2;
+  const lowWalking = preferences.walking === 'low' || preferences.accessibility?.minimiseWalking;
+
+  return options.map(option => {
+    let score = 56;
+    const reasons = [];
+    const cautions = [];
+
+    if (dietaryCrew.length) {
+      if (option.dietary >= 3) {
+        score += strictDietary ? 18 : 14;
+        reasons.push(strictDietary ? 'One of the stronger options when the crew has strict dietary requirements.' : 'Good fit for the dietary needs saved against the crew.');
+      } else if (option.dietary === 2) {
+        score += 8;
+        if (strictDietary) cautions.push('Food needs checking carefully here because the crew has strict dietary requirements.');
+      } else {
+        score += 2;
+        cautions.push('This is not one FERDA would leave to chance for the saved dietary needs.');
+      }
+    } else {
+      score += 8;
+    }
+
+    if (option.drive <= 10) {
+      score += 12;
+      reasons.push('Very little extra travel makes this easy to fit around the rest of the day.');
+    } else if (option.drive <= 25) {
+      score += 9;
+      reasons.push('Travel effort is reasonable for an Orlando-based day.');
+    } else if (option.drive <= 40) {
+      score += 5;
+    } else {
+      score += 1;
+      cautions.push('This asks for more travel than most meal stops should need.');
+    }
+
+    const budgetFit = closeness(option.cost || 2, budgetTarget, 10);
+    score += budgetFit;
+    if (budgetFit >= 8) reasons.push('Cost is well aligned with the budget style you saved.');
+
+    if (lowWalking) {
+      if (option.walking === 1) {
+        score += 7;
+        reasons.push('Low-effort access fits the crew’s walking preference.');
+      } else if (option.walking >= 3) {
+        score -= 4;
+        cautions.push('This meal stop may involve more walking than the crew usually wants.');
+      }
+    } else {
+      score += 4;
+    }
+
+    score += closeness(option.discovery || 2, discoveryTarget, 6);
+
+    if (mood === 'nearby') score += Math.max(0, 14 - (option.drive || 0) / 3);
+    if (mood === 'dietary') score += (option.dietary || 1) * 5;
+    if (mood === 'value') score += (4 - (option.cost || 2)) * 5;
+    if (mood === 'surprise') score += (option.discovery || 1) * 4;
+
+    return {
+      ...option,
+      score: clampScore(score),
+      reasons: [...new Set(reasons)].slice(0, 2),
+      caution: cautions[0] || ''
+    };
+  }).sort((a, b) => b.score - a.score);
+}
+
+function shoppingRank(options, context, mood) {
+  const preferences = context.preferences || {};
+  const budgetTarget = BUDGET_VALUE[preferences.budget] || 2;
+  const discoveryTarget = DISCOVERY_VALUE[preferences.discovery] || 2;
+  const walkingTarget = WALKING_VALUE[preferences.walking] || 2;
+
+  return options.map(option => {
+    let score = 58;
+    const reasons = [];
+    const cautions = [];
+
+    if (option.drive <= 15) {
+      score += 12;
+      reasons.push('A short transfer makes this easier to justify as part of the holiday day.');
+    } else if (option.drive <= 30) {
+      score += 8;
+      reasons.push('Travel time is manageable for a dedicated shopping stop.');
+    } else {
+      score += 3;
+      cautions.push('FERDA would only spend this much travel time if the shopping itself really matters to the crew.');
+    }
+
+    const walkingFit = closeness(option.walking || 2, walkingTarget, 12);
+    score += walkingFit;
+    if (walkingFit >= 9) reasons.push('Walking demand is a good fit for the crew preference.');
+    if (walkingTarget === 1 && option.walking >= 3) cautions.push('This is a heavier walking stop than your crew normally prefers.');
+
+    const budgetFit = closeness(option.cost || 2, budgetTarget, 10);
+    score += budgetFit;
+    if (budgetFit >= 8) reasons.push('The spend profile fits the budget style you saved.');
+
+    const discoveryFit = closeness(option.discovery || 2, discoveryTarget, 8);
+    score += discoveryFit;
+    if (discoveryFit >= 6 && preferences.discovery === 'discover') reasons.push('It gives the crew a less-obvious stop rather than only the familiar choices.');
+
+    if (mood === 'nearby') score += Math.max(0, 14 - (option.drive || 0) / 3);
+    if (mood === 'value') score += (4 - (option.cost || 2)) * 5;
+    if (mood === 'easy') score += (4 - (option.walking || 2)) * 4 + (option.indoor || 1) * 2;
+    if (mood === 'surprise') score += (option.discovery || 1) * 4;
+
+    return {
+      ...option,
+      score: clampScore(score),
+      reasons: [...new Set(reasons)].slice(0, 2),
+      caution: cautions[0] || ''
+    };
+  }).sort((a, b) => b.score - a.score);
 }
 
 export function rankForIntent(options, context, intent, mood = 'best') {
-  const filtered = optionsForIntent(options, intent);
-  const baseMood = ['nearby', 'dietary', 'value'].includes(mood) ? 'best' : mood;
-  return rankOptions(filtered, context, baseMood).map(option => {
-    const extra = contextualBonus(option, mood);
-    if (!extra.bonus) return option;
-    return {
-      ...option,
-      score: Math.min(96, option.score + extra.bonus),
-      reasons: extra.reason ? [extra.reason, ...option.reasons].slice(0, 2) : option.reasons
-    };
-  }).sort((a, b) => b.score - a.score);
+  const key = normaliseExploreIntent(intent);
+  const filtered = optionsForIntent(options, key);
+  if (key === 'dining') return diningRank(filtered, context, mood);
+  if (key === 'shopping') return shoppingRank(filtered, context, mood);
+  return rankOptions(filtered, context, mood);
 }
 
 export function addTypeForIntent(intent) {
@@ -185,7 +298,7 @@ export function buildTransportAdvice(trip = {}, preferences = {}, todayItems = [
     {
       title: busyDay ? 'Protect the transitions' : 'Leave a little travel breathing room',
       detail: busyDay
-        ? 'Today already has several plan items. Treat travel as part of the itinerary rather than invisible time between attractions.'
+        ? 'This day already has several plan items. Treat travel as part of the itinerary rather than invisible time between attractions.'
         : 'A small buffer between stops gives the family somewhere to absorb queues, parking, tired legs or a late finish.'
     },
     {
