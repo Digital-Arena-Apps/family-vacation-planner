@@ -26,6 +26,7 @@ import { mountHomeScreen } from './home/view.js';
 import { wireHomeExploreLinks } from './home/explore-links.js';
 import { wireHomeItineraryLink } from './home/itinerary-link.js';
 import { mountExploreScreen } from './explore/context-view.js';
+import { enhanceRecommendationFeedback } from './explore/feedback-ui.js';
 import { wireV2Navigation } from './navigation/wire.js';
 import './brand/launch-polish.css';
 
@@ -93,8 +94,9 @@ function showExplore(requestedIntent = 'all', requestedDate = '') {
     onFamily: showFamily,
     onRebrand: brandOnly
   });
+  const feedbackCleanup = enhanceRecommendationFeedback(root);
   brandAndScroll();
-  cleanup = [exploreCleanup];
+  cleanup = [exploreCleanup, feedbackCleanup];
 }
 
 function showItinerary() {
