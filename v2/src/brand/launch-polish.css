@@ -28,6 +28,71 @@ textarea:focus-visible {
   backface-visibility: hidden;
 }
 
+.ferda-live-status {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(14, 94, 91, .10);
+  border-radius: 15px;
+  background: rgba(255, 252, 247, .92);
+}
+
+.ferda-live-status > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #21B6A8;
+  box-shadow: 0 0 0 4px rgba(33, 182, 168, .12);
+}
+
+.ferda-live-status.loading > span {
+  animation: ferda-live-pulse 1.25s ease-in-out infinite;
+}
+
+.ferda-live-status.fallback > span {
+  background: #FFB347;
+  box-shadow: 0 0 0 4px rgba(255, 179, 71, .13);
+}
+
+.ferda-live-status b,
+.ferda-live-status small {
+  display: block;
+}
+
+.ferda-live-status b {
+  color: #153F3E;
+  font-size: .64rem;
+  line-height: 1.35;
+}
+
+.ferda-live-status small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .54rem;
+  line-height: 1.4;
+}
+
+.ferda-live-pill {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(33, 182, 168, .16);
+  color: #0E5E5B;
+  font-size: .45rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  vertical-align: 1px;
+}
+
+@keyframes ferda-live-pulse {
+  0%, 100% { opacity: .45; transform: scale(.88); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 @media (max-width: 560px) {
   /* Avoid Android/iOS text zoom and clipped native select text. */
   input,
@@ -133,6 +198,11 @@ textarea:focus-visible {
     line-height: 1.2;
   }
 
+  .ferda-live-status {
+    grid-template-columns: 9px minmax(0, 1fr);
+    padding: 10px 11px;
+  }
+
   /* Keep important tap targets comfortably above the 44px minimum. */
   .today-primary-action,
   .home-trip-action,
@@ -140,5 +210,11 @@ textarea:focus-visible {
   .ferda-result-actions button,
   .ferda-transport-actions button {
     min-height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ferda-live-status.loading > span {
+    animation: none;
   }
 }
