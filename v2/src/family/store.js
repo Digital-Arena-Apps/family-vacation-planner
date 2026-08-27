@@ -1,4 +1,5 @@
 import { normaliseAvatar } from './avatars.js';
+import { persistentSetItem } from '../storage/native-persistence.js';
 
 const STORAGE_KEY = 'fvp_v2_family_v1';
 
@@ -33,13 +34,19 @@ function normaliseDietary(value) {
   };
 }
 
-function seedMembers() {
-  return [
-    { id: id(), name: 'Adult 1', age: 40, role: 'adult', thrill: 'medium', heightBand: '48plus', avatar: 'explorer', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Adult 2', age: 38, role: 'adult', thrill: 'low', heightBand: '48plus', avatar: 'sunny', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Child 1', age: 14, role: 'child', thrill: 'high', heightBand: '48plus', avatar: 'thrill', notes: '', dietary: emptyDietary() },
-    { id: id(), name: 'Child 2', age: 10, role: 'child', thrill: 'medium', heightBand: '42to47', avatar: 'stargazer', notes: '', dietary: emptyDietary() }
-  ];
+function looksLikeLegacyDemo(members) {
+  if (!Array.isArray(members) || members.length !== 4) return false;
+  const signature = members.map(member => `${member?.name || ''}:${Number(member?.age) || 0}`).join('|');
+  if (signature !== 'Adult 1:40|Adult 2:38|Child 1:14|Child 2:10') return false;
+  return members.every(member => {
+    const dietary = member?.dietary || {};
+    return !String(member?.notes || '').trim()
+      && !dietary.enabled
+      && !(dietary.types || []).length
+      && !(dietary.avoids || []).length
+      && !dietary.crossContact
+      && !String(dietary.notes || '').trim();
+  });
 }
 
 function normaliseMember(member) {
@@ -57,18 +64,19 @@ function normaliseMember(member) {
 }
 
 export function createFamilyStore() {
-  let members;
+  let members = [];
   const listeners = new Set();
 
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    members = Array.isArray(saved) && saved.length ? saved.map(normaliseMember) : seedMembers();
+    if (Array.isArray(saved) && !looksLikeLegacyDemo(saved)) members = saved.map(normaliseMember);
+    if (looksLikeLegacyDemo(saved)) persistentSetItem(STORAGE_KEY, '[]');
   } catch {
-    members = seedMembers();
+    members = [];
   }
 
   function persist() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(members)); } catch {}
+    try { persistentSetItem(STORAGE_KEY, JSON.stringify(members)); } catch {}
   }
 
   function notify() {
@@ -109,8 +117,8 @@ export function createFamilyStore() {
       members = [...ordered, ...remainder];
       notify();
     },
-    resetDemo() {
-      members = seedMembers();
+    reset() {
+      members = [];
       notify();
     }
   };

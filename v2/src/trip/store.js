@@ -1,3 +1,5 @@
+import { persistentRemoveItem, persistentSetItem } from '../storage/native-persistence.js';
+
 const STORAGE_KEY = 'fvp_v2_trip_v1';
 
 const DEFAULT_TRIP = Object.freeze({
@@ -6,7 +8,7 @@ const DEFAULT_TRIP = Object.freeze({
   arrivalDate: '',
   departureDate: '',
   accommodation: '',
-  transport: 'car',
+  transport: 'none',
   notes: ''
 });
 
@@ -19,7 +21,7 @@ function normalise(value = {}) {
     arrivalDate: String(value.arrivalDate || ''),
     departureDate: String(value.departureDate || ''),
     accommodation: String(value.accommodation || '').trim(),
-    transport: ['car', 'rideshare', 'public', 'mixed', 'none'].includes(value.transport) ? value.transport : 'car',
+    transport: ['car', 'rideshare', 'public', 'mixed', 'none'].includes(value.transport) ? value.transport : 'none',
     notes: String(value.notes || '').trim()
   };
 }
@@ -47,12 +49,12 @@ export function createTripStore() {
     },
     save(next) {
       const value = normalise(next);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+      persistentSetItem(STORAGE_KEY, JSON.stringify(value));
       emit(value);
       return value;
     },
     reset() {
-      localStorage.removeItem(STORAGE_KEY);
+      persistentRemoveItem(STORAGE_KEY);
       const value = normalise();
       emit(value);
       return value;

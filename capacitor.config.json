@@ -1,0 +1,14 @@
+{
+  "appId": "com.digitalarena.ferda",
+  "appName": "FERDA",
+  "webDir": "dist-v2",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

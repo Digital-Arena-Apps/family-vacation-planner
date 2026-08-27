@@ -12,16 +12,25 @@ import { applyFerdaBranding } from './brand/apply.js';
 import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
 import { enhanceMemberEditor } from './family/editor-ux.js';
+import { enhanceFamilyForLaunch } from './family/launch-ux.js';
 import { mountDietaryScreen } from './dietary/view.js';
 import { createTripPreferencesStore } from './preferences/store.js';
 import { mountPreferencesScreen } from './preferences/view.js';
 import { wirePreferencesRow } from './preferences/trigger.js';
 import { createTripStore } from './trip/store.js';
 import { mountTripScreen } from './trip/view.js';
+import { mountItineraryScreen } from './trip/itinerary-view.js';
 import { createTodayStore } from './today/store.js';
+import { enhanceFixMyDay } from './today/fix-day.js';
+import { enhanceTodayEditor } from './today/editor.js';
 import { mountHomeScreen } from './home/view.js';
-import { mountExploreScreen } from './explore/view.js';
+import { wireHomeExploreLinks } from './home/explore-links.js';
+import { wireHomeItineraryLink } from './home/itinerary-link.js';
+import { mountExploreScreen } from './explore/context-view.js';
+import { enhanceRecommendationFeedback } from './explore/feedback-ui.js';
+import { enhanceExploreLaunchGuard } from './explore/launch-guard.js';
 import { wireV2Navigation } from './navigation/wire.js';
+import './brand/launch-polish.css';
 
 const store = createFamilyStore();
 const preferencesStore = createTripPreferencesStore();
@@ -57,26 +66,54 @@ function showHome() {
     onFamily: showFamily,
     onRemount: showHome
   });
+  const homeExploreCleanup = wireHomeExploreLinks(root, showExplore);
+  const homeItineraryCleanup = wireHomeItineraryLink(root, showItinerary);
+  const fixDayCleanup = enhanceFixMyDay(root, todayStore, store, preferencesStore, {
+    onRemount: showHome
+  });
+  const todayEditorCleanup = enhanceTodayEditor(root, todayStore, {
+    onRemount: showHome
+  });
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showExplore,
+    onExplore: () => showExplore('all'),
     onTrip: showTrip,
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [homeCleanup, navCleanup];
+  cleanup = [homeCleanup, homeExploreCleanup, homeItineraryCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
 }
 
-function showExplore() {
+function showExplore(requestedIntent = 'all', requestedDate = '') {
+  const intent = typeof requestedIntent === 'string' ? requestedIntent : 'all';
+  const targetDate = typeof requestedDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? requestedDate : '';
   unmount();
   const exploreCleanup = mountExploreScreen(root, tripStore, store, preferencesStore, todayStore, {
+    intent,
+    targetDate,
     onToday: showHome,
     onTrip: showTrip,
     onFamily: showFamily,
     onRebrand: brandOnly
   });
+  const guardCleanup = enhanceExploreLaunchGuard(root, tripStore, { onTrip: showTrip });
+  const feedbackCleanup = enhanceRecommendationFeedback(root);
   brandAndScroll();
-  cleanup = [exploreCleanup];
+  cleanup = [exploreCleanup, guardCleanup, feedbackCleanup];
+}
+
+function showItinerary() {
+  unmount();
+  const itineraryCleanup = mountItineraryScreen(root, tripStore, todayStore, {
+    onBack: showHome,
+    onTrip: showTrip,
+    onToday: showHome,
+    onExplore: showExplore,
+    onFamily: showFamily,
+    onRebrand: brandOnly
+  });
+  brandAndScroll();
+  cleanup = [itineraryCleanup];
 }
 
 function showFamily() {
@@ -85,15 +122,16 @@ function showFamily() {
     onDietary: memberId => showDietary(memberId)
   });
   const editorCleanup = enhanceMemberEditor(root);
+  const launchCleanup = enhanceFamilyForLaunch(root);
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showExplore,
+    onExplore: () => showExplore('all'),
     onTrip: showTrip,
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [viewCleanup, editorCleanup, preferencesCleanup, navCleanup];
+  cleanup = [viewCleanup, editorCleanup, launchCleanup, preferencesCleanup, navCleanup];
 }
 
 function showDietary(memberId) {

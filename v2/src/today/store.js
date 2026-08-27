@@ -1,3 +1,5 @@
+import { persistentSetItem } from '../storage/native-persistence.js';
+
 const STORAGE_KEY = 'fvp_v2_today_plan_v1';
 
 function readAll() {
@@ -10,7 +12,7 @@ function readAll() {
 }
 
 function writeAll(value) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
+  try { persistentSetItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
 }
 
 function normaliseItem(input = {}) {
@@ -50,6 +52,20 @@ export function createTodayStore() {
       writeAll(all);
       emit(dateKey);
       return item;
+    },
+    update(dateKey, id, input) {
+      const all = readAll();
+      const rows = Array.isArray(all[dateKey]) ? all[dateKey] : [];
+      let updated = null;
+      all[dateKey] = rows.map(existing => {
+        if (String(existing.id) !== String(id)) return existing;
+        const next = normaliseItem({ ...existing, ...input, id: existing.id });
+        updated = next.title ? next : null;
+        return next;
+      }).filter(item => String(item.id) !== String(id) || item.title);
+      writeAll(all);
+      emit(dateKey);
+      return updated;
     },
     remove(dateKey, id) {
       const all = readAll();

@@ -1,6 +1,8 @@
 import { FERDA_ASSETS } from './assets.js';
 import { FERDA_APP_ICON } from './runtime-assets.js';
 
+const FERDA_HOME_HERO = '/heroes/ferda-hero-home.webp';
+
 function image(src, fallback = '', className = 'ferda-ui-image', alt = '') {
   return `<span class="${className}" ${alt ? '' : 'aria-hidden="true"'}><span class="ferda-asset-fallback">${fallback}</span><img src="${src}" alt="${alt}" /></span>`;
 }
@@ -16,15 +18,24 @@ function wireImageFallbacks(root) {
   });
 }
 
+function upgradeHeroAssets(root) {
+  const homeHero = root.querySelector('.home-hero-img');
+  if (homeHero && homeHero.getAttribute('src') !== FERDA_HOME_HERO) {
+    homeHero.src = FERDA_HOME_HERO;
+    homeHero.decoding = 'async';
+    homeHero.fetchPriority = 'high';
+  }
+}
+
 export function applyFerdaBranding(root) {
-  document.title = 'FERDA — Family Vacation Planner';
+  document.title = 'FERDA — Family Travel Planner';
   const topbar = root.querySelector('.v2-topbar');
   if (topbar) {
     topbar.classList.add('ferda-topbar');
     const brand = topbar.querySelector('.v2-brand');
     if (brand) {
       brand.classList.add('ferda-brand');
-      brand.innerHTML = `${image(FERDA_APP_ICON, 'F', 'ferda-brand-mark', 'FERDA app icon')}<span class="ferda-brand-copy"><b>FERDA</b><small>FAMILY VACATION PLANNER · V2 PREVIEW</small></span>`;
+      brand.innerHTML = `${image(FERDA_APP_ICON, 'F', 'ferda-brand-mark', 'FERDA app icon')}<span class="ferda-brand-copy"><b>FERDA</b><small>FAMILY TRAVEL PLANNER</small></span>`;
     }
   }
   const crewIcon = root.querySelector('.crew-summary-icon');
@@ -50,5 +61,6 @@ export function applyFerdaBranding(root) {
   const principleImage = root.querySelector('.preferences-principle-art');
   if (principleImage) principleImage.src = FERDA_ASSETS.ui.tripPreferences;
   root.querySelectorAll('.eyebrow, .section-kicker').forEach(el => el.classList.add('ferda-eyebrow'));
+  upgradeHeroAssets(root);
   wireImageFallbacks(root);
 }

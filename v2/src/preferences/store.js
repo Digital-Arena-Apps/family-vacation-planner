@@ -1,3 +1,5 @@
+import { persistentSetItem } from '../storage/native-persistence.js';
+
 const STORAGE_KEY = 'fvp_v2_trip_preferences_v1';
 
 const DEFAULTS = {
@@ -62,7 +64,7 @@ export function createTripPreferencesStore() {
   } catch {}
 
   function persist() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
+    try { persistentSetItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
   }
 
   function notify() {

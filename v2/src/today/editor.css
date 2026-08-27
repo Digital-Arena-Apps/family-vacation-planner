@@ -1,0 +1,128 @@
+.today-item-copy {
+  min-width: 0;
+}
+
+.today-item-edit {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #0e5e5b;
+  padding: 3px 0 0;
+  margin: 0;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.today-item-edit:hover,
+.today-item-edit:focus-visible {
+  text-decoration: underline;
+}
+
+.today-edit-dialog {
+  width: min(92vw, 470px);
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: #fffaf2;
+  color: #173f3d;
+  box-shadow: 0 26px 80px rgba(20, 61, 59, .28);
+}
+
+.today-edit-dialog::backdrop {
+  background: rgba(8, 38, 37, .52);
+  backdrop-filter: blur(4px);
+}
+
+.today-edit-dialog form {
+  display: grid;
+  gap: 13px;
+  padding: 18px;
+}
+
+.today-edit-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 2px;
+}
+
+.today-edit-head small {
+  color: #b77427;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.today-edit-head h2 {
+  margin: 3px 0 0;
+  font-size: 1.25rem;
+}
+
+.today-edit-head > button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #eef6f4;
+  color: #0e5e5b;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.today-edit-dialog label {
+  display: grid;
+  gap: 6px;
+  color: #466866;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.today-edit-dialog input,
+.today-edit-dialog select {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  border: 1px solid rgba(14, 94, 91, .18);
+  border-radius: 14px;
+  background: #fff;
+  color: #173f3d;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: .9rem;
+  outline: none;
+}
+
+.today-edit-dialog input:focus,
+.today-edit-dialog select:focus {
+  border-color: #21b6a8;
+  box-shadow: 0 0 0 3px rgba(33, 182, 168, .12);
+}
+
+.today-edit-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.today-edit-actions button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.today-edit-actions .secondary {
+  background: #eef3ef;
+  color: #315b58;
+}
+
+.today-edit-actions .primary {
+  background: #0e5e5b;
+  color: #fff;
+}
