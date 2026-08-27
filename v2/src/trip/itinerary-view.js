@@ -59,10 +59,6 @@ function dayHeading(date) {
   return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
-function dayShort(date) {
-  return date.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
-}
-
 function sortedItems(items) {
   return [...items].sort((a, b) => (PERIOD_ORDER[a.period] || 9) - (PERIOD_ORDER[b.period] || 9));
 }
@@ -146,7 +142,7 @@ export function mountItineraryScreen(root, tripStore, todayStore, options = {}) 
               <div><span class="section-kicker">ITINERARY</span><h2 data-itinerary-dialog-title>Add a plan</h2></div>
               <button type="button" data-itinerary-close aria-label="Close">×</button>
             </div>
-            <label>Date<input type="date" data-itinerary-date-input /></label>
+            <label>Date<input type="date" min="${esc(trip.arrivalDate)}" max="${esc(trip.departureDate)}" data-itinerary-date-input /></label>
             <label>Time of day
               <select data-itinerary-period>
                 <option value="morning">Morning</option>
@@ -237,8 +233,14 @@ export function mountItineraryScreen(root, tripStore, todayStore, options = {}) 
         title,
         note: noteInput.value.trim()
       };
-      if (activeId) todayStore.update(activeDate, activeId, payload);
-      else todayStore.add(key, payload);
+      if (activeId && key !== activeDate) {
+        todayStore.remove(activeDate, activeId);
+        todayStore.add(key, { ...payload, id: activeId });
+      } else if (activeId) {
+        todayStore.update(activeDate, activeId, payload);
+      } else {
+        todayStore.add(key, payload);
+      }
       closeDialog();
       render();
       options.onRebrand?.();
