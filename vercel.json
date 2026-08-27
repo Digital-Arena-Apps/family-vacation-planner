@@ -3,9 +3,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "builds": [
-    {"src": "package.json", "use": "@vercel/static-build", "config": {"distDir": "dist-v2"}}
+    {"src": "package.json", "use": "@vercel/static-build", "config": {"distDir": "dist-v2"}},
+    {"src": "discover-v3.js", "use": "@vercel/node"}
   ],
   "routes": [
+    {"src": "/api/discover", "dest": "/discover-v3.js"},
     {"handle": "filesystem"},
     {"src": "/.*", "dest": "/index.html"}
   ],
