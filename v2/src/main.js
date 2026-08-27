@@ -22,7 +22,8 @@ import { createTodayStore } from './today/store.js';
 import { enhanceFixMyDay } from './today/fix-day.js';
 import { enhanceTodayEditor } from './today/editor.js';
 import { mountHomeScreen } from './home/view.js';
-import { mountExploreScreen } from './explore/view.js';
+import { wireHomeExploreLinks } from './home/explore-links.js';
+import { mountExploreScreen } from './explore/context-view.js';
 import { wireV2Navigation } from './navigation/wire.js';
 
 const store = createFamilyStore();
@@ -59,6 +60,7 @@ function showHome() {
     onFamily: showFamily,
     onRemount: showHome
   });
+  const homeExploreCleanup = wireHomeExploreLinks(root, showExplore);
   const fixDayCleanup = enhanceFixMyDay(root, todayStore, store, preferencesStore, {
     onRemount: showHome
   });
@@ -67,17 +69,19 @@ function showHome() {
   });
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showExplore,
+    onExplore: () => showExplore('all'),
     onTrip: showTrip,
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [homeCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
+  cleanup = [homeCleanup, homeExploreCleanup, fixDayCleanup, todayEditorCleanup, navCleanup];
 }
 
-function showExplore() {
+function showExplore(requestedIntent = 'all') {
+  const intent = typeof requestedIntent === 'string' ? requestedIntent : 'all';
   unmount();
   const exploreCleanup = mountExploreScreen(root, tripStore, store, preferencesStore, todayStore, {
+    intent,
     onToday: showHome,
     onTrip: showTrip,
     onFamily: showFamily,
@@ -96,7 +100,7 @@ function showFamily() {
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
-    onExplore: showExplore,
+    onExplore: () => showExplore('all'),
     onTrip: showTrip,
     onFamily: showFamily
   });
