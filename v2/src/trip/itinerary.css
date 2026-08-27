@@ -15,7 +15,10 @@
 .itinerary-day-number small { margin-top: 2px; font-size: .46rem; opacity: .82; }
 .itinerary-day-title h2 { margin: 0; font-size: .9rem; }
 .itinerary-day-title small { display: block; margin-top: 3px; color: var(--muted); font-size: .58rem; }
-.itinerary-day-add { border: 1px solid rgba(14,94,91,.22); border-radius: 13px; padding: 9px 10px; background: white; color: #0E5E5B; font: inherit; font-size: .62rem; font-weight: 800; cursor: pointer; }
+.itinerary-day-actions { display: flex; align-items: center; gap: 6px; }
+.itinerary-day-actions button { border-radius: 13px; padding: 9px 10px; font: inherit; font-size: .6rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.itinerary-day-ask { border: 0; background: rgba(158,219,212,.28); color: #0E5E5B; }
+.itinerary-day-add { border: 1px solid rgba(14,94,91,.22); background: white; color: #0E5E5B; }
 .itinerary-items { display: grid; gap: 8px; margin-top: 12px; }
 .itinerary-empty { padding: 12px; border-radius: 14px; background: rgba(158,219,212,.12); color: var(--muted); font-size: .63rem; line-height: 1.45; }
 .itinerary-item { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid rgba(14,94,91,.08); border-radius: 15px; background: white; }
@@ -46,9 +49,10 @@
 @media (max-width: 560px) {
   .itinerary-page { padding: 10px 12px 126px; }
   .itinerary-day { padding: 13px; border-radius: 20px; }
-  .itinerary-day-head { grid-template-columns: 42px minmax(0,1fr) auto; gap: 9px; }
+  .itinerary-day-head { grid-template-columns: 42px minmax(0,1fr); gap: 9px; }
   .itinerary-day-number { width: 42px; height: 42px; }
-  .itinerary-day-add { padding: 8px 9px; }
+  .itinerary-day-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .itinerary-day-actions button { padding: 8px 9px; }
   .itinerary-item { grid-template-columns: 40px minmax(0,1fr) auto; }
   .itinerary-item-icon { width: 40px; height: 40px; }
 }
