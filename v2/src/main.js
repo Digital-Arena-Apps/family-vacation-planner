@@ -12,6 +12,7 @@ import { applyFerdaBranding } from './brand/apply.js';
 import { createFamilyStore } from './family/store.js';
 import { mountFamilyScreen } from './family/view.js';
 import { enhanceMemberEditor } from './family/editor-ux.js';
+import { enhanceFamilyForLaunch } from './family/launch-ux.js';
 import { mountDietaryScreen } from './dietary/view.js';
 import { createTripPreferencesStore } from './preferences/store.js';
 import { mountPreferencesScreen } from './preferences/view.js';
@@ -119,6 +120,7 @@ function showFamily() {
     onDietary: memberId => showDietary(memberId)
   });
   const editorCleanup = enhanceMemberEditor(root);
+  const launchCleanup = enhanceFamilyForLaunch(root);
   const preferencesCleanup = wirePreferencesRow(root, preferencesStore, showPreferences);
   const navCleanup = wireV2Navigation(root, {
     onToday: showHome,
@@ -127,7 +129,7 @@ function showFamily() {
     onFamily: showFamily
   });
   brandAndScroll();
-  cleanup = [viewCleanup, editorCleanup, preferencesCleanup, navCleanup];
+  cleanup = [viewCleanup, editorCleanup, launchCleanup, preferencesCleanup, navCleanup];
 }
 
 function showDietary(memberId) {
