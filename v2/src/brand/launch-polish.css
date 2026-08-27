@@ -88,6 +88,70 @@ textarea:focus-visible {
   vertical-align: 1px;
 }
 
+.ferda-result-feedback {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(14, 94, 91, .08);
+}
+
+.ferda-not-for-us {
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: transparent;
+  color: #687a78;
+  font: inherit;
+  font-size: .59rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ferda-not-for-us[aria-expanded='true'] {
+  background: rgba(14, 94, 91, .06);
+  color: #0E5E5B;
+}
+
+.ferda-feedback-reasons {
+  margin-top: 7px;
+  padding: 10px;
+  border-radius: 15px;
+  background: rgba(158, 219, 212, .14);
+}
+
+.ferda-feedback-reasons small {
+  display: block;
+  color: #536866;
+  font-size: .57rem;
+  font-weight: 700;
+}
+
+.ferda-feedback-reasons > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.ferda-feedback-reasons button {
+  min-height: 38px;
+  border: 1px solid rgba(14, 94, 91, .13);
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(255, 252, 247, .98);
+  color: #0E5E5B;
+  font: inherit;
+  font-size: .56rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ferda-result-rejected {
+  opacity: 0;
+  transform: scale(.985);
+  transition: opacity .16s ease, transform .16s ease;
+}
+
 @keyframes ferda-live-pulse {
   0%, 100% { opacity: .45; transform: scale(.88); }
   50% { opacity: 1; transform: scale(1); }
@@ -203,6 +267,12 @@ textarea:focus-visible {
     padding: 10px 11px;
   }
 
+  .ferda-not-for-us,
+  .ferda-feedback-reasons button {
+    min-height: 44px;
+    font-size: .62rem;
+  }
+
   /* Keep important tap targets comfortably above the 44px minimum. */
   .today-primary-action,
   .home-trip-action,
@@ -216,5 +286,8 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .ferda-live-status.loading > span {
     animation: none;
+  }
+  .ferda-result-rejected {
+    transition: none;
   }
 }
