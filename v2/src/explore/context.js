@@ -1,4 +1,5 @@
 import { rankOptions } from './engine.js';
+import { adjustForRightNow } from './right-now.js';
 
 const LEGACY_INTENTS = Object.freeze({
   dining: new Set(['disney-springs', 'mini-golf', 'celebration']),
@@ -10,12 +11,16 @@ const INTENTS = Object.freeze({
     key: 'all',
     kicker: 'ASK FERDA',
     title: 'What should we do?',
-    intro: 'FERDA ranks ideas against your actual crew — not a generic “top 10”.',
-    question: 'WHAT KIND OF DAY?',
+    intro: 'FERDA ranks ideas against your actual crew, the day you are planning and what matters right now.',
+    question: 'WHAT MATTERS RIGHT NOW?',
     resultTitle: 'Best matches for your crew',
-    hint: 'Prototype scores use your saved profiles and trip preferences.',
+    hint: 'Scores use your saved crew, trip preferences and the plans already on the target day.',
     moods: [
       ['best', 'Best fit'],
+      ['short', 'About 2 hours'],
+      ['value', 'Keep it cheap'],
+      ['low-energy', 'Low energy'],
+      ['drive', 'Happy to drive'],
       ['easy', 'Easy day'],
       ['big', 'Big day'],
       ['indoor', 'Mostly indoors'],
@@ -26,12 +31,16 @@ const INTENTS = Object.freeze({
     key: 'activities',
     kicker: 'ASK FERDA · ACTIVITIES',
     title: 'What should we do together?',
-    intro: 'Start with the crew, then FERDA weighs pace, thrills, walking, timing and how adventurous you want the day to feel.',
-    question: 'WHAT FITS TODAY?',
+    intro: 'Start with the crew, then FERDA weighs pace, thrills, walking, timing, the target day and how everyone feels right now.',
+    question: 'WHAT FITS RIGHT NOW?',
     resultTitle: 'Activities that fit the crew',
-    hint: 'Ranked against the family and trip preferences you have already saved.',
+    hint: 'Ranked against the family, trip preferences and the plans already saved for this day.',
     moods: [
       ['best', 'Best fit'],
+      ['short', 'About 2 hours'],
+      ['value', 'Keep it cheap'],
+      ['low-energy', 'Low energy'],
+      ['drive', 'Happy to drive'],
       ['easy', 'Keep it easy'],
       ['big', 'Go big'],
       ['indoor', 'Mostly indoors'],
@@ -45,12 +54,13 @@ const INTENTS = Object.freeze({
     intro: 'FERDA gives dietary needs, effort, cost and travel time a seat at the table before everyone gets hungry.',
     question: 'WHAT MATTERS MOST?',
     resultTitle: 'Food options that work for the crew',
-    hint: 'Dietary fit uses the requirements saved against your travellers.',
+    hint: 'Dietary fit uses the requirements saved against your travellers and FERDA also checks the target day for existing meals.',
     moods: [
       ['best', 'Best fit'],
       ['nearby', 'Less travel'],
       ['dietary', 'Dietary first'],
       ['value', 'Keep it sensible'],
+      ['drive', 'Happy to drive'],
       ['surprise', 'Something different']
     ]
   },
@@ -61,11 +71,14 @@ const INTENTS = Object.freeze({
     intro: 'FERDA balances what is nearby with walking, cost and whether the stop is worth spending holiday time on.',
     question: 'WHAT KIND OF STOP?',
     resultTitle: 'Shopping stops worth considering',
-    hint: 'A shorter, easier stop can rank above a bigger name when it fits the crew better.',
+    hint: 'A shorter, easier stop can rank above a bigger name when it fits the family and the rest of the day better.',
     moods: [
       ['best', 'Best fit'],
+      ['short', 'About 2 hours'],
       ['nearby', 'Less travel'],
       ['value', 'Value first'],
+      ['low-energy', 'Low energy'],
+      ['drive', 'Happy to drive'],
       ['easy', 'Easy stop'],
       ['surprise', 'Something different']
     ]
@@ -152,7 +165,7 @@ function diningRank(options, context, mood) {
       reasons.push('Very little extra travel makes this easy to fit around the rest of the day.');
     } else if (option.drive <= 25) {
       score += 9;
-      reasons.push('Travel effort is reasonable for an Orlando-based day.');
+      reasons.push('Travel effort is reasonable for the trip base.');
     } else if (option.drive <= 40) {
       score += 5;
     } else {
@@ -241,12 +254,22 @@ function shoppingRank(options, context, mood) {
   }).sort((a, b) => b.score - a.score);
 }
 
+function rightNowConstraint(key, mood) {
+  if (['short', 'low-energy', 'drive'].includes(mood)) return new Set([mood]);
+  if (mood === 'value' && ['all', 'activities'].includes(key)) return new Set(['value']);
+  return new Set();
+}
+
 export function rankForIntent(options, context, intent, mood = 'best') {
   const key = normaliseExploreIntent(intent);
   const filtered = optionsForIntent(options, key);
-  if (key === 'dining') return diningRank(filtered, context, mood);
-  if (key === 'shopping') return shoppingRank(filtered, context, mood);
-  return rankOptions(filtered, context, mood);
+  const constraints = rightNowConstraint(key, mood);
+  const baseMood = constraints.size ? 'best' : mood;
+  let ranked;
+  if (key === 'dining') ranked = diningRank(filtered, context, baseMood);
+  else if (key === 'shopping') ranked = shoppingRank(filtered, context, baseMood);
+  else ranked = rankOptions(filtered, context, baseMood);
+  return constraints.size ? adjustForRightNow(ranked, constraints) : ranked;
 }
 
 export function addTypeForIntent(intent) {
