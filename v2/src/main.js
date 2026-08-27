@@ -27,6 +27,7 @@ import { wireHomeExploreLinks } from './home/explore-links.js';
 import { wireHomeItineraryLink } from './home/itinerary-link.js';
 import { mountExploreScreen } from './explore/context-view.js';
 import { wireV2Navigation } from './navigation/wire.js';
+import './brand/launch-polish.css';
 
 const store = createFamilyStore();
 const preferencesStore = createTripPreferencesStore();
