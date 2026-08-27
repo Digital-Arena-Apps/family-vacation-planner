@@ -2,6 +2,7 @@ import './styles.css';
 import './context.css';
 import { FERDA_CONTEXT_OPTIONS } from './context-dataset.js';
 import { adjustRankedForDay, describeDayForFerda } from './day-fit.js';
+import { canDiscover, discoverForIntent } from './live-discovery.js';
 import {
   addTypeForIntent,
   buildTransportAdvice,
@@ -54,11 +55,12 @@ function resultCard(option, index, intent, targetKey) {
   const addLabel = intent === 'dining'
     ? (isToday ? 'Add meal to today' : `Add meal to ${day}`)
     : (isToday ? 'Add to today' : `Add to ${day}`);
+  const source = option.live ? '<span class="ferda-live-pill">LIVE</span>' : '';
   return `
     <article class="ferda-result-card ${index === 0 ? 'top-pick' : ''}">
       <div class="ferda-result-head">
         <span class="ferda-result-icon"><img src="${option.icon}" alt="" /></span>
-        <div class="ferda-result-title"><span>${esc(option.category)}</span><h2>${esc(option.name)}</h2></div>
+        <div class="ferda-result-title"><span>${esc(option.category)} ${source}</span><h2>${esc(option.name)}</h2></div>
         <div class="ferda-fit"><b>${option.score}%</b><small>crew fit</small></div>
       </div>
       <p class="ferda-result-summary">${esc(option.summary)}</p>
@@ -99,6 +101,20 @@ function contextStrip(family, preferences, trip) {
     </section>`;
 }
 
+function liveDiscoveryStatus(live, trip, intent) {
+  if (!canDiscover(trip, intent)) return '';
+  if (live.intent === intent && live.status === 'loading') {
+    return '<div class="ferda-live-status loading"><span></span><div><b>Finding real options near your destination…</b><small>FERDA keeps the curated fallbacks available while this loads.</small></div></div>';
+  }
+  if (live.intent === intent && live.status === 'ready' && live.options.length) {
+    return `<div class="ferda-live-status ready"><span></span><div><b>${live.options.length} live options added</b><small>${esc(live.source)} · ${esc(live.destination || trip.destination)}</small></div></div>`;
+  }
+  if (live.intent === intent && live.status === 'error') {
+    return '<div class="ferda-live-status fallback"><span></span><div><b>Using FERDA’s curated suggestions</b><small>Live discovery did not respond, so the planning experience stays usable.</small></div></div>';
+  }
+  return '';
+}
+
 function transportMarkup(trip, preferences, dayItems, targetKey) {
   const advice = buildTransportAdvice(trip, preferences, dayItems);
   const isToday = targetKey === todayKey();
@@ -129,11 +145,50 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
   let intent = normaliseExploreIntent(options.intent);
   let config = getExploreIntent(intent);
   let mood = config.moods[0]?.[0] || 'best';
+  let live = { intent: '', status: 'idle', options: [], source: '', destination: '', error: '' };
+  let discoveryController = null;
+  let disposed = false;
   const requestedTarget = String(options.targetDate || '');
   const targetKey = /^\d{4}-\d{2}-\d{2}$/.test(requestedTarget) ? requestedTarget : todayKey();
   const trip = tripStore.get();
   const family = familyStore.list();
   const preferences = preferencesStore.get();
+
+  function sourceOptions() {
+    if (live.intent === intent && live.status === 'ready' && live.options.length) {
+      return [...live.options, ...FERDA_CONTEXT_OPTIONS];
+    }
+    return FERDA_CONTEXT_OPTIONS;
+  }
+
+  async function refreshDiscovery() {
+    if (!canDiscover(trip, intent)) return;
+    discoveryController?.abort();
+    const controller = new AbortController();
+    discoveryController = controller;
+    const requestIntent = intent;
+    live = { intent: requestIntent, status: 'loading', options: [], source: '', destination: '', error: '' };
+    render();
+    options.onRebrand?.();
+
+    try {
+      const result = await discoverForIntent(trip, requestIntent, controller.signal);
+      if (disposed || requestIntent !== intent) return;
+      live = {
+        intent: requestIntent,
+        status: 'ready',
+        options: result.options,
+        source: result.source,
+        destination: result.destination,
+        error: ''
+      };
+    } catch (error) {
+      if (controller.signal.aborted || disposed || requestIntent !== intent) return;
+      live = { intent: requestIntent, status: 'error', options: [], source: '', destination: '', error: error?.message || '' };
+    }
+    render();
+    options.onRebrand?.();
+  }
 
   function render() {
     config = getExploreIntent(intent);
@@ -142,7 +197,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
     const ranked = intent === 'transport'
       ? []
       : adjustRankedForDay(
-          rankForIntent(FERDA_CONTEXT_OPTIONS, { trip, family, preferences }, intent, mood),
+          rankForIntent(sourceOptions(), { trip, family, preferences }, intent, mood),
           intent,
           dayItems,
           preferences
@@ -167,6 +222,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
           ${focusTabs(intent)}
           ${planningTarget(targetKey)}
           ${contextStrip(family, preferences, trip)}
+          ${liveDiscoveryStatus(live, trip, intent)}
 
           ${isTransport ? transportMarkup(trip, preferences, dayItems, targetKey) : `
             <section class="ferda-question">
@@ -206,8 +262,10 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
       intent = normaliseExploreIntent(button.dataset.ferdaIntent);
       const nextConfig = getExploreIntent(intent);
       mood = nextConfig.moods[0]?.[0] || 'best';
+      live = { intent: '', status: 'idle', options: [], source: '', destination: '', error: '' };
       render();
       options.onRebrand?.();
+      refreshDiscovery();
     }));
 
     root.querySelectorAll('[data-mood]').forEach(button => button.addEventListener('click', () => {
@@ -224,7 +282,7 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
         period: targetKey === todayKey() ? currentPeriod() : 'morning',
         type,
         title: item.name,
-        note: `FERDA recommendation · ${item.category}`
+        note: `FERDA recommendation · ${item.category}${item.live ? ` · ${item.source}` : ''}`
       });
       button.textContent = targetKey === todayKey()
         ? (type === 'meal' ? 'Meal added ✓' : 'Added ✓')
@@ -257,7 +315,8 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
         <p>${esc(rankedItem.summary)}</p>
         <h3>Why it fits</h3>
         <ul>${rankedItem.reasons.map(reason => `<li>${esc(reason)}</li>`).join('')}</ul>
-        ${rankedItem.caution ? `<h3>Trade-off</h3><p>${esc(rankedItem.caution)}</p>` : ''}`;
+        ${rankedItem.caution ? `<h3>Trade-off</h3><p>${esc(rankedItem.caution)}</p>` : ''}
+        ${rankedItem.live && rankedItem.address ? `<h3>Location</h3><p>${esc(rankedItem.address)}</p>` : ''}`;
       dialog.showModal();
     }));
 
@@ -268,5 +327,11 @@ export function mountExploreScreen(root, tripStore, familyStore, preferencesStor
   }
 
   render();
-  return () => root.querySelector('#ferdaWhyDialog')?.open && root.querySelector('#ferdaWhyDialog').close();
+  refreshDiscovery();
+
+  return () => {
+    disposed = true;
+    discoveryController?.abort();
+    if (root.querySelector('#ferdaWhyDialog')?.open) root.querySelector('#ferdaWhyDialog').close();
+  };
 }
