@@ -1,0 +1,75 @@
+.ferda-launch-hidden {
+  display: none !important;
+}
+
+.ferda-explore-setup {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 15px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid rgba(14,94,91,.12);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(158,219,212,.24), rgba(255,252,247,.98));
+}
+
+.ferda-explore-setup-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+  background: rgba(255,243,228,.9);
+}
+
+.ferda-explore-setup-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ferda-explore-setup h2 {
+  margin: 4px 0 5px;
+  font-size: 1rem;
+}
+
+.ferda-explore-setup p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .67rem;
+  line-height: 1.5;
+}
+
+.ferda-explore-setup button {
+  min-height: 44px;
+  margin-top: 11px;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 13px;
+  background: #0E5E5B;
+  color: white;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .ferda-explore-setup {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .ferda-explore-setup-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+  }
+
+  .ferda-explore-setup button {
+    width: 100%;
+  }
+}
