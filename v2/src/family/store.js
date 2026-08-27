@@ -1,4 +1,5 @@
 import { normaliseAvatar } from './avatars.js';
+import { persistentSetItem } from '../storage/native-persistence.js';
 
 const STORAGE_KEY = 'fvp_v2_family_v1';
 
@@ -69,13 +70,13 @@ export function createFamilyStore() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (Array.isArray(saved) && !looksLikeLegacyDemo(saved)) members = saved.map(normaliseMember);
-    if (looksLikeLegacyDemo(saved)) localStorage.setItem(STORAGE_KEY, '[]');
+    if (looksLikeLegacyDemo(saved)) persistentSetItem(STORAGE_KEY, '[]');
   } catch {
     members = [];
   }
 
   function persist() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(members)); } catch {}
+    try { persistentSetItem(STORAGE_KEY, JSON.stringify(members)); } catch {}
   }
 
   function notify() {
