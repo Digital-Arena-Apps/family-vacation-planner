@@ -1,3 +1,5 @@
+import { persistentSetItem } from '../storage/native-persistence.js';
+
 const STORAGE_KEY = 'fvp_v2_today_plan_v1';
 
 function readAll() {
@@ -10,7 +12,7 @@ function readAll() {
 }
 
 function writeAll(value) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
+  try { persistentSetItem(STORAGE_KEY, JSON.stringify(value)); } catch {}
 }
 
 function normaliseItem(input = {}) {
