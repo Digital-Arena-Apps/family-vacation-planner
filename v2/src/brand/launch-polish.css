@@ -2,6 +2,10 @@
    Keeps controls comfortably tappable/readable and prevents modal forms
    being crushed by the on-screen keyboard. */
 
+.v2-status {
+  display: none !important;
+}
+
 button, input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
