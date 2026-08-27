@@ -1,3 +1,5 @@
+import { persistentSetItem } from '../storage/native-persistence.js';
+
 const STORAGE_KEY = 'ferda_v3_recommendation_feedback';
 const MAX_RECORDS = 200;
 
@@ -12,7 +14,7 @@ function read() {
 
 function write(records) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records.slice(-MAX_RECORDS)));
+    persistentSetItem(STORAGE_KEY, JSON.stringify(records.slice(-MAX_RECORDS)));
   } catch {}
 }
 
