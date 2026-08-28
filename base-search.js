@@ -1,6 +1,6 @@
 const ORLANDO={lat:28.5383,lon:-81.3792};
 const CENTRAL_FLORIDA={south:27.45,north:29.35,west:-82.45,east:-80.55};
-const UA='FamilyVacationPlannerEarlyAccess/2.6 (+https://family-vacation-planner-alpha.vercel.app)';
+const UA='FERDAOrlando/0.1 (+https://family-vacation-planner-alpha.vercel.app)';
 
 function inCentralFlorida(lat,lon){return lat>=CENTRAL_FLORIDA.south&&lat<=CENTRAL_FLORIDA.north&&lon>=CENTRAL_FLORIDA.west&&lon<=CENTRAL_FLORIDA.east;}
 function typeLabel(types=[],primary=''){

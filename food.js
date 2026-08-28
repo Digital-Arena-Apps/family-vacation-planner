@@ -1,4 +1,4 @@
-const USER_AGENT='FamilyVacationPlannerBeta/1.6 (+https://family-vacation-planner-alpha.vercel.app)';
+const USER_AGENT='FERDAOrlando/0.1 (+https://family-vacation-planner-alpha.vercel.app)';
 
 function haversine(a,b,c,d){
   const R=6371,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p;

@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
     const timer = setTimeout(() => controller.abort(), 9000);
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'Accept': 'application/json', 'User-Agent': 'FamilyVacationPlanner/2.6.2' }
+      headers: { 'Accept': 'application/json', 'User-Agent': 'FERDAOrlando/0.1' }
     });
     clearTimeout(timer);
     if (!response.ok) throw new Error(`Weather provider ${response.status}`);

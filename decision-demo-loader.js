@@ -1,16 +1,16 @@
-// Vacation Planner V2.6.7 — stable Orlando startup + onboarding layer
+// FERDA — Orlando startup and onboarding compatibility layer
 (()=>{
   'use strict';
 
-  if(window.__VP_ORLANDO_BOOTSTRAP_267__) return;
-  window.__VP_ORLANDO_BOOTSTRAP_267__=true;
+  if(window.__FERDA_ORLANDO_BOOTSTRAP__) return;
+  window.__FERDA_ORLANDO_BOOTSTRAP__=true;
 
-  const VERSION='2.6.7';
+  const VERSION='ferda-0.1.0';
   const RELEASE_KEY='vp_orlando_demo_release'; // deliberately outside ffvp_* app data
   const ONBOARDING_METRICS_KEY='ffvp_orlando_onboarding_metrics';
   const ORLANDO_ZONE='America/New_York';
-  const SPLASH_MIN_MS=1200;
-  const SPLASH_MAX_MS=2800;
+  const SPLASH_MIN_MS=350;
+  const SPLASH_MAX_MS=1600;
   const bootStarted=performance.now();
 
   let onboardingStart=0;
@@ -28,11 +28,11 @@
     const style=document.createElement('style');
     style.id='vpStartupCriticalCss';
     style.textContent=`
-      #vpStartupSplash{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:18px;background:linear-gradient(155deg,#f8f9fa 0%,#eefafa 45%,#fff3ec 100%);font-family:Inter,system-ui,sans-serif;color:#0f172a;overflow:hidden}
-      #vpStartupSplash:before,#vpStartupSplash:after{content:"";position:absolute;border-radius:50%;pointer-events:none}#vpStartupSplash:before{width:310px;height:310px;right:-150px;top:-120px;background:rgba(52,196,184,.13)}#vpStartupSplash:after{width:270px;height:270px;left:-155px;bottom:-115px;background:rgba(255,107,107,.11)}
+      #vpStartupSplash{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:18px;background:linear-gradient(155deg,#dff5ef 0%,#fff8e9 55%,#f7ead4 100%);font-family:Inter,system-ui,sans-serif;color:#173b3a;overflow:hidden}
+      #vpStartupSplash:before,#vpStartupSplash:after{content:"";position:absolute;border-radius:50%;pointer-events:none}#vpStartupSplash:before{width:310px;height:310px;right:-150px;top:-120px;background:rgba(13,119,113,.12)}#vpStartupSplash:after{width:270px;height:270px;left:-155px;bottom:-115px;background:rgba(245,166,35,.12)}
       .vp-startup-card{position:relative;z-index:1;width:min(100%,390px);text-align:center;padding:25px 21px 21px;border:1px solid rgba(255,255,255,.9);border-radius:28px;background:rgba(255,255,255,.88);box-shadow:0 24px 70px rgba(15,23,42,.10)}
-      .vp-startup-logo{width:min(245px,76%);height:auto;display:block;margin:0 auto 13px}.vp-startup-kicker{font-size:10px;font-weight:900;letter-spacing:.13em;color:#0f817b}.vp-startup-title{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:22px;line-height:1.17;margin:8px 0 7px;color:#152b34}.vp-startup-copy{font-size:13px;line-height:1.48;color:#607279;margin:0 auto 18px;max-width:310px}
-      .vp-startup-status{font-size:13px;font-weight:800;color:#29464d;min-height:20px}.vp-startup-detail{font-size:11px;color:#78898e;margin-top:7px;min-height:17px}.vp-startup-track{height:5px;margin-top:14px;border-radius:999px;background:#e2eceb;overflow:hidden}.vp-startup-bar{display:block;width:12%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#19a69d,#ff6b6b);transition:width .25s ease}.vp-startup-dots{display:flex;justify-content:center;gap:6px;margin-top:13px}.vp-startup-dots i{width:6px;height:6px;border-radius:50%;background:#9bcfca;animation:vpStartupPulse 1s ease-in-out infinite}.vp-startup-dots i:nth-child(2){animation-delay:.16s}.vp-startup-dots i:nth-child(3){animation-delay:.32s}
+      .vp-startup-logo{width:min(290px,84%);height:auto;display:block;margin:0 auto 13px}.vp-startup-kicker{font-size:10px;font-weight:900;letter-spacing:.13em;color:#0d7771}.vp-startup-title{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:22px;line-height:1.17;margin:8px 0 7px;color:#173b3a}.vp-startup-copy{font-size:13px;line-height:1.48;color:#5d7774;margin:0 auto 18px;max-width:310px}
+      .vp-startup-status{font-size:13px;font-weight:800;color:#29464d;min-height:20px}.vp-startup-detail{font-size:11px;color:#78898e;margin-top:7px;min-height:17px}.vp-startup-track{height:5px;margin-top:14px;border-radius:999px;background:#e2eceb;overflow:hidden}.vp-startup-bar{display:block;width:12%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0d7771,#f5a623);transition:width .25s ease}.vp-startup-dots{display:flex;justify-content:center;gap:6px;margin-top:13px}.vp-startup-dots i{width:6px;height:6px;border-radius:50%;background:#79bdb7;animation:vpStartupPulse 1s ease-in-out infinite}.vp-startup-dots i:nth-child(2){animation-delay:.16s}.vp-startup-dots i:nth-child(3){animation-delay:.32s}
       #vpStartupSplash.vp-startup-leaving{opacity:0;transition:opacity .2s ease;pointer-events:none}@keyframes vpStartupPulse{0%,100%{opacity:.35;transform:scale(.82)}50%{opacity:1;transform:scale(1.15)}}
       @media(max-width:420px){#vpStartupSplash{padding:15px}.vp-startup-card{padding:22px 16px 19px;border-radius:24px}.vp-startup-title{font-size:20px}.vp-startup-copy{font-size:12.5px}.vp-startup-logo{width:min(225px,74%)}}
       @media(prefers-reduced-motion:reduce){.vp-startup-dots i{animation:none}.vp-startup-bar{transition:none}}
@@ -42,7 +42,7 @@
     splash.id='vpStartupSplash';
     splash.setAttribute('role','status');
     splash.setAttribute('aria-live','polite');
-    splash.innerHTML=`<div class="vp-startup-card"><img class="vp-startup-logo" src="brand-logo.png" alt="Family Vacation Planner"><div class="vp-startup-kicker">ORLANDO EARLY ACCESS</div><div class="vp-startup-title">Your holiday helper is getting ready.</div><p class="vp-startup-copy">Keeping your family, trip and Orlando context together so you don’t have to work everything out again.</p><div id="vpStartupStatus" class="vp-startup-status">Getting your Orlando trip ready…</div><div class="vp-startup-track"><span id="vpStartupBar" class="vp-startup-bar"></span></div><div id="vpStartupDetail" class="vp-startup-detail">Preparing the planner</div><div class="vp-startup-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
+    splash.innerHTML=`<div class="vp-startup-card"><img class="vp-startup-logo" src="assets/ferda/branding/brand_logo_mark.webp" alt="FERDA"><div class="vp-startup-kicker">ORLANDO TRAVEL BUDDY</div><div class="vp-startup-title">Your adventure is getting ready.</div><p class="vp-startup-copy">Keeping your family, trip and Orlando context together so you don’t have to work everything out again.</p><div id="vpStartupStatus" class="vp-startup-status">Getting your Orlando trip ready…</div><div class="vp-startup-track"><span id="vpStartupBar" class="vp-startup-bar"></span></div><div id="vpStartupDetail" class="vp-startup-detail">Preparing FERDA</div><div class="vp-startup-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
     document.body.appendChild(splash);
     qs('#landingScreen')?.classList.add('hidden');
     qs('#onboarding')?.classList.add('hidden');
@@ -55,39 +55,15 @@
     setText(qs('#vpStartupDetail'),detail);
   }
 
-  function resetRuntimeState(){
-    try{
-      if(typeof state!=='undefined'){
-        state.profile={...state.profile,familyName:'',destinationPreset:'orlando',homeBase:'',arrivalDate:'',departureDate:'',maxDrive:30,budget:'medium',notes:'',quickNotes:[],members:[]};
-        state.saved=[];
-        state.tripStatuses={};
-        state.plans=[];
-        state.discovered={};
-        state.recommendationFeedback={};
-        state.decisionEvents=[];
-        state.nowContext={};
-      }
-    }catch{}
-  }
-
-  function resetForReleaseOnce(){
+  function migrateReleaseOnce(){
     let previous='';
     try{previous=localStorage.getItem(RELEASE_KEY)||'';}catch{}
     if(previous===VERSION) return false;
-
-    const keys=[
-      'ffvp_profile','ffvp_onboarded','ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done',
-      'ffvp_recommendation_feedback','ffvp_decision_events','ffvp_now_context','ffvp_tomorrow_mood','ffvp_fresh_used','ffvp_trip_uses',
-      'ffvp_test_ad_hidden','ffvp_commercial_tier','ffvp_orlando_onboarding_metrics'
-    ];
     try{
-      keys.forEach(k=>localStorage.removeItem(k));
       localStorage.setItem(RELEASE_KEY,VERSION);
       localStorage.setItem('ffvp_force_landing','0');
       localStorage.setItem('ffvp_force_onboarding','0');
-      localStorage.setItem('ffvp_test_location','orlando');
     }catch{}
-    resetRuntimeState();
     return true;
   }
 
@@ -131,7 +107,7 @@
 
   function markOrlandoOnly(){
     document.body.classList.add('orlando-early-access');
-    setText(qs('.brand-kicker'),'ORLANDO EARLY ACCESS · V2.6.7');
+    setText(qs('.brand-kicker'),'ORLANDO TRAVEL BUDDY');
     const setupDest=qs('#setupDestinationPreset');if(setupDest){setupDest.value='orlando';setupDest.closest('label')?.style.setProperty('display','none');}
     const profileDest=qs('#destinationPreset');if(profileDest){profileDest.value='orlando';profileDest.closest('label')?.style.setProperty('display','none');}
     qs('#setupLanguage')?.closest('label')?.style.setProperty('display','none');
@@ -265,9 +241,9 @@
   // Do this immediately when the deferred script executes, not at DOMContentLoaded.
   // That prevents the old shell from visibly painting between app startup and our splash.
   injectSplash();
-  releaseChanged=resetForReleaseOnce();
+  releaseChanged=migrateReleaseOnce();
   lockOldBetaLaunchFlags();
-  splashProgress(releaseChanged?28:22,releaseChanged?'Starting a clean Orlando trip':'Getting your Orlando trip ready…',releaseChanged?'Resetting the previous test trip':'Preparing your trip tools');
+  splashProgress(releaseChanged?28:22,releaseChanged?'Updating FERDA safely':'Getting your Orlando trip ready…',releaseChanged?'Keeping your saved trip in place':'Preparing your trip tools');
 
   async function init(){
     loadStyle(`/decision-demo.css?v=${VERSION}`,'vpDecisionDemoCss');
@@ -282,7 +258,7 @@
     const basePromise=loadScript(`/base-location.js?v=${VERSION}`,'vpBaseLocationRuntime');
     const demoPromise=loadScript(`/decision-demo.js?v=${VERSION}`,'vpDecisionDemoRuntime');
     Promise.allSettled([basePromise,demoPromise]).then(()=>{personalizeDecisionExperience();syncOrlandoLocation();});
-    loadScript('/family-ui-test.js?v=7','vpFamilyUiTestRuntime',1100).then(()=>{});
+    loadScript(`/family-ui-test.js?v=${VERSION}`,'vpFamilyUiTestRuntime',1100).then(()=>{});
 
     setTimeout(()=>splashProgress(84,'Almost there…','Finishing your Orlando setup'),650);
     setTimeout(revealApp,1000);

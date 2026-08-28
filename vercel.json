@@ -27,6 +27,7 @@
     {"src": "manifest.webmanifest", "use": "@vercel/static"},
     {"src": "icon-192.png", "use": "@vercel/static"},
     {"src": "icon-512.png", "use": "@vercel/static"},
+    {"src": "assets/ferda/**", "use": "@vercel/static"},
     {"src": "brand-mark.png", "use": "@vercel/static"},
     {"src": "brand-logo.png", "use": "@vercel/static"},
     {"src": "landing-scenic.png", "use": "@vercel/static"}
@@ -50,6 +51,7 @@
     {"source": "/decision-demo.css", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
     {"source": "/orlando-early-access.css", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
     {"source": "/base-location.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
-    {"source": "/family-ui-test.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]}
+    {"source": "/family-ui-test.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]},
+    {"source": "/assets/ferda/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, immutable"}]}
   ]
 }

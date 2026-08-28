@@ -1,3 +1,22 @@
+# FERDA — Orlando behavioural reference
+
+**Every adventure. Everyone together.**
+
+This repository is the working behavioural reference for FERDA, a premium Orlando family travel buddy. The current delivery slice protects and rebrands the proven PWA while the production mobile, account, itinerary and entitlement architecture is built incrementally.
+
+Current FERDA changes include:
+
+- non-destructive release migration that preserves saved family and trip data;
+- real FERDA branding, splash, navigation, crew icons and Florida avatars from the approved Google Drive source;
+- four primary tabs: Today, Explore, Trip and Family;
+- free trial followed by a £8.99 one-time unlock, with no ads or subscription;
+- an executable static smoke test in `scripts/smoke-test.mjs`;
+- audited product, feature-parity, asset and delivery documents in `docs/`.
+
+Run `node scripts/smoke-test.mjs` before changing the behavioural reference. The history below records the prototype decisions that FERDA is preserving or deliberately replacing.
+
+## Legacy development history
+
 # Family Vacation Planner — V2.4
 
 ## What Now learning loop

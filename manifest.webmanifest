@@ -1,11 +1,11 @@
 {
-  "name": "Family Vacation Planner",
-  "short_name": "Family Planner",
-  "description": "A destination-aware family vacation planner that helps before and during a trip.",
+  "name": "FERDA — Orlando Family Travel Buddy",
+  "short_name": "FERDA",
+  "description": "A family-aware Orlando travel buddy that builds the plan and helps decide what comes next.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#FFF8F0",
-  "theme_color": "#2F3A45",
+  "background_color": "#F7F1E5",
+  "theme_color": "#0B5D59",
   "icons": [
     {
       "src": "icon-192.png",

@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#2F3A45" />
-  <meta name="description" content="A family-aware vacation decision helper that adapts to destination, time and trip progress." />
+  <meta name="theme-color" content="#0B5D59" />
+  <meta name="description" content="FERDA learns your family, builds your Orlando plan and helps decide what comes next." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Family Planner" />
+  <meta name="apple-mobile-web-app-title" content="FERDA" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -15,14 +15,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <title>Family Vacation Planner</title>
+  <title>FERDA — Every adventure. Everyone together.</title>
 </head>
 <body>
 
-  <div id="landingScreen" class="landing-screen hidden" aria-modal="true" role="dialog" aria-label="Welcome to Family Vacation Planner">
+  <div id="landingScreen" class="landing-screen hidden" aria-modal="true" role="dialog" aria-label="Welcome to FERDA">
     <div class="landing-shell landing-splash">
-      <div class="landing-scene" role="img" aria-label="Family Vacation Planner welcome screen with a family overlooking a sunny coastal destination">
-        <img class="landing-scene-image" src="landing-scenic.png" alt="Family Vacation Planner. Plan better. Travel together. Make it unforgettable." />
+      <div class="landing-scene">
+        <img class="landing-scene-image" src="assets/ferda/branding/splash_main.webp" alt="A cheerful river otter family ready to begin their Orlando adventure." />
+        <div class="ferda-landing-brand">
+          <img src="assets/ferda/branding/brand_logo_mark.webp" alt="FERDA" />
+          <p>Every adventure. Everyone together.</p>
+        </div>
       </div>
       <div class="landing-actions">
         <button id="landingPrimary" class="landing-primary" type="button">Let’s plan our adventure ✦</button>
@@ -33,10 +37,10 @@
   <div id="onboarding" class="onboarding hidden" aria-modal="true" role="dialog">
     <div class="onboarding-card adventure-onboarding">
       <div class="onboarding-hero brand-onboarding-hero">
-        <img class="onboarding-brand-logo" src="brand-logo.png" alt="Family Vacation Planner" />
-        <div class="onboarding-tagline">Plan better. Travel together.</div>
-        <div class="onboarding-script">Make it unforgettable.</div>
-        <p>A few useful details now help us shape the trip around your actual family — before you go and while you’re there.</p>
+        <img class="onboarding-brand-logo" src="assets/ferda/branding/brand_logo_mark.webp" alt="FERDA" />
+        <div class="onboarding-tagline">Every adventure.</div>
+        <div class="onboarding-script">Everyone together.</div>
+        <p>Tell FERDA about the trip and the people travelling. We’ll use it to shape your Orlando plan and help while you’re there.</p>
         <div class="setup-progress-wrap">
           <div id="setupProgressText" class="setup-progress-text">STEP 1 OF 3</div>
           <div class="setup-progress" aria-label="Setup progress"><span class="active"></span><span></span><span></span></div>
@@ -151,12 +155,8 @@
   <div id="app" class="app-shell">
     <header class="topbar topbar-v15 brand-topbar">
       <div class="brand-lockup">
-        <img class="brand-mark" src="brand-mark.png" alt="" aria-hidden="true" />
-        <div class="brand-wordmark" aria-label="Family Vacation Planner">
-          <div><span class="brand-family">Family</span> <span class="brand-vacation">Vacation</span></div>
-          <span class="brand-planner">PLANNER</span>
-          <span class="brand-kicker">DECISION DEMO · V2.5</span>
-        </div>
+        <img class="ferda-header-logo" src="assets/ferda/branding/brand_logo_mark.webp" alt="FERDA" />
+        <span class="brand-kicker">ORLANDO TRAVEL BUDDY</span>
       </div>
       <button id="installBtn" class="icon-btn hidden" aria-label="Install app" title="Install app">＋</button>
     </header>
@@ -227,10 +227,6 @@
         </section>
 
 
-        <aside id="freeAdSlot" class="sponsored-test hidden" aria-label="Sponsored test placement">
-          <div><span>SPONSORED · TEST PLACEMENT</span><b>Useful travel offer could live here</b><small>Explorer only. Recommendations above are never changed by sponsors.</small></div>
-          <button id="dismissTestAd" type="button" aria-label="Hide test advert">×</button>
-        </aside>
         <section class="section-block">
           <div class="section-title-row"><div><div class="eyebrow">QUICK START</div><h2 id="quickStartTitle">What are you in the mood for?</h2><p id="quickStartCopy" class="quick-start-copy">These adapt to where you are.</p></div></div>
           <div class="quick-grid">
@@ -409,11 +405,11 @@
         </section>
 
         <section class="section-block compact commercial-plan-section">
-          <div class="section-title-row"><div><div class="eyebrow">YOUR PLAN</div><h2>Make the free version work for you</h2><p>Explorer is there to try properly. Upgrade only when you want more trips and more fresh ideas.</p></div></div>
+          <div class="section-title-row"><div><div class="eyebrow">YOUR ACCESS</div><h2>Try FERDA before you unlock it</h2><p>Start with a free trial. If FERDA earns its place on the holiday, unlock the complete app once for £8.99.</p></div></div>
           <div class="commercial-status-card">
-            <div class="commercial-status-top"><div><span id="commercialTierBadge" class="tier-badge">EXPLORER</span><h3 id="commercialTierTitle">Explorer · Free</h3><p id="commercialTierCopy">A proper taste of the planner, with a sensible limit on fresh searches.</p></div><button id="openPricingBtn" class="secondary-btn" type="button">See plans</button></div>
+            <div class="commercial-status-top"><div><span id="commercialTierBadge" class="tier-badge">FREE TRIAL</span><h3 id="commercialTierTitle">Free Trial · Free</h3><p id="commercialTierCopy">Try FERDA on one Orlando trip before deciding whether it belongs on the holiday.</p></div><button id="openPricingBtn" class="secondary-btn" type="button">See access</button></div>
             <div class="allowance-row"><div><span>Fresh Ideas</span><b id="freshIdeasLabel">20 left</b></div><div class="allowance-track"><span id="freshIdeasBar"></span></div><small id="freshIdeasCopy">Only a brand-new nearby search uses one.</small></div>
-            <div class="commercial-mini-grid"><div><span>Vacations</span><b id="tripAllowanceLabel">1 trip</b></div><div><span>Ads</span><b id="adsPlanLabel">Explorer only</b></div></div>
+            <div class="commercial-mini-grid"><div><span>Vacations</span><b id="tripAllowanceLabel">1 trip</b></div><div><span>Ads</span><b id="adsPlanLabel">Always ad-free</b></div></div>
           </div>
         </section>
 
@@ -425,7 +421,7 @@
 
             <div class="commercial-test-box">
               <div><b>Commercial test environment</b><small>Simulate a plan and allowance without taking payment.</small></div>
-              <label>Test plan<select id="testCommercialPlan"><option value="explorer">Explorer · Free</option><option value="traveller">Traveller · £8.99</option><option value="pro">Pro Family · £29.99/year</option></select></label>
+              <label>Test access<select id="testCommercialPlan"><option value="explorer">Free Trial</option><option value="traveller">FERDA Full · £8.99 once</option></select></label>
               <label>Fresh Ideas used<input id="testFreshUsed" type="number" min="0" step="1" value="0" /></label>
               <label>Vacations used<input id="testTripUses" type="number" min="0" step="1" value="1" /></label>
               <div class="commercial-test-actions"><button id="applyCommercialTest" class="secondary-btn" type="button">Apply test state</button><button id="exhaustFreshIdeas" class="secondary-btn" type="button">Set to last idea</button><button id="resetCommercialTest" class="secondary-btn" type="button">Reset commercial test</button></div>
@@ -452,7 +448,10 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Main navigation">
-      <button class="nav-item active" data-target="today"><span>⌂</span><small id="navTodayLabel">Today</small></button><button class="nav-item" data-target="explore"><span>⌕</span><small id="navExploreLabel">Explore</small></button><button class="nav-item" data-target="specialist"><span id="specialistNavIcon">◉</span><small id="parksNavLabel">Parks</small></button><button class="nav-item" data-target="saved"><span>▣</span><small id="navTripLabel">Trip</small></button><button class="nav-item" data-target="family"><span>☻</span><small id="navFamilyLabel">Family</small></button>
+      <button class="nav-item active" data-target="today"><span><img src="assets/ferda/icons/ferda-ui-icon-nav-today.webp" alt="" /></span><small id="navTodayLabel">Today</small></button>
+      <button class="nav-item" data-target="explore"><span><img src="assets/ferda/icons/ferda-ui-icon-nav-explore.webp" alt="" /></span><small id="navExploreLabel">Explore</small></button>
+      <button class="nav-item" data-target="saved"><span><img src="assets/ferda/icons/ferda-ui-icon-nav-trip.webp" alt="" /></span><small id="navTripLabel">Trip</small></button>
+      <button class="nav-item" data-target="family"><span><img src="assets/ferda/icons/ferda-ui-icon-nav-family.webp" alt="" /></span><small id="navFamilyLabel">Family</small></button>
     </nav>
   </div>
   <div id="recommendationFeedbackDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
@@ -514,13 +513,12 @@
   <div id="pricingDialog" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pricingTitle">
     <div class="modal-card pricing-modal">
       <button id="closePricing" class="modal-close" type="button" aria-label="Close">×</button>
-      <div class="eyebrow">CHOOSE WHAT SUITS YOU</div>
+      <div class="eyebrow">SIMPLE, FAIR ACCESS</div>
       <h2 id="pricingTitle">Start free. Pay only when it earns its place on the holiday.</h2>
-      <p id="pricingReason">Everything you’ve already planned stays yours. Pick a bigger plan only when you want more.</p>
+      <p id="pricingReason">Everything you’ve already planned stays yours. Unlock the complete app only when you want more.</p>
       <div class="pricing-grid">
-        <article class="pricing-card" data-pricing-tier="explorer"><span class="pricing-kicker">TRY IT</span><h3>Explorer</h3><div class="pricing-price">Free</div><ul><li>1 vacation</li><li>20 Fresh Ideas</li><li>Today planning</li><li>Destination Finder taste</li><li>Sponsored placements</li></ul><button class="secondary-btn full choose-test-plan" data-plan="explorer" type="button">Stay on Explorer</button></article>
-        <article class="pricing-card featured" data-pricing-tier="traveller"><span class="pricing-kicker">MOST FAMILIES</span><h3>Traveller</h3><div class="pricing-price">£8.99 <small>one-off</small></div><ul><li>3 vacations</li><li>150 Fresh Ideas</li><li>Full Today + tomorrow planning</li><li>Full Destination Finder</li><li>No display ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="traveller" type="button">Try Traveller in beta</button></article>
-        <article class="pricing-card" data-pricing-tier="pro"><span class="pricing-kicker">FREQUENT TRAVELLERS</span><h3>Pro Family</h3><div class="pricing-price">£29.99 <small>/ year</small></div><ul><li>Unlimited vacations</li><li>Generous fair-use Fresh Ideas</li><li>All planning tools</li><li>Trip history & future family sharing</li><li>No ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="pro" type="button">Try Pro in beta</button></article>
+        <article class="pricing-card" data-pricing-tier="explorer"><span class="pricing-kicker">TRY IT</span><h3>Free Trial</h3><div class="pricing-price">Free</div><ul><li>1 Orlando vacation</li><li>20 Fresh Ideas</li><li>Today planning</li><li>Saved plans stay yours</li><li>No display ads</li></ul><button class="secondary-btn full choose-test-plan" data-plan="explorer" type="button">Continue trial</button></article>
+        <article class="pricing-card featured" data-pricing-tier="traveller"><span class="pricing-kicker">UNLOCK FERDA</span><h3>FERDA Full</h3><div class="pricing-price">£8.99 <small>once</small></div><ul><li>Complete Orlando travel buddy</li><li>Full Today + tomorrow planning</li><li>Full Explore and trip tools</li><li>No subscription</li><li>No display ads</li></ul><button class="primary-btn full choose-test-plan" data-plan="traveller" type="button">Try full access in beta</button></article>
       </div>
       <div class="pricing-footnote">Beta only — these buttons simulate an upgrade on this device. No payment is taken.</div>
     </div>
@@ -528,6 +526,6 @@
 
   <div id="toast" class="toast hidden"></div>
   <script src="app.js" defer></script>
-  <script src="decision-demo-loader.js?v=2.5.4" defer></script>
+  <script src="decision-demo-loader.js?v=ferda-0.1.0" defer></script>
 </body>
 </html>

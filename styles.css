@@ -657,7 +657,7 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
 
 
 /* V2.3.0 — commercial test environment */
-.commercial-plan-section{margin-top:16px}.commercial-status-card{border:1px solid #DDE7E7;border-radius:22px;background:linear-gradient(135deg,#F1FBFA,#FFF9EF);padding:16px}.commercial-status-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.commercial-status-top h3{margin:5px 0 4px;font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:18px}.commercial-status-top p{margin:0;color:#64748B;font-size:11px;line-height:1.45}.tier-badge{display:inline-flex;border-radius:999px;background:#0F766E;color:#fff;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}.allowance-row{margin-top:15px}.allowance-row>div:first-child{display:flex;justify-content:space-between;gap:10px;color:#475569;font-size:11px}.allowance-row b{color:#0F172A}.allowance-track{height:9px;background:#DCEBE8;border-radius:999px;overflow:hidden;margin:7px 0 5px}.allowance-track span{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,#22C1B5,#0F766E);transition:width .2s ease}.allowance-row small{color:#64748B;font-size:9px}.commercial-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.commercial-mini-grid>div{background:rgba(255,255,255,.78);border-radius:14px;padding:10px}.commercial-mini-grid span,.commercial-mini-grid b{display:block}.commercial-mini-grid span{color:#64748B;font-size:9px;text-transform:uppercase;font-weight:800;letter-spacing:.05em}.commercial-mini-grid b{margin-top:3px;color:#0F172A;font-size:11px}.commercial-test-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;padding:13px;border-radius:16px;background:#F8FAFC;border:1px dashed #CBD5E1}.commercial-test-box>div:first-child{grid-column:1/-1}.commercial-test-box>div:first-child b,.commercial-test-box>div:first-child small{display:block}.commercial-test-box>div:first-child small{margin-top:2px;color:#64748B;font-size:9px}.commercial-test-box label{font-size:9px;color:#64748B;font-weight:800}.commercial-test-box select,.commercial-test-box input{width:100%;margin-top:4px;border:1px solid #CBD5E1;border-radius:11px;background:#fff;padding:9px;color:#0F172A}.commercial-test-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:7px}.commercial-test-actions button{flex:1 1 130px;min-height:40px}.pricing-modal{width:min(920px,100%)}.pricing-modal>p{max-width:720px}.pricing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.pricing-card{position:relative;border:1px solid #DDE4E8;border-radius:20px;background:#fff;padding:16px;display:flex;flex-direction:column;min-width:0}.pricing-card.featured{border:2px solid #FF6B6B;background:#FFF8F6}.pricing-card.current:after{content:"CURRENT TEST PLAN";position:absolute;right:10px;top:10px;border-radius:999px;background:#E6F6F3;color:#0F766E;padding:4px 7px;font-size:8px;font-weight:900}.pricing-kicker{font-size:8px;font-weight:900;letter-spacing:.08em;color:#0F766E}.pricing-card h3{margin:8px 0 2px;font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:20px}.pricing-price{font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:24px;font-weight:850}.pricing-price small{font-family:Inter,sans-serif;color:#64748B;font-size:10px}.pricing-card ul{padding-left:18px;margin:13px 0 16px;color:#475569;font-size:11px;line-height:1.55;flex:1}.pricing-card li+li{margin-top:4px}.pricing-footnote{text-align:center;margin-top:13px;color:#64748B;font-size:9px}.sponsored-test{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 28px 18px;border:1px dashed #CBD5E1;border-radius:18px;background:#F8FAFC;padding:11px 13px;color:#475569}.sponsored-test span,.sponsored-test b,.sponsored-test small{display:block}.sponsored-test span{font-size:7px;font-weight:900;letter-spacing:.08em;color:#94A3B8}.sponsored-test b{font-size:11px;color:#334155;margin:2px 0}.sponsored-test small{font-size:8px;color:#64748B}.sponsored-test button{border:0;background:transparent;color:#94A3B8;font-size:20px}.sponsored-test.hidden{display:none}
+.commercial-plan-section{margin-top:16px}.commercial-status-card{border:1px solid #DDE7E7;border-radius:22px;background:linear-gradient(135deg,#F1FBFA,#FFF9EF);padding:16px}.commercial-status-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.commercial-status-top h3{margin:5px 0 4px;font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:18px}.commercial-status-top p{margin:0;color:#64748B;font-size:11px;line-height:1.45}.tier-badge{display:inline-flex;border-radius:999px;background:#0F766E;color:#fff;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.08em}.allowance-row{margin-top:15px}.allowance-row>div:first-child{display:flex;justify-content:space-between;gap:10px;color:#475569;font-size:11px}.allowance-row b{color:#0F172A}.allowance-track{height:9px;background:#DCEBE8;border-radius:999px;overflow:hidden;margin:7px 0 5px}.allowance-track span{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,#22C1B5,#0F766E);transition:width .2s ease}.allowance-row small{color:#64748B;font-size:9px}.commercial-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.commercial-mini-grid>div{background:rgba(255,255,255,.78);border-radius:14px;padding:10px}.commercial-mini-grid span,.commercial-mini-grid b{display:block}.commercial-mini-grid span{color:#64748B;font-size:9px;text-transform:uppercase;font-weight:800;letter-spacing:.05em}.commercial-mini-grid b{margin-top:3px;color:#0F172A;font-size:11px}.commercial-test-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;padding:13px;border-radius:16px;background:#F8FAFC;border:1px dashed #CBD5E1}.commercial-test-box>div:first-child{grid-column:1/-1}.commercial-test-box>div:first-child b,.commercial-test-box>div:first-child small{display:block}.commercial-test-box>div:first-child small{margin-top:2px;color:#64748B;font-size:9px}.commercial-test-box label{font-size:9px;color:#64748B;font-weight:800}.commercial-test-box select,.commercial-test-box input{width:100%;margin-top:4px;border:1px solid #CBD5E1;border-radius:11px;background:#fff;padding:9px;color:#0F172A}.commercial-test-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:7px}.commercial-test-actions button{flex:1 1 130px;min-height:40px}.pricing-modal{width:min(920px,100%)}.pricing-modal>p{max-width:720px}.pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px auto 0;max-width:700px}.pricing-card{position:relative;border:1px solid #DDE4E8;border-radius:20px;background:#fff;padding:16px;display:flex;flex-direction:column;min-width:0}.pricing-card.featured{border:2px solid #FF6B6B;background:#FFF8F6}.pricing-card.current:after{content:"CURRENT TEST PLAN";position:absolute;right:10px;top:10px;border-radius:999px;background:#E6F6F3;color:#0F766E;padding:4px 7px;font-size:8px;font-weight:900}.pricing-kicker{font-size:8px;font-weight:900;letter-spacing:.08em;color:#0F766E}.pricing-card h3{margin:8px 0 2px;font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:20px}.pricing-price{font-family:"Plus Jakarta Sans",Inter,sans-serif;color:#0F172A;font-size:24px;font-weight:850}.pricing-price small{font-family:Inter,sans-serif;color:#64748B;font-size:10px}.pricing-card ul{padding-left:18px;margin:13px 0 16px;color:#475569;font-size:11px;line-height:1.55;flex:1}.pricing-card li+li{margin-top:4px}.pricing-footnote{text-align:center;margin-top:13px;color:#64748B;font-size:9px}.sponsored-test{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 28px 18px;border:1px dashed #CBD5E1;border-radius:18px;background:#F8FAFC;padding:11px 13px;color:#475569}.sponsored-test span,.sponsored-test b,.sponsored-test small{display:block}.sponsored-test span{font-size:7px;font-weight:900;letter-spacing:.08em;color:#94A3B8}.sponsored-test b{font-size:11px;color:#334155;margin:2px 0}.sponsored-test small{font-size:8px;color:#64748B}.sponsored-test button{border:0;background:transparent;color:#94A3B8;font-size:20px}.sponsored-test.hidden{display:none}
 @media(max-width:700px){.pricing-grid{grid-template-columns:1fr}.pricing-card{padding:14px}.commercial-status-top{display:block}.commercial-status-top button{width:100%;margin-top:10px}.sponsored-test{margin-left:18px;margin-right:18px}.commercial-test-box{grid-template-columns:1fr}}
 
 /* V2.3.1 — connected weather + restrained motion */
@@ -843,4 +843,58 @@ body{background:linear-gradient(180deg,#F5FBFD 0%,#F8F9FA 26%,#F8F9FA 100%)}
   .modal-overlay:not(.hidden),.modal-overlay:not(.hidden) .modal-card,.toast:not(.hidden),.nav-item.active span{
     animation:none!important;transform:none!important;
   }
+}
+
+/* FERDA brand foundation */
+:root{
+  --ferda-deep-teal:#075b57;
+  --ferda-teal:#0d7771;
+  --ferda-cream:#fff8e9;
+  --ferda-orange:#f5a623;
+  --ferda-ink:#173b3a;
+  --ink:var(--ferda-ink);
+  --paper:#f7f1e5;
+  --teal:var(--ferda-teal);
+  --teal-dark:var(--ferda-deep-teal);
+  --sun:var(--ferda-orange);
+}
+body{background:linear-gradient(180deg,#fffaf0 0%,#f7f1e5 42%,#f2eadc 100%)}
+.topbar.topbar-v15.brand-topbar{
+  align-items:center;
+  min-height:68px;
+  padding:9px 17px;
+  background:rgba(255,248,233,.95);
+  border-bottom:1px solid rgba(7,91,87,.10);
+  box-shadow:0 5px 20px rgba(23,59,58,.07);
+}
+.brand-lockup{display:flex;align-items:center;gap:12px}
+.ferda-header-logo{display:block;width:148px;height:48px;object-fit:contain;object-position:left center}
+.brand-lockup .brand-kicker{max-width:90px;margin:0;color:#5d7774;font-size:7px;line-height:1.25;letter-spacing:.14em}
+.primary-btn,.landing-primary{background:linear-gradient(145deg,#ffb42f,#f39a16);color:#3b2a08;box-shadow:0 8px 22px rgba(245,166,35,.24)}
+.secondary-btn{background:#e6f3ef;color:var(--ferda-deep-teal)}
+.landing-scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,91,87,.04) 25%,transparent 56%,rgba(10,49,47,.20) 100%);pointer-events:none}
+.ferda-landing-brand{position:absolute;z-index:2;left:24px;right:24px;top:clamp(28px,7vh,72px);display:grid;justify-items:center;text-align:center}
+.ferda-landing-brand img{display:block;width:min(360px,88%);height:auto;filter:drop-shadow(0 5px 14px rgba(9,47,45,.18))}
+.ferda-landing-brand p{margin-top:8px;color:var(--ferda-deep-teal);font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:clamp(15px,4vw,19px);font-weight:800;letter-spacing:-.02em;text-shadow:0 1px 2px rgba(255,255,255,.7)}
+.landing-actions{background:var(--ferda-cream)}
+.landing-primary{border-color:rgba(255,255,255,.65)}
+.landing-secondary{color:var(--ferda-deep-teal)}
+.onboarding-hero.brand-onboarding-hero{background:linear-gradient(180deg,#dff5ef 0%,#f7fbf4 52%,#fff8e9 100%)}
+.onboarding-brand-logo{border-radius:0;mix-blend-mode:normal}
+.onboarding-tagline{font-family:"Plus Jakarta Sans",Inter,sans-serif;color:var(--ferda-deep-teal)}
+.onboarding-script{color:#d47a00}
+.bottom-nav{grid-template-columns:repeat(4,1fr);background:rgba(255,252,244,.97);border-top:1px solid rgba(7,91,87,.08)}
+.nav-item{color:#6b7f7d}
+.nav-item span{width:42px;height:34px;background:transparent}
+.nav-item span img{display:block;width:30px;height:30px;object-fit:contain;transition:transform .18s ease,filter .18s ease}
+.nav-item.active{color:var(--ferda-deep-teal)}
+.nav-item.active span{background:#e7f3ef;color:inherit;transform:translateY(-1px)}
+.nav-item.active span img{transform:scale(1.08);filter:saturate(1.08)}
+.nav-item.active small{color:var(--ferda-deep-teal)}
+.crew-avatar-ferda{overflow:hidden;background:#e9f6f2;border:1px solid rgba(7,91,87,.10)}
+.crew-avatar-ferda img{display:block;width:100%;height:100%;object-fit:cover}
+@media(max-width:420px){
+  .ferda-header-logo{width:132px;height:44px}
+  .brand-lockup .brand-kicker{display:none}
+  .ferda-landing-brand{left:18px;right:18px}
 }

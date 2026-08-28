@@ -1,4 +1,4 @@
-// Family Vacation Planner V2.4 — What Now learning loop
+// FERDA behavioural reference — What Now learning loop
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 
@@ -44,9 +44,25 @@ const memberInitial = (name='', role='adult', index=0) => {
   if(cleaned){const parts=cleaned.split(/\s+/).filter(Boolean);return (parts.length>1?(parts[0][0]+parts.at(-1)[0]):parts[0][0]).toUpperCase();}
   return role==='child'?`C${index+1}`:`A${index+1}`;
 };
+const FERDA_AVATAR_PACKS={
+  florida:[
+    {key:'bobcat',src:'assets/ferda/avatars/avatar_bobcat.webp'},
+    {key:'manatee',src:'assets/ferda/avatars/avatar_manatee.webp'},
+    {key:'otter',src:'assets/ferda/avatars/avatar_otter.webp'},
+    {key:'black-bear',src:'assets/ferda/avatars/avatar_black_bear.webp'},
+    {key:'alligator',src:'assets/ferda/avatars/avatar_alligator.webp'},
+    {key:'sea-turtle',src:'assets/ferda/avatars/avatar_sea_turtle.webp'},
+    {key:'gecko',src:'assets/ferda/avatars/avatar_gecko.webp'},
+    {key:'osprey',src:'assets/ferda/avatars/avatar_osprey.webp'}
+  ]
+};
+function memberAvatar(m,index=0,pack='florida'){
+  const avatars=FERDA_AVATAR_PACKS[pack]||FERDA_AVATAR_PACKS.florida;
+  return avatars.find(a=>a.key===m?.avatarKey)||avatars[index%avatars.length];
+}
 const defaultMembers = () => [
-  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, heightUnit:defaultHeightUnit(), role:'adult', thrill:'medium'},
-  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, heightUnit:defaultHeightUnit(), role:'child', thrill:'medium'}
+  {id:crypto.randomUUID?.() || String(Date.now()), name:'Adult 1', age:35, height:68, heightUnit:defaultHeightUnit(), role:'adult', thrill:'medium',avatarKey:'otter'},
+  {id:crypto.randomUUID?.() || String(Date.now()+1), name:'Child 1', age:10, height:54, heightUnit:defaultHeightUnit(), role:'child', thrill:'medium',avatarKey:'gecko'}
 ];
 const defaultProfile = {
   familyName:'', homeBase:'', destinationPreset:'orlando', members:defaultMembers(), maxDrive:30, budget:'medium', energy:'medium',
@@ -70,13 +86,13 @@ const state = {
 const betaForceOnboarding = () => localStorage.getItem('ffvp_force_onboarding') !== '0';
 const betaForceLanding = () => localStorage.getItem('ffvp_force_landing') !== '0';
 
-// V2.3.0 — commercial test environment. No payment provider is connected yet.
+// FERDA commercial test environment. No payment provider is connected yet.
+// The legacy storage keys remain stable so existing beta devices keep their state.
 const COMMERCIAL_PLANS={
-  explorer:{key:'explorer',name:'Explorer',price:'Free',freshLimit:20,tripLimit:1,ads:true,copy:'A proper taste of the planner, with a sensible limit on fresh searches.'},
-  traveller:{key:'traveller',name:'Traveller',price:'£8.99',freshLimit:150,tripLimit:3,ads:false,copy:'More room to plan a few complete family holidays without display ads.'},
-  pro:{key:'pro',name:'Pro Family',price:'£29.99/year',freshLimit:1000,tripLimit:Infinity,ads:false,copy:'For families who travel often: unlimited vacations with generous fair-use planning.'}
+  explorer:{key:'explorer',name:'Free Trial',price:'Free',freshLimit:20,tripLimit:1,ads:false,fullAccess:false,copy:'Try FERDA on one Orlando trip before deciding whether it belongs on the holiday.'},
+  traveller:{key:'traveller',name:'FERDA Full',price:'£8.99 once',freshLimit:1000,tripLimit:Infinity,ads:false,fullAccess:true,copy:'The complete Orlando travel buddy. One payment, no subscription and no display ads.'}
 };
-function commercialTier(){const k=localStorage.getItem('ffvp_commercial_tier')||'explorer';return COMMERCIAL_PLANS[k]?k:'explorer';}
+function commercialTier(){const k=localStorage.getItem('ffvp_commercial_tier')||'explorer';return k==='pro'?'traveller':(COMMERCIAL_PLANS[k]?k:'explorer');}
 function commercialPlan(){return COMMERCIAL_PLANS[commercialTier()];}
 function freshUsed(){return Math.max(0,+localStorage.getItem('ffvp_fresh_used')||0);}
 function tripUses(){const stored=localStorage.getItem('ffvp_trip_uses');if(stored!=null)return Math.max(0,+stored||0);const initial=localStorage.getItem('ffvp_onboarded')?1:0;localStorage.setItem('ffvp_trip_uses',String(initial));return initial;}
@@ -87,7 +103,7 @@ function refundFreshIdea(){if(freshUsed()>0)setFreshUsed(freshUsed()-1);}
 function commercialTripLimitReached(){const p=commercialPlan();return Number.isFinite(p.tripLimit)&&tripUses()>=p.tripLimit;}
 function openPricing(reason='choice'){
   const d=$('#pricingDialog');if(!d)return;
-  const messages={fresh:'You’ve used the Fresh Ideas included with this plan. Everything you’ve already saved still works — upgrade only if you want another new search.',trip:'You’ve used the vacation allowance on this plan. Your current trip stays exactly as it is.',finder:'Want more destination inspiration? Traveller and Pro open up the fuller planning experience.',choice:'Explorer is genuinely useful for free. These are the bigger plans if you decide you want more.'};
+  const messages={fresh:'Your free trial has used its Fresh Ideas. Everything you saved still works; unlock FERDA once when you are ready for more.',trip:'Your free trial includes one vacation. Your current trip stays exactly as it is.',finder:'Unlock FERDA once for the complete Orlando planning experience.',choice:'Try FERDA first. If it earns its place on the holiday, unlock the complete app with one payment.'};
   $('#pricingReason').textContent=messages[reason]||messages.choice;
   $$('.pricing-card').forEach(c=>c.classList.toggle('current',c.dataset.pricingTier===commercialTier()));
   d.classList.remove('hidden');
@@ -101,15 +117,15 @@ function consumeFreshIdea(reason='fresh search'){
 }
 function countTripUse(){localStorage.setItem('ffvp_trip_uses',String(tripUses()+1));updateCommercialUI();}
 function updateCommercialUI(){
-  const p=commercialPlan(),used=freshUsed(),remaining=Math.max(0,p.freshLimit-used),pct=Math.max(0,Math.min(100,(remaining/p.freshLimit)*100));
+  const p=commercialPlan(),used=freshUsed(),remaining=Math.max(0,p.freshLimit-used),pct=p.fullAccess?100:Math.max(0,Math.min(100,(remaining/p.freshLimit)*100));
   if($('#commercialTierBadge'))$('#commercialTierBadge').textContent=p.name.toUpperCase();
   if($('#commercialTierTitle'))$('#commercialTierTitle').textContent=`${p.name} · ${p.price}`;
   if($('#commercialTierCopy'))$('#commercialTierCopy').textContent=p.copy;
-  if($('#freshIdeasLabel'))$('#freshIdeasLabel').textContent=p.key==='pro'?`${remaining.toLocaleString()} test allowance left`:`${remaining} of ${p.freshLimit} left`;
+  if($('#freshIdeasLabel'))$('#freshIdeasLabel').textContent=p.fullAccess?'Full access':`${remaining} of ${p.freshLimit} left`;
   if($('#freshIdeasBar'))$('#freshIdeasBar').style.width=`${pct}%`;
-  if($('#freshIdeasCopy'))$('#freshIdeasCopy').textContent='Only a brand-new nearby search uses one. Reopening saved ideas costs nothing.';
+  if($('#freshIdeasCopy'))$('#freshIdeasCopy').textContent=p.fullAccess?'Complete planning access is enabled on this device.':'Only a brand-new nearby search uses one. Reopening saved ideas costs nothing.';
   if($('#tripAllowanceLabel'))$('#tripAllowanceLabel').textContent=Number.isFinite(p.tripLimit)?`${tripUses()} of ${p.tripLimit} used`:'Unlimited trips';
-  if($('#adsPlanLabel'))$('#adsPlanLabel').textContent=p.ads?'Sponsored placements':'Ad-free';
+  if($('#adsPlanLabel'))$('#adsPlanLabel').textContent='Always ad-free';
   $('#freeAdSlot')?.classList.toggle('hidden',!p.ads||localStorage.getItem('ffvp_test_ad_hidden')==='1');
   if($('#testCommercialPlan'))$('#testCommercialPlan').value=p.key;
   if($('#testFreshUsed'))$('#testFreshUsed').value=used;
@@ -1182,7 +1198,7 @@ async function loadDiscover(category='sights',opts={}){
   $$('.view').forEach(v=>v.classList.toggle('active',v.dataset.view==='discover'));$$('.nav-item').forEach(n=>n.classList.toggle('active',specialist?n.dataset.target==='specialist':n.dataset.target==='explore'));window.scrollTo({top:0,behavior:'smooth'});
   $('#discoverEyebrow').textContent=meta.eyebrow;$('#discoverTitle').textContent=meta.title;$('#discoverCopy').textContent=`${meta.copy} We’re looking around ${state.locationName||destinationLabel()}.`;
   if(!state.coords){$('#discoverStatus').innerHTML='<span>📍</span><div><b>Location needed</b><small>Choose a test location or enable device location.</small></div>';$('#discoverResults').innerHTML='';return;}
-  if(!consumeFreshIdea('nearby ideas')){$('#discoverStatus').innerHTML='<span>✨</span><div><b>Your saved ideas are still here</b><small>Explorer has used its Fresh Ideas. Upgrade only if you want another new nearby search.</small></div>';return;}
+  if(!consumeFreshIdea('nearby ideas')){$('#discoverStatus').innerHTML='<span>✨</span><div><b>Your saved ideas are still here</b><small>Your free trial has used its Fresh Ideas. Unlock FERDA only if you want another new nearby search.</small></div>';return;}
   $('#discoverStatus').innerHTML='<span class="mini-spinner"></span><div><b>Having a look around…</b><small>Keeping things within the distance you’re happy to travel.</small></div>';$('#discoverResults').innerHTML='';
   try{const r=await fetch(`/api/discover?category=${encodeURIComponent(category)}&lat=${encodeURIComponent(state.coords.lat)}&lon=${encodeURIComponent(state.coords.lon)}&miles=${encodeURIComponent(state.profile.maxDrive||30)}&lang=${languageQuery()}`);if(!r.ok)throw new Error();const data=await r.json();let results=Array.isArray(data.results)?data.results:[];results=results.filter(x=>{const a=discoveredActivity(x,category);return primaryMoodForPlace(a)!==null||category==='sights';}).filter(x=>!['skip','visited'].includes(tripStatus(x.id)));results=diversifyDiscoveryResults(results,category);if(!results.length)throw new Error();
     $('#discoverStatus').innerHTML=`<span>📍</span><div><b>${results.length} ideas worth a look around ${escapeHtml(state.locationName||'your location')}</b><small>A good mix, so you’re not choosing between five versions of the same thing.</small></div>`;$('#discoverResults').innerHTML=results.map(x=>discoveryCard(x,category)).join('');wireDiscover($('#discoverResults'));
@@ -1418,28 +1434,25 @@ $('#refreshParks').addEventListener('click',loadParks);
 function newMember(seed={}){
   const role=seed.role||((seed.age!=='' && seed.age!=null && +seed.age<18)?'child':'adult');
   const defaultAge=role==='child'?10:35, defaultHeight=role==='child'?54:68;
-  return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name??'',age:seed.age??defaultAge,height:seed.height??defaultHeight,heightBand:seed.heightBand||heightBandFromInches(seed.height??defaultHeight),heightUnit:seed.heightUnit||defaultHeightUnit(),role,thrill:seed.thrill||'medium'};
+  return{id:crypto.randomUUID?.()||String(Date.now()+Math.random()),name:seed.name??'',age:seed.age??defaultAge,height:seed.height??defaultHeight,heightBand:seed.heightBand||heightBandFromInches(seed.height??defaultHeight),heightUnit:seed.heightUnit||defaultHeightUnit(),role,thrill:seed.thrill||'medium',avatarKey:seed.avatarKey||''};
 }
 function memberRow(m,scope='profile',index=0){
   const role=m.role||memberRole(m), unit=m.heightUnit||defaultHeightUnit(), inches=+m.height||0, cm=inches?Math.round(inches*2.54):'', feet=inches?Math.floor(inches/12):'', rem=inches?Math.round(inches-(Math.floor(inches/12)*12)):'';
-  const initial=memberInitial(m.name,role,index), roleLabel=role==='child'?'Child':'Adult', remove=scope==='setup'?'':`<button class="member-remove" type="button" aria-label="Remove ${roleLabel.toLowerCase()}">×</button>`;
+  const avatar=memberAvatar(m,index), roleLabel=role==='child'?'Child':'Adult', remove=scope==='setup'?'':`<button class="member-remove" type="button" aria-label="Remove ${roleLabel.toLowerCase()}">×</button>`;
   const band=heightBandFromMember(m);
   const setupHeight=`<div class="height-field height-band-field"><span class="member-field-label">Ride height</span><div class="height-band-grid" role="radiogroup" aria-label="Approximate ride height"><button type="button" class="height-band ${band==='under36'?'active':''}" data-height-band="under36"><b>Under 36″</b><small>&lt;92cm</small></button><button type="button" class="height-band ${band==='36to41'?'active':''}" data-height-band="36to41"><b>36–41″</b><small>92–106cm</small></button><button type="button" class="height-band ${band==='42to47'?'active':''}" data-height-band="42to47"><b>42–47″</b><small>107–121cm</small></button><button type="button" class="height-band ${band==='48plus'?'active':''}" data-height-band="48plus"><b>48″+</b><small>122cm+</small></button><button type="button" class="height-band height-band-unknown ${band==='unknown'?'active':''}" data-height-band="unknown"><b>Not sure</b><small>That’s fine</small></button></div><small class="height-band-note">Approximate is enough for planning. Individual rides set their own height rules.</small></div>`;
   const profileHeight=`<div class="height-field"><span class="member-field-label">Height</span><div class="height-control"><select class="member-height-unit" aria-label="Height unit"><option value="metric" ${unit==='metric'?'selected':''}>cm</option><option value="imperial" ${unit==='imperial'?'selected':''}>ft / in</option></select><div class="height-entry height-metric ${unit==='metric'?'':'hidden'}"><input class="member-height-cm" type="number" min="50" max="230" inputmode="decimal" aria-label="Height in centimetres" value="${cm}" placeholder="137"></div><div class="height-entry height-imperial ${unit==='imperial'?'':'hidden'}"><input class="member-height-ft" type="number" min="1" max="7" inputmode="numeric" aria-label="Height feet" value="${feet}" placeholder="4"><span>′</span><input class="member-height-in" type="number" min="0" max="11" inputmode="numeric" aria-label="Height inches" value="${rem}" placeholder="6"><span>″</span></div></div></div>`;
-  return `<div class="member-row crew-card" data-id="${m.id}" data-role="${role}" data-role-index="${index}" data-height-band="${band}"><div class="crew-avatar crew-avatar-initial ${role}" aria-hidden="true">${escapeHtml(initial)}</div><div class="crew-fields"><div class="crew-role-line"><span>${roleLabel} ${index+1}</span></div><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/>${remove}</div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label>${scope==='setup'?setupHeight:profileHeight}<label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>Bring it on</option></select></label></div></div></div>`;
+  return `<div class="member-row crew-card" data-id="${m.id}" data-role="${role}" data-role-index="${index}" data-height-band="${band}" data-avatar-key="${avatar.key}"><div class="crew-avatar crew-avatar-ferda ${role}" aria-hidden="true"><img src="${avatar.src}" alt="" /></div><div class="crew-fields"><div class="crew-role-line"><span>${roleLabel} ${index+1}</span></div><div class="member-row-top"><input class="member-name" type="text" maxlength="25" placeholder="Name / nickname" value="${escapeHtml(m.name)}"/>${remove}</div><div class="member-fields"><label>Age<input class="member-age" type="number" min="0" max="99" inputmode="numeric" value="${m.age}"></label>${scope==='setup'?setupHeight:profileHeight}<label>Ride vibe<select class="member-thrill"><option value="low" ${m.thrill==='low'?'selected':''}>Gentle please</option><option value="medium" ${m.thrill==='medium'?'selected':''}>Some thrills</option><option value="high" ${m.thrill==='high'?'selected':''}>Bring it on</option></select></label></div></div></div>`;
 }
 function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function wireMemberRow(row){
   $('.member-remove',row)?.addEventListener('click',()=>{const root=row.parentElement;if(root.children.length<=1){showToast('Keep at least one family member');return;}row.remove();});
-  const avatar=$('.crew-avatar-initial',row), name=$('.member-name',row);
-  const refreshInitial=()=>{if(avatar)avatar.textContent=memberInitial(name?.value,row.dataset.role||'adult',+row.dataset.roleIndex||0);};
-  name?.addEventListener('input',refreshInitial);
   const unit=$('.member-height-unit',row);const syncHeightUnit=()=>{if(!unit)return;const metric=unit.value==='metric';$('.height-metric',row)?.classList.toggle('hidden',!metric);$('.height-imperial',row)?.classList.toggle('hidden',metric);};
   unit?.addEventListener('change',syncHeightUnit);syncHeightUnit();
   $$('.height-band',row).forEach(b=>b.addEventListener('click',()=>{row.dataset.heightBand=b.dataset.heightBand;$$('.height-band',row).forEach(x=>x.classList.toggle('active',x===b));}));
 }
 function renderMemberEditor(rootId,members,scope='profile'){const root=$(rootId);const roleCounts={adult:0,child:0};root.innerHTML=members.map(m=>{const role=m.role||memberRole(m),i=roleCounts[role]++;return memberRow({...m,role},scope,i);}).join('');$$('.member-row',root).forEach(wireMemberRow);}
-function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const band=r.dataset.heightBand||'unknown',unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;const exactHeight=$('.member-height-unit',r);if(exactHeight){if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightBand:exactHeight?(height?heightBandFromInches(height):band):band,heightUnit:unit,role:r.dataset.role||'adult',thrill:$('.member-thrill',r).value};});}
+function collectMembers(rootId){return $$('.member-row',$(rootId)).map(r=>{const band=r.dataset.heightBand||'unknown',unit=$('.member-height-unit',r)?.value||defaultHeightUnit();let height=0;const exactHeight=$('.member-height-unit',r);if(exactHeight){if(unit==='metric'){height=(+$('.member-height-cm',r)?.value||0)/2.54;}else{height=(+$('.member-height-ft',r)?.value||0)*12+(+$('.member-height-in',r)?.value||0);}}return{id:r.dataset.id,name:$('.member-name',r).value.trim()||'Family member',age:+$('.member-age',r).value||0,height:Math.round(height*10)/10,heightBand:exactHeight?(height?heightBandFromInches(height):band):band,heightUnit:unit,role:r.dataset.role||'adult',thrill:$('.member-thrill',r).value,avatarKey:r.dataset.avatarKey||''};});}
 function addMemberTo(rootId){const root=$(rootId);const m=newMember({role:'adult'});root.insertAdjacentHTML('beforeend',memberRow(m,'profile',$$('.member-row[data-role="adult"]',root).length));wireMemberRow(root.lastElementChild);}
 $('#addMember').addEventListener('click',()=>addMemberTo('#familyMembers'));
 
@@ -1561,7 +1574,7 @@ function clearCurrentTripState(){
   ['ffvp_saved','ffvp_trip_statuses','ffvp_plans','ffvp_discovered','ffvp_prep_done','ffvp_tomorrow_mood'].forEach(k=>localStorage.removeItem(k));
 }
 function startNewTrip(destinationKey='orlando'){
-  if(commercialTripLimitReached()){openPricing('trip');showToast('Explorer includes one vacation. Your current trip is safe.');return;}
+  if(commercialTripLimitReached()){openPricing('trip');showToast('The free trial includes one vacation. Your current trip is safe.');return;}
   archiveCurrentTrip();const old=state.profile;clearCurrentTripState();
   state.profile={...defaultProfile,members:JSON.parse(JSON.stringify(old.members?.length?old.members:defaultMembers())),maxDrive:old.maxDrive||30,budget:old.budget||'medium',energy:old.energy||'medium',interests:[...(old.interests||defaultProfile.interests)],heatAware:old.heatAware!==false,notes:old.notes||'',quickNotes:[...(old.quickNotes||[])],walkingTolerance:old.walkingTolerance||'medium',destinationPreset:destinationKey};
   countTripUse();localStorage.removeItem('ffvp_onboarded');saveProfile();closeNewTripDialog();loadProfileForm();showOnboarding();renderTripHub();
@@ -1686,7 +1699,7 @@ function initBetaTestingTools(){
   $('#showLanding')?.addEventListener('click',()=>showLanding());
   $('#restartOnboarding')?.addEventListener('click',()=>showOnboarding());
   $('#newUserTest')?.addEventListener('click',()=>{if(!confirm('Start a clean new-user test? This clears the saved family, trip, shortlist and memories on this device.'))return;const keepForce=localStorage.getItem('ffvp_force_onboarding')??'1';const keepLanding=localStorage.getItem('ffvp_force_landing')??'1';clearTripLocalData(false);['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));localStorage.setItem('ffvp_force_onboarding',keepForce);localStorage.setItem('ffvp_force_landing',keepLanding);location.reload();});
-  $('#resetAppData')?.addEventListener('click',()=>{if(!confirm('Reset ALL Family Vacation Planner data and testing settings on this device?'))return;localStorage.clear();location.reload();});
+  $('#resetAppData')?.addEventListener('click',()=>{if(!confirm('Reset ALL FERDA data and testing settings on this device?'))return;localStorage.clear();location.reload();});
   $('#openPricingBtn')?.addEventListener('click',()=>openPricing('choice'));
   $('#closePricing')?.addEventListener('click',closePricing);
   $('#pricingDialog')?.addEventListener('click',e=>{if(e.target.id==='pricingDialog')closePricing();});
@@ -1694,7 +1707,7 @@ function initBetaTestingTools(){
   $('#applyCommercialTest')?.addEventListener('click',()=>{setCommercialTier($('#testCommercialPlan').value);setFreshUsed(+$('#testFreshUsed').value||0);localStorage.setItem('ffvp_trip_uses',String(Math.max(0,+$('#testTripUses').value||0)));updateCommercialUI();showToast('Commercial test state applied');});
   $('#exhaustFreshIdeas')?.addEventListener('click',()=>{const p=commercialPlan();setFreshUsed(Math.max(0,p.freshLimit-1));showToast('One Fresh Idea left — ready to test the limit');});
   $('#resetDecisionLearning')?.addEventListener('click',()=>{state.recommendationFeedback={};state.decisionEvents=[];state.nowContext={day:betaLocalDayStamp(),time2:false,cheap:false,lowEnergy:false,drive:false,food:false};localStorage.removeItem('ffvp_recommendation_feedback');localStorage.removeItem('ffvp_decision_events');localStorage.setItem('ffvp_now_context',JSON.stringify(state.nowContext));renderNowContext();renderDecisionMetrics();showToast('What Now learning reset');});
-  $('#resetCommercialTest')?.addEventListener('click',()=>{['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));updateCommercialUI();showToast('Commercial test reset to Explorer');});
+  $('#resetCommercialTest')?.addEventListener('click',()=>{['ffvp_commercial_tier','ffvp_fresh_used','ffvp_trip_uses','ffvp_test_ad_hidden'].forEach(k=>localStorage.removeItem(k));updateCommercialUI();showToast('Commercial test reset to Free Trial');});
   $('#dismissTestAd')?.addEventListener('click',()=>{localStorage.setItem('ffvp_test_ad_hidden','1');updateCommercialUI();});
 }
 initBetaTestingTools();

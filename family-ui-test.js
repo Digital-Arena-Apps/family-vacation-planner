@@ -15,16 +15,19 @@
   .family-v2-roster{display:grid;gap:12px;margin:0 0 16px}
   .family-v2-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid rgba(13,107,103,.10);border-radius:22px;background:rgba(255,255,255,.92);box-shadow:0 10px 28px rgba(27,53,61,.07)}
   .family-v2-summary-main{display:flex;align-items:center;gap:11px;min-width:0}
-  .family-v2-summary-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#e6f6f4;color:var(--teal);font-weight:800;font-size:1.05rem}
+  .family-v2-summary-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:15px;background:#e6f6f4;overflow:hidden}
+  .family-v2-summary-icon img{width:100%;height:100%;object-fit:cover}
   .family-v2-summary-copy{min-width:0;display:flex;flex-wrap:wrap;gap:5px;align-items:baseline}
   .family-v2-summary-copy b{font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:1rem}
   .family-v2-summary-copy span{color:var(--teal);font-weight:800;font-size:.88rem}
-  .family-v2-add{appearance:none;border:1px solid rgba(13,107,103,.16);background:#f1fbfa;color:var(--teal);border-radius:16px;padding:10px 13px;font-weight:800;white-space:nowrap;min-height:44px}
+  .family-v2-add{appearance:none;border:1px solid rgba(13,107,103,.16);background:#f1fbfa;color:var(--teal);border-radius:16px;padding:7px 12px 7px 7px;font-weight:800;white-space:nowrap;min-height:48px;display:flex;align-items:center;gap:6px}
+  .family-v2-add img{width:34px;height:34px;object-fit:contain}
   .family-v2-list{display:grid;gap:10px}
   .family-v2-card{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto 18px;align-items:center;gap:12px;text-align:left;border:1px solid rgba(24,50,58,.075);border-radius:22px;background:#fff;padding:12px 14px;box-shadow:0 10px 26px rgba(27,53,61,.065);color:var(--ink);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
   .family-v2-card:active{transform:scale(.985)}
   .family-v2-card:hover{border-color:rgba(13,107,103,.18);box-shadow:0 13px 30px rgba(27,53,61,.09)}
-  .family-v2-avatar{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#e8f8f6,#d9f0ed);color:var(--teal-dark);font-family:"Plus Jakarta Sans",Inter,sans-serif;font-size:1.18rem;font-weight:800}
+  .family-v2-avatar{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#e8f8f6,#d9f0ed);overflow:hidden}
+  .family-v2-avatar img{width:100%;height:100%;object-fit:cover}
   .family-v2-card:nth-child(3n+2) .family-v2-avatar{background:linear-gradient(145deg,#fff3e7,#ffe5cf);color:#b85c2b}
   .family-v2-card:nth-child(3n) .family-v2-avatar{background:linear-gradient(145deg,#f1efff,#e3ddff);color:#5c4fa4}
   .family-v2-person{min-width:0}
@@ -39,7 +42,8 @@
   .family-v2-pref-toggle span:first-child{display:grid;gap:2px}.family-v2-pref-toggle b{font-size:.95rem}.family-v2-pref-toggle small{color:var(--muted);font-size:.78rem}.family-v2-pref-action{color:var(--teal);font-weight:800;font-size:.85rem}
   #familyForm.family-v2-preferences-form{overflow:hidden;transition:max-height .28s ease,opacity .2s ease,margin .2s ease,padding .2s ease}
   #familyForm.family-v2-preferences-form.family-v2-collapsed{display:none}
-  .family-v2-fab{position:fixed;right:max(18px,calc((100vw - 720px)/2 + 18px));bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:58;width:56px;height:56px;border:0;border-radius:50%;background:linear-gradient(145deg,#119b94,#08746f);color:white;font-size:2rem;font-weight:300;box-shadow:0 14px 30px rgba(8,116,111,.28);display:grid;place-items:center;line-height:1}
+  .family-v2-fab{position:fixed;right:max(18px,calc((100vw - 720px)/2 + 18px));bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:58;width:58px;height:58px;border:0;border-radius:50%;background:#fff8e9;box-shadow:0 14px 30px rgba(8,116,111,.28);display:grid;place-items:center;line-height:1;padding:3px}
+  .family-v2-fab img{width:52px;height:52px;object-fit:contain}
   .family-v2-backdrop{position:fixed;inset:0;background:rgba(17,34,39,.34);backdrop-filter:blur(3px);z-index:110;opacity:0;pointer-events:none;transition:opacity .2s ease}
   .family-v2-backdrop.open{opacity:1;pointer-events:auto}
   .family-v2-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(760px,100%);max-height:min(78vh,690px);overflow:auto;overscroll-behavior:contain;z-index:120;background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -20px 55px rgba(18,39,45,.2);padding:10px 18px calc(20px + env(safe-area-inset-bottom,0px));transition:transform .26s cubic-bezier(.2,.8,.2,1)}
@@ -65,6 +69,11 @@
   }
   function esc(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function members(){return Array.isArray(state?.profile?.members)?state.profile.members:[];}
+  function avatarFor(m,index){
+    if(typeof memberAvatar==='function')return memberAvatar(m,index);
+    const fallback=['bobcat','manatee','otter','black_bear','alligator','sea_turtle','gecko','osprey'][index%8];
+    return {key:fallback,src:`assets/ferda/avatars/avatar_${fallback}.webp`};
+  }
   function initialFor(m,index){
     const name=String(m?.name||'').trim();
     if(name){const p=name.split(/\s+/).filter(Boolean);return (p.length>1?p[0][0]+p[p.length-1][0]:p[0][0]).toUpperCase();}
@@ -94,7 +103,7 @@
     if(oldHeading?.classList.contains('setup-heading'))oldHeading.classList.add('family-v2-source-hidden');
 
     const roster=document.createElement('section');roster.id='familyV2Roster';roster.className='family-v2-roster';
-    roster.innerHTML=`<div class="family-v2-summary"><div class="family-v2-summary-main"><div class="family-v2-summary-icon">◎</div><div class="family-v2-summary-copy"><b>Your holiday crew</b><span id="familyV2Count"></span></div></div><button id="familyV2Add" class="family-v2-add" type="button">＋ Add person</button></div><div id="familyV2List" class="family-v2-list"></div>`;
+    roster.innerHTML=`<div class="family-v2-summary"><div class="family-v2-summary-main"><div class="family-v2-summary-icon"><img src="assets/ferda/icons/ferda-ui-icon-holiday-crew.webp" alt=""></div><div class="family-v2-summary-copy"><b>Your holiday crew</b><span id="familyV2Count"></span></div></div><button id="familyV2Add" class="family-v2-add" type="button"><img src="assets/ferda/icons/ferda-ui-icon-add-person.webp" alt="">Add person</button></div><div id="familyV2List" class="family-v2-list"></div>`;
     const form=document.getElementById('familyForm');view.insertBefore(roster,form||view.firstChild);
 
     if(form){
@@ -107,7 +116,7 @@
       form.addEventListener('submit',()=>setTimeout(()=>{renderRoster();form.classList.add('family-v2-collapsed');toggle.querySelector('.family-v2-pref-action').textContent='Edit';},30));
     }
 
-    const fab=document.createElement('button');fab.id='familyV2Fab';fab.className='family-v2-fab';fab.type='button';fab.setAttribute('aria-label','Add family member');fab.textContent='+';document.body.appendChild(fab);
+    const fab=document.createElement('button');fab.id='familyV2Fab';fab.className='family-v2-fab';fab.type='button';fab.setAttribute('aria-label','Add family member');fab.innerHTML='<img src="assets/ferda/icons/ferda-ui-icon-add-person.webp" alt="">';document.body.appendChild(fab);
     fab.addEventListener('click',()=>openSheet(null));
     document.getElementById('familyV2Add').addEventListener('click',()=>openSheet(null));
 
@@ -180,7 +189,7 @@
     const name=document.getElementById('familyV2Name').value.trim()||'Family member',age=Math.max(0,+document.getElementById('familyV2Age').value||0),height=Math.round(getHeight()*10)/10,thrill=getThrill();
     const band=typeof heightBandFromInches==='function'?heightBandFromInches(height):undefined;
     if(editingId){const i=members().findIndex(m=>String(m.id)===editingId);if(i>=0)state.profile.members[i]={...state.profile.members[i],name,age,height,heightUnit:draftUnit,heightBand:band||state.profile.members[i].heightBand,role:draftRole,thrill};}
-    else{const id=globalThis.crypto?.randomUUID?.()||String(Date.now()+Math.random());state.profile.members=[...members(),{id,name,age,height,heightUnit:draftUnit,heightBand:band||'unknown',role:draftRole,thrill}];}
+    else{const id=globalThis.crypto?.randomUUID?.()||String(Date.now()+Math.random()),avatar=avatarFor({},members().length);state.profile.members=[...members(),{id,name,age,height,heightUnit:draftUnit,heightBand:band||'unknown',role:draftRole,thrill,avatarKey:avatar.key}];}
     persist();closeSheet();try{if(typeof showToast==='function')showToast(wasEditing?'Person updated':'Person added');}catch(e){}
   }
   function deleteDraft(){
@@ -192,7 +201,7 @@
     const list=document.getElementById('familyV2List'),count=document.getElementById('familyV2Count');if(!list||!count)return;
     const all=members();count.textContent=`· ${all.length} ${all.length===1?'person':'people'}`;
     if(!all.length){list.innerHTML='<div class="family-v2-empty">No family members yet. Add someone to start tailoring the trip.</div>';return;}
-    list.innerHTML=all.map((m,i)=>{const v=vibe(m.thrill),meta=[displayRole(m),Number.isFinite(+m.age)?`${+m.age}`:'',displayHeight(m)].filter(Boolean).join(' · ');return `<button type="button" class="family-v2-card" data-family-v2-id="${esc(m.id)}"><span class="family-v2-avatar" aria-hidden="true">${esc(initialFor(m,i))}</span><span class="family-v2-person"><b>${esc(m.name||'Family member')}</b><small>${esc(meta)}</small></span><span class="family-v2-vibe ${v.cls}"><span>${v.icon}</span>${esc(v.label)}</span><span class="family-v2-chevron">›</span></button>`;}).join('');
+    list.innerHTML=all.map((m,i)=>{const v=vibe(m.thrill),avatar=avatarFor(m,i),meta=[displayRole(m),Number.isFinite(+m.age)?`${+m.age}`:'',displayHeight(m)].filter(Boolean).join(' · ');return `<button type="button" class="family-v2-card" data-family-v2-id="${esc(m.id)}"><span class="family-v2-avatar" aria-hidden="true"><img src="${esc(avatar.src)}" alt=""></span><span class="family-v2-person"><b>${esc(m.name||'Family member')}</b><small>${esc(meta)}</small></span><span class="family-v2-vibe ${v.cls}"><span>${v.icon}</span>${esc(v.label)}</span><span class="family-v2-chevron">›</span></button>`;}).join('');
     list.querySelectorAll('[data-family-v2-id]').forEach(card=>card.addEventListener('click',()=>openSheet(card.dataset.familyV2Id)));
   }
 
